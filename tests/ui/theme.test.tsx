@@ -26,3 +26,29 @@ test("tokens de marca e status existem em :root e .dark", () => {
     expect(dark, `${token} em .dark`).toContain(`${token}:`);
   }
 });
+
+test("a fonte sans aponta para a variável do Geist (não para si mesma)", () => {
+  const css = readFileSync("src/app/globals.css", "utf8");
+  const decl = css.match(/--font-sans:\s*([^;]+);/)?.[1] ?? "";
+  expect(decl).toContain("--font-geist-sans");
+  expect(decl).not.toMatch(/var\(--font-sans\)/);
+});
+
+test("grids não deixam texto longo estourar a coluna (minmax(0,1fr) na camada base)", () => {
+  const css = readFileSync("src/app/globals.css", "utf8");
+  const base = css.slice(css.indexOf("@layer base"));
+  expect(base).toMatch(/\.grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+});
+
+test("botão primário mantém contraste AA no hover (hover:bg-primary/90, não /80)", () => {
+  const src = readFileSync("src/components/ui/button.tsx", "utf8");
+  expect(src).toContain("hover:bg-primary/90");
+  expect(src).not.toContain("hover:bg-primary/80");
+});
+
+test("variante destrutiva usa tokens -soft/-ink (contraste AA), não vermelho sobre vermelho translúcido", () => {
+  const src = readFileSync("src/components/ui/button.tsx", "utf8");
+  const destructive = src.match(/destructive:\s*"([^"]+)"/)?.[1] ?? "";
+  expect(destructive).toContain("bg-destructive-soft");
+  expect(destructive).toContain("text-destructive-ink");
+});
