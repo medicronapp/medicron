@@ -29,3 +29,8 @@ export function intervalLabel(minutes: number): string {
   if (minutes % 60 === 0) return `A cada ${minutes / 60} horas`;
   return `A cada ${minutes} minutos`;
 }
+
+/** Próximo quarto de hora cheio, no formato do datetime-local (Brasília). */
+export function nextQuarterHourInput(now: Date = new Date()): string {
+  return toLocalInput(new Date(Math.ceil(now.getTime() / 900_000) * 900_000));
+}

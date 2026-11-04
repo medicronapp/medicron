@@ -19,3 +19,9 @@ test("intervalLabel descreve minutos em horas/dias", () => {
   expect(intervalLabel(90)).toBe("A cada 90 minutos");
   expect(intervalLabel(4320)).toBe("A cada 3 dias");
 });
+
+test("nextQuarterHourInput arredonda para cima ao quarto de hora em Brasília", async () => {
+  const { nextQuarterHourInput } = await import("@/lib/time");
+  expect(nextQuarterHourInput(new Date("2026-11-04T11:07:00Z"))).toBe("2026-11-04T08:15");
+  expect(nextQuarterHourInput(new Date("2026-11-04T11:15:00Z"))).toBe("2026-11-04T08:15");
+});

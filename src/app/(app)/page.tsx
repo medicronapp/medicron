@@ -9,8 +9,8 @@ import { DoseCard } from "@/components/dose-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-function Group({ title, entries, tone, now }: {
-  title: string; entries: AgendaEntry[]; tone: "overdue" | "now" | "upcoming"; now: Date;
+function Group({ title, entries, tone }: {
+  title: string; entries: AgendaEntry[]; tone: "overdue" | "now" | "upcoming";
 }) {
   if (entries.length === 0) return null;
   return (
@@ -50,9 +50,9 @@ export default async function Page() {
       {cats.length > 0 && empty && (
         <p className="text-muted-foreground">Nada agendado para as próximas 24 horas. Adicione uma rotina na página de um gato.</p>
       )}
-      <Group title="Atrasadas" entries={agenda.overdue} tone="overdue" now={now} />
-      <Group title="Agora" entries={agenda.dueNow} tone="now" now={now} />
-      <Group title="Próximas 24 horas" entries={agenda.upcoming} tone="upcoming" now={now} />
+      <Group title="Atrasadas" entries={agenda.overdue} tone="overdue" />
+      <Group title="Agora" entries={agenda.dueNow} tone="now" />
+      <Group title="Próximas 24 horas" entries={agenda.upcoming} tone="upcoming" />
       {logs.length > 0 && (
         <section className="grid gap-2">
           <h2 className="font-semibold">Últimos registros</h2>

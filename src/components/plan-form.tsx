@@ -1,14 +1,14 @@
 import type { Item } from "@/lib/db/schema";
 import { INTERVAL_PRESETS } from "@/lib/schedule";
-import { toLocalInput } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function PlanForm({ items, action }: { items: Item[]; action: (f: FormData) => Promise<void> }) {
+export function PlanForm({ items, defaultAnchor, action }: {
+  items: Item[]; defaultAnchor: string; action: (f: FormData) => Promise<void>;
+}) {
   const meds = items.filter((i) => i.kind === "medication");
   const procs = items.filter((i) => i.kind === "procedure");
-  const soon = new Date(Math.ceil(Date.now() / 900_000) * 900_000);
   const sel = "h-11 rounded-md border bg-background px-2";
   return (
     <form action={action} className="grid gap-4">
@@ -37,7 +37,7 @@ export function PlanForm({ items, action }: { items: Item[]; action: (f: FormDat
       </div>
       <div className="grid gap-2">
         <Label htmlFor="anchorAt">Horário da primeira dose</Label>
-        <Input id="anchorAt" name="anchorAt" type="datetime-local" required defaultValue={toLocalInput(soon)} className="h-11" />
+        <Input id="anchorAt" name="anchorAt" type="datetime-local" required defaultValue={defaultAnchor} className="h-11" />
       </div>
       <div className="grid gap-2">
         <Label htmlFor="endAt">Até quando? (opcional)</Label>

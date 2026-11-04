@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { getOrgContext } from "@/lib/session";
 import { getCat } from "@/lib/services/cats";
 import { listItems } from "@/lib/services/items";
+import { nextQuarterHourInput } from "@/lib/time";
 import { PlanForm } from "@/components/plan-form";
 import { createPlanAction } from "../actions";
 
@@ -19,7 +20,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       {items.length === 0 ? (
         <p className="text-muted-foreground">Cadastre antes uma medicação ou procedimento na aba Itens.</p>
       ) : (
-        <PlanForm items={items} action={createPlanAction.bind(null, cat.id)} />
+        <PlanForm items={items} defaultAnchor={nextQuarterHourInput()} action={createPlanAction.bind(null, cat.id)} />
       )}
     </div>
   );
