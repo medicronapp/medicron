@@ -34,3 +34,20 @@ export function intervalLabel(minutes: number): string {
 export function nextQuarterHourInput(now: Date = new Date()): string {
   return toLocalInput(new Date(Math.ceil(now.getTime() / 900_000) * 900_000));
 }
+
+/** "em 25 min", "há 2 h", "agora" — arredonda para baixo. */
+export function relativeLabel(target: Date, now: Date): string {
+  const diff = target.getTime() - now.getTime();
+  const abs = Math.abs(diff);
+  if (abs < 60_000) return "agora";
+  const amount =
+    abs < 3_600_000 ? `${Math.floor(abs / 60_000)} min`
+    : abs < 86_400_000 ? `${Math.floor(abs / 3_600_000)} h`
+    : `${Math.floor(abs / 86_400_000)} d`;
+  return diff > 0 ? `em ${amount}` : `há ${amount}`;
+}
+
+/** "quarta-feira, 4 de novembro" em Brasília. */
+export function formatLongDate(date: Date): string {
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" }).format(date);
+}
