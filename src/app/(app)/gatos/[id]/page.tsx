@@ -58,7 +58,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                     </div>
                   </div>
                   <ConfirmAction
-                    triggerLabel="Encerrar" triggerVariant="outline" triggerSize="sm"
+                    triggerLabel="Encerrar" triggerVariant="outline"
                     title={`Encerrar ${p.item.name}?`}
                     description={`Os lembretes de ${p.item.name} para ${cat.name} serão interrompidos. O histórico é mantido.`}
                     confirmLabel="Encerrar rotina"

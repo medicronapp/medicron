@@ -5,6 +5,7 @@ import { LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
 import { authClient } from "@/lib/auth-client";
 import { initials } from "@/lib/format";
+import { unsubscribePush } from "@/lib/push/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
@@ -16,6 +17,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
   const { setTheme } = useTheme();
 
   async function signOut() {
+    await unsubscribePush(); // precisa da sessão ainda ativa
     await authClient.signOut();
     router.push("/entrar");
     router.refresh();
@@ -25,7 +27,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Menu do usuário"
-        className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <Avatar size="lg">
           <AvatarFallback className="bg-brand-soft font-semibold text-brand-ink">{initials(name)}</AvatarFallback>
@@ -39,14 +41,14 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/conta" />} className="h-10">
+        <DropdownMenuItem render={<Link href="/conta" />} className="h-11">
           <UserRound aria-hidden /> Minha conta
         </DropdownMenuItem>
-        <DropdownMenuItem className="h-10" onClick={() => setTheme("light")}><Sun aria-hidden /> Tema claro</DropdownMenuItem>
-        <DropdownMenuItem className="h-10" onClick={() => setTheme("dark")}><Moon aria-hidden /> Tema escuro</DropdownMenuItem>
-        <DropdownMenuItem className="h-10" onClick={() => setTheme("system")}><Monitor aria-hidden /> Tema do sistema</DropdownMenuItem>
+        <DropdownMenuItem className="h-11" onClick={() => setTheme("light")}><Sun aria-hidden /> Tema claro</DropdownMenuItem>
+        <DropdownMenuItem className="h-11" onClick={() => setTheme("dark")}><Moon aria-hidden /> Tema escuro</DropdownMenuItem>
+        <DropdownMenuItem className="h-11" onClick={() => setTheme("system")}><Monitor aria-hidden /> Tema do sistema</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="h-10 text-destructive" onClick={signOut}>
+        <DropdownMenuItem className="h-11 text-destructive" onClick={signOut}>
           <LogOut aria-hidden /> Sair
         </DropdownMenuItem>
       </DropdownMenuContent>

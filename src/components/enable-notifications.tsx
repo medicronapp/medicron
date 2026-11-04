@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { BellOff, BellRing } from "lucide-react";
 import { toast } from "sonner";
+import { unsubscribePush } from "@/lib/push/client";
 import { Button } from "@/components/ui/button";
 
 type State = "loading" | "unsupported" | "needs-install" | "default" | "denied" | "enabled";
@@ -46,14 +47,7 @@ export function EnableNotifications({ compact = false }: { compact?: boolean }) 
   }
 
   async function disable() {
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      await fetch("/api/push/subscribe", {
-        method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ endpoint: sub.endpoint }),
-      });
-      await sub.unsubscribe();
-    }
+    await unsubscribePush();
     setState("default");
   }
 

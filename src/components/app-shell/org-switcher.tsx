@@ -25,7 +25,7 @@ export function OrgSwitcher({ activeId }: { activeId: string }) {
         {orgs.map((o) => (
           <DropdownMenuItem
             key={o.id}
-            className="h-10"
+            className="h-11"
             onClick={async () => {
               await authClient.organization.setActive({ organizationId: o.id });
               router.refresh();
@@ -36,7 +36,7 @@ export function OrgSwitcher({ activeId }: { activeId: string }) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="h-10" onClick={() => router.push("/nova-conta")}>
+        <DropdownMenuItem className="h-11" onClick={() => router.push("/nova-conta")}>
           <Plus aria-hidden /> Nova conta…
         </DropdownMenuItem>
       </DropdownMenuContent>

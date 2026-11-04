@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { Check, Loader2, Pill, SkipForward, Stethoscope } from "lucide-react";
+import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import { toast } from "sonner";
 import { recordDoseAction } from "@/app/(app)/actions";
 import { FormField } from "@/components/form-field";
@@ -78,6 +79,7 @@ export function DoseCard(p: DoseCardProps) {
 
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerContent>
+          <DrawerPrimitive.VirtualKeyboardProvider>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -101,6 +103,7 @@ export function DoseCard(p: DoseCardProps) {
               <Button type="submit" size="lg" disabled={pending}>Confirmar</Button>
             </DrawerFooter>
           </form>
+          </DrawerPrimitive.VirtualKeyboardProvider>
         </DrawerContent>
       </Drawer>
     </article>

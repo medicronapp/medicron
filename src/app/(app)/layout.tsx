@@ -27,7 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
       <main className="mx-auto max-w-3xl px-4 pt-6 pb-28 md:pb-10">{children}</main>
       <BottomNav />
-      <Toaster position="top-center" richColors closeButton />
+      <Toaster position="top-center" richColors />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export function SegmentedLinks({ label, items }: Props) {
           href={i.href}
           aria-current={i.active ? "page" : undefined}
           className={cn(
-            "flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-colors",
+            "flex h-11 items-center justify-center rounded-lg text-sm font-medium transition-colors",
             i.active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
           )}
         >

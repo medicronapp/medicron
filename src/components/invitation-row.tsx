@@ -33,7 +33,11 @@ export function InvitationRow({ id, email }: { id: string; email: string }) {
           description={`O link enviado para ${email} deixará de funcionar.`}
           confirmLabel="Cancelar convite"
           action={async () => {
-            await authClient.organization.cancelInvitation({ invitationId: id });
+            const { error } = await authClient.organization.cancelInvitation({ invitationId: id });
+            if (error) {
+              toast.error("Não foi possível cancelar o convite.");
+              return;
+            }
             toast.success("Convite cancelado");
             router.refresh();
           }}
