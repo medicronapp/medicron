@@ -77,3 +77,4 @@ export type Item = typeof items.$inferSelect;
 export type CarePlan = typeof carePlans.$inferSelect;
 export type DoseLog = typeof doseLogs.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export * from "./auth-schema";
