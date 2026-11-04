@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export function AcceptInvite({ invitationId }: { invitationId: string }) {
@@ -9,15 +11,16 @@ export function AcceptInvite({ invitationId }: { invitationId: string }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-3">
       <Button
-        className="h-11"
+        size="lg"
         disabled={busy}
         onClick={async () => {
           setBusy(true);
+          setError("");
           const { data, error } = await authClient.organization.acceptInvitation({ invitationId });
           if (error || !data) {
-            setError("Não foi possível aceitar o convite (talvez já seja membro ou o convite seja de outro e-mail).");
+            setError("Não foi possível aceitar o convite (talvez você já seja membro ou o convite seja de outro e-mail).");
             setBusy(false);
             return;
           }
@@ -26,9 +29,15 @@ export function AcceptInvite({ invitationId }: { invitationId: string }) {
           router.refresh();
         }}
       >
+        {busy && <Loader2 aria-hidden className="animate-spin" />}
         Aceitar convite
       </Button>
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <Alert variant="destructive" className="text-left">
+          <TriangleAlert aria-hidden />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }

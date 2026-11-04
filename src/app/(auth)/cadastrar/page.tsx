@@ -1,13 +1,16 @@
 "use client";
-import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { safeNext } from "@/lib/redirect";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { safeNext } from "@/lib/redirect";
 import { orgSlug } from "@/lib/slug";
+import { FormField } from "@/components/form-field";
+import { PasswordInput } from "@/components/password-input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 function Form() {
   const router = useRouter();
@@ -46,26 +49,39 @@ function Form() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor="name">Seu nome</Label>
-        <Input id="name" name="name" autoComplete="name" required className="h-11" />
+    <div className="grid gap-6">
+      <div className="grid gap-1.5">
+        <h1>Criar conta</h1>
+        <p className="text-sm text-muted-foreground">Leva menos de um minuto. Depois é só cadastrar seus gatos.</p>
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="email">E-mail</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required className="h-11" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="password">Senha (mín. 8 caracteres)</Label>
-        <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} required className="h-11" />
-      </div>
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" disabled={loading} className="h-11">{loading ? "Criando…" : "Criar conta"}</Button>
+      <form onSubmit={onSubmit} className="grid gap-4">
+        <FormField label="Seu nome" htmlFor="name">
+          <Input id="name" name="name" autoComplete="name" required />
+        </FormField>
+        <FormField label="E-mail" htmlFor="email">
+          <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required />
+        </FormField>
+        <FormField label="Senha" htmlFor="password" hint="Mínimo de 8 caracteres.">
+          <PasswordInput id="password" name="password" autoComplete="new-password" minLength={8} required />
+        </FormField>
+        {error && (
+          <Alert variant="destructive">
+            <TriangleAlert aria-hidden />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <Button type="submit" size="lg" disabled={loading}>
+          {loading && <Loader2 aria-hidden className="animate-spin" />}
+          {loading ? "Criando…" : "Criar conta"}
+        </Button>
+      </form>
       <p className="text-center text-sm text-muted-foreground">
         Já tem conta?{" "}
-        <Link className="underline" href={`/entrar?next=${encodeURIComponent(next)}`}>Entrar</Link>
+        <Link className="font-medium text-primary underline-offset-4 hover:underline" href={`/entrar?next=${encodeURIComponent(next)}`}>
+          Entrar
+        </Link>
       </p>
-    </form>
+    </div>
   );
 }
 

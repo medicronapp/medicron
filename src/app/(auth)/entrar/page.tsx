@@ -1,13 +1,15 @@
 "use client";
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { Suspense } from "react";
-import { safeNext } from "@/lib/redirect";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { safeNext } from "@/lib/redirect";
+import { FormField } from "@/components/form-field";
+import { PasswordInput } from "@/components/password-input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 function Form() {
   const router = useRouter();
@@ -34,22 +36,36 @@ function Form() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor="email">E-mail</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required className="h-11" />
+    <div className="grid gap-6">
+      <div className="grid gap-1.5">
+        <h1>Entrar</h1>
+        <p className="text-sm text-muted-foreground">Acesse sua conta para ver os cuidados de hoje.</p>
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="password">Senha</Label>
-        <Input id="password" name="password" type="password" autoComplete="current-password" required className="h-11" />
-      </div>
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" disabled={loading} className="h-11">{loading ? "Entrando…" : "Entrar"}</Button>
+      <form onSubmit={onSubmit} className="grid gap-4">
+        <FormField label="E-mail" htmlFor="email">
+          <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required />
+        </FormField>
+        <FormField label="Senha" htmlFor="password">
+          <PasswordInput id="password" name="password" autoComplete="current-password" required />
+        </FormField>
+        {error && (
+          <Alert variant="destructive">
+            <TriangleAlert aria-hidden />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <Button type="submit" size="lg" disabled={loading}>
+          {loading && <Loader2 aria-hidden className="animate-spin" />}
+          {loading ? "Entrando…" : "Entrar"}
+        </Button>
+      </form>
       <p className="text-center text-sm text-muted-foreground">
         Primeira vez?{" "}
-        <Link className="underline" href={`/cadastrar?next=${encodeURIComponent(next)}`}>Criar conta</Link>
+        <Link className="font-medium text-primary underline-offset-4 hover:underline" href={`/cadastrar?next=${encodeURIComponent(next)}`}>
+          Criar conta
+        </Link>
       </p>
-    </form>
+    </div>
   );
 }
 

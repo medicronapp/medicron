@@ -1,35 +1,58 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { orgSlug } from "@/lib/slug";
+import { FormField } from "@/components/form-field";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export default function Page() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     const name = String(new FormData(e.currentTarget).get("name")).trim();
     const { data, error } = await authClient.organization.create({ name, slug: orgSlug(name) });
-    if (error || !data) return setError("Não foi possível criar a conta.");
+    if (error || !data) {
+      setError("Não foi possível criar a conta.");
+      setLoading(false);
+      return;
+    }
     await authClient.organization.setActive({ organizationId: data.id });
     router.push("/");
     router.refresh();
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <h2 className="text-lg font-medium">Nova conta</h2>
-      <div className="grid gap-2">
-        <Label htmlFor="name">Nome da conta (ex.: Casa da vovó)</Label>
-        <Input id="name" name="name" required maxLength={60} className="h-11" />
+    <div className="grid gap-6">
+      <div className="grid gap-1.5">
+        <h1>Nova conta</h1>
+        <p className="text-sm text-muted-foreground">
+          Cada conta tem seus próprios gatos, itens e pessoas. Use uma para cada casa ou família.
+        </p>
       </div>
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="h-11">Criar conta</Button>
-    </form>
+      <form onSubmit={onSubmit} className="grid gap-4">
+        <FormField label="Nome da conta" htmlFor="name" hint="Ex.: Casa da vovó">
+          <Input id="name" name="name" required maxLength={60} />
+        </FormField>
+        {error && (
+          <Alert variant="destructive">
+            <TriangleAlert aria-hidden />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <Button type="submit" size="lg" disabled={loading}>
+          {loading && <Loader2 aria-hidden className="animate-spin" />}
+          Criar conta
+        </Button>
+      </form>
+    </div>
   );
 }
