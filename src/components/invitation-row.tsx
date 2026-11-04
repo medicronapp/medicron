@@ -1,35 +1,44 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { inviteLink } from "@/lib/invites";
+import { ConfirmAction } from "@/components/confirm-action";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export function InvitationRow({ id, email }: { id: string; email: string }) {
   const router = useRouter();
   return (
-    <li className="flex items-center justify-between gap-2 py-2">
-      <span className="truncate text-sm">{email}</span>
-      <span className="flex gap-2">
+    <li className="grid gap-2 py-3">
+      <div className="flex items-center gap-2">
+        <Mail aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 truncate text-sm">{email}</span>
+        <Badge variant="outline">Pendente</Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
         <Button
-          size="sm" variant="secondary" className="h-10"
+          variant="secondary"
           onClick={async () => {
             await navigator.clipboard.writeText(inviteLink(id, window.location.origin));
             toast.success("Link copiado");
           }}
         >
-          Copiar link
+          <Copy aria-hidden /> Copiar link
         </Button>
-        <Button
-          size="sm" variant="outline" className="h-10"
-          onClick={async () => {
+        <ConfirmAction
+          triggerLabel="Cancelar" triggerVariant="outline"
+          title="Cancelar convite?"
+          description={`O link enviado para ${email} deixará de funcionar.`}
+          confirmLabel="Cancelar convite"
+          action={async () => {
             await authClient.organization.cancelInvitation({ invitationId: id });
+            toast.success("Convite cancelado");
             router.refresh();
           }}
-        >
-          Cancelar
-        </Button>
-      </span>
+        />
+      </div>
     </li>
   );
 }
