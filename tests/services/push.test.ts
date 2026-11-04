@@ -53,3 +53,14 @@ describe("push subscriptions", () => {
     expect(await listSubscriptionsForOrg(db, "o1")).toEqual([]);
   });
 });
+
+describe("removeSubscription com dono", () => {
+  test("outro usuário não consegue remover a inscrição alheia", async () => {
+    const db = await seed();
+    await saveSubscription(db, "u1", sub("https://push/1"));
+    await removeSubscription(db, "https://push/1", "u2");
+    expect(await listSubscriptionsForOrg(db, "o1")).toHaveLength(1);
+    await removeSubscription(db, "https://push/1", "u1");
+    expect(await listSubscriptionsForOrg(db, "o1")).toEqual([]);
+  });
+});

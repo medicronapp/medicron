@@ -28,3 +28,18 @@ describe("assertMember", () => {
     await expect(assertMember(db, "u1", "o2")).rejects.toBeInstanceOf(Forbidden);
   });
 });
+
+import { pickActiveOrg } from "@/lib/tenancy";
+
+describe("pickActiveOrg", () => {
+  test("mantém a conta ativa quando o usuário ainda é membro", () => {
+    expect(pickActiveOrg("o2", ["o1", "o2"])).toBe("o2");
+  });
+  test("cai na primeira conta se a ativa não está mais na lista", () => {
+    expect(pickActiveOrg("o9", ["o1", "o2"])).toBe("o1");
+    expect(pickActiveOrg(null, ["o1"])).toBe("o1");
+  });
+  test("sem contas devolve null", () => {
+    expect(pickActiveOrg("o9", [])).toBeNull();
+  });
+});

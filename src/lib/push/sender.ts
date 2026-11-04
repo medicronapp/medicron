@@ -14,7 +14,7 @@ export const webPushSender: PushSender = async (sub, payload) => {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
       JSON.stringify(payload),
-      { TTL: 60 * 60 },
+      { TTL: 60 * 60, timeout: 10_000 },
     );
     return { ok: true };
   } catch (err) {

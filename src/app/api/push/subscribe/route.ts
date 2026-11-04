@@ -28,6 +28,6 @@ export async function DELETE(req: Request) {
   if (!uid) return Response.json({ error: "Não autenticado" }, { status: 401 });
   const body = z.object({ endpoint: z.url() }).safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Requisição inválida" }, { status: 400 });
-  await removeSubscription(getDb(), body.data.endpoint);
+  await removeSubscription(getDb(), body.data.endpoint, uid);
   return Response.json({ ok: true });
 }

@@ -20,3 +20,9 @@ export async function assertMember(db: Db, userId: string, orgId: string): Promi
   if (!row) throw new Forbidden();
   return row.role as OrgRole;
 }
+
+/** Mantém a conta ativa se o usuário ainda pertence a ela; senão usa a primeira disponível. */
+export function pickActiveOrg(activeId: string | null, orgIds: string[]): string | null {
+  if (activeId && orgIds.includes(activeId)) return activeId;
+  return orgIds[0] ?? null;
+}

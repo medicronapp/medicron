@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { assertMember, type OrgRole } from "@/lib/tenancy";
+import { assertMember, pickActiveOrg, type OrgRole } from "@/lib/tenancy";
 
 export type OrgContext = { userId: string; orgId: string; role: OrgRole };
 
@@ -11,11 +11,11 @@ export async function getOrgContext(): Promise<OrgContext> {
   const h = await headers();
   const session = await auth.api.getSession({ headers: h });
   if (!session) redirect("/entrar");
-  let orgId = session.session.activeOrganizationId ?? null;
-  if (!orgId) {
-    const orgs = await auth.api.listOrganizations({ headers: h });
-    if (orgs.length === 0) redirect("/nova-conta");
-    orgId = orgs[0].id;
+  const active = session.session.activeOrganizationId ?? null;
+  const orgs = await auth.api.listOrganizations({ headers: h });
+  const orgId = pickActiveOrg(active, orgs.map((o) => o.id));
+  if (!orgId) redirect("/nova-conta");
+  if (orgId !== active) {
     await auth.api.setActiveOrganization({ headers: h, body: { organizationId: orgId } });
   }
   const role = await assertMember(getDb(), session.user.id, orgId);

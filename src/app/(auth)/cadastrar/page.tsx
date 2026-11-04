@@ -2,6 +2,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { safeNext } from "@/lib/redirect";
 import { authClient } from "@/lib/auth-client";
 import { orgSlug } from "@/lib/slug";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 
 function Form() {
   const router = useRouter();
-  const next = useSearchParams().get("next") || "/";
+  const next = safeNext(useSearchParams().get("next"));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 

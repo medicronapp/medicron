@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { member, pushSubscriptions, type PushSubscriptionRow } from "@/lib/db/schema";
 
@@ -13,8 +13,11 @@ export async function saveSubscription(db: Db, userId: string, sub: BrowserSubsc
     });
 }
 
-export async function removeSubscription(db: Db, endpoint: string): Promise<void> {
-  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+/** Com `userId`, só apaga se a inscrição for dele; sem, remoção do sistema (endpoint expirado). */
+export async function removeSubscription(db: Db, endpoint: string, userId?: string): Promise<void> {
+  await db.delete(pushSubscriptions).where(
+    and(eq(pushSubscriptions.endpoint, endpoint), userId ? eq(pushSubscriptions.userId, userId) : undefined),
+  );
 }
 
 export async function listSubscriptionsForOrg(db: Db, orgId: string): Promise<PushSubscriptionRow[]> {

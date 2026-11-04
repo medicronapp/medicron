@@ -29,3 +29,12 @@ export function firstDueAt(anchor: Date, intervalMinutes: number, now: Date): Da
 export function isPlanLive(p: { active: boolean; endAt: Date | null }, slot: Date): boolean {
   return p.active && (p.endAt === null || slot.getTime() <= p.endAt.getTime());
 }
+
+/** Último slot anchor + k*interval <= `at`; null se `at` é anterior à âncora. */
+export function latestSlotAtOrBefore(anchor: Date, intervalMinutes: number, at: Date): Date | null {
+  if (!(intervalMinutes > 0)) throw new RangeError("intervalMinutes deve ser > 0");
+  if (at.getTime() < anchor.getTime()) return null;
+  const step = intervalMinutes * MS_PER_MIN;
+  const k = Math.floor((at.getTime() - anchor.getTime()) / step);
+  return new Date(anchor.getTime() + k * step);
+}

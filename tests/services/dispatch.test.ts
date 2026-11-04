@@ -109,3 +109,31 @@ describe("dispatchDue", () => {
     expect(sent).toHaveLength(2);
   });
 });
+
+describe("lembretes repetidos e falhas", () => {
+  test("dose não registrada é lembrada de novo a cada intervalo, uma vez por slot", async () => {
+    const { db, sent, send } = await setup();
+    await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
+    expect(sent).toHaveLength(2);
+    expect((await dispatchDue(db, d("2026-11-04T12:00:00Z"), send)).sent).toBe(0);
+    expect((await dispatchDue(db, d("2026-11-04T16:00:30Z"), send)).sent).toBe(2);
+    expect((await dispatchDue(db, d("2026-11-04T16:05:00Z"), send)).sent).toBe(0);
+    expect(new Set(sent.map((s) => s.tag)).size).toBe(2);
+  });
+
+  test("se todos os envios falharem, o lembrete é tentado de novo na rodada seguinte", async () => {
+    const { db, sent, send } = await setup();
+    const boom: PushSender = async () => { throw new Error("503"); };
+    const now = d("2026-11-04T08:00:30Z");
+    expect((await dispatchDue(db, now, boom)).sent).toBe(0);
+    expect((await dispatchDue(db, now, send)).sent).toBe(2);
+    expect(sent).toHaveLength(2);
+  });
+
+  test("depois do endAt não há novos lembretes", async () => {
+    const { db, send } = await setup();
+    await db.update(carePlans).set({ endAt: d("2026-11-04T09:00:00Z") });
+    await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
+    expect((await dispatchDue(db, d("2026-11-04T16:00:30Z"), send)).sent).toBe(0);
+  });
+});

@@ -11,6 +11,7 @@ let _db: Db | undefined;
 export function getDb(): Db {
   if (!_db) {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    pool.on("error", (err: Error) => console.error("pg pool error", err));
     _db = drizzle(pool, { schema }) as unknown as Db;
   }
   return _db;

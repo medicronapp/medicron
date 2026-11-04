@@ -48,3 +48,15 @@ describe("isPlanLive", () => {
 test("presets cobrem 4h a 7 dias", () => {
   expect(INTERVAL_PRESETS.map((p) => p.minutes)).toEqual([240, 360, 480, 720, 1440, 2880, 4320, 10080]);
 });
+
+import { latestSlotAtOrBefore } from "@/lib/schedule";
+
+describe("latestSlotAtOrBefore", () => {
+  test("devolve o slot em curso, inclusive quando at é exatamente um slot", () => {
+    expect(latestSlotAtOrBefore(anchor, 480, d("2026-11-04T16:00:00Z"))).toEqual(d("2026-11-04T16:00:00Z"));
+    expect(latestSlotAtOrBefore(anchor, 480, d("2026-11-04T23:59:00Z"))).toEqual(d("2026-11-04T16:00:00Z"));
+  });
+  test("antes da âncora devolve null", () => {
+    expect(latestSlotAtOrBefore(anchor, 480, d("2026-11-04T07:59:00Z"))).toBeNull();
+  });
+});
