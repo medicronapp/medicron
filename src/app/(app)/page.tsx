@@ -4,6 +4,7 @@ import { getOrgContext } from "@/lib/session";
 import { listAgenda, listRecentLogs, type AgendaEntry } from "@/lib/services/doses";
 import { listCats } from "@/lib/services/cats";
 import { formatDateTime, formatTime } from "@/lib/time";
+import { EnableNotifications } from "@/components/enable-notifications";
 import { DoseCard } from "@/components/dose-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ export default async function Page() {
   return (
     <div className="grid gap-6">
       <h1 className="text-xl font-semibold">Hoje</h1>
+      <EnableNotifications compact />
       {cats.length === 0 && (
         <div className="grid gap-3 rounded-xl border p-4 text-center">
           <p>Comece cadastrando seu primeiro gato.</p>

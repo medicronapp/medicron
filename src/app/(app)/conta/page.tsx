@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getOrgContext } from "@/lib/session";
+import { EnableNotifications } from "@/components/enable-notifications";
 import { InviteForm } from "@/components/invite-form";
 import { InvitationRow } from "@/components/invitation-row";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ export default async function Page() {
   return (
     <div className="grid gap-4">
       <h1 className="text-xl font-semibold">{org?.name}</h1>
+      <EnableNotifications />
       <Card>
         <CardHeader><CardTitle>Pessoas nesta conta</CardTitle></CardHeader>
         <CardContent>
