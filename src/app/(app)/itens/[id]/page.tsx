@@ -2,9 +2,10 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { getOrgContext } from "@/lib/session";
 import { getItem } from "@/lib/services/items";
+import { ConfirmAction } from "@/components/confirm-action";
 import { ItemForm } from "@/components/item-form";
-import { Button } from "@/components/ui/button";
-import { updateItemAction, archiveItemAction } from "../actions";
+import { PageHeader } from "@/components/page-header";
+import { archiveItemAction, updateItemAction } from "../actions";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -12,12 +13,16 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const item = await getItem(getDb(), orgId, id);
   if (!item) notFound();
   return (
-    <div className="grid gap-6">
-      <h1 className="text-xl font-semibold">{item.name}</h1>
+    <div className="grid gap-8">
+      <PageHeader title={item.name} backHref={`/itens?tipo=${item.kind}`} />
       <ItemForm item={item} action={updateItemAction.bind(null, item.id)} />
-      <form action={archiveItemAction.bind(null, item.id)}>
-        <Button type="submit" variant="outline" className="h-11 w-full text-destructive">Arquivar item</Button>
-      </form>
+      <ConfirmAction
+        triggerLabel="Arquivar item" triggerSize="lg" triggerClassName="w-full"
+        title={`Arquivar ${item.name}?`}
+        description="O item some das listas e as rotinas que o usam são encerradas."
+        confirmLabel="Arquivar"
+        action={archiveItemAction.bind(null, item.id)}
+      />
     </div>
   );
 }

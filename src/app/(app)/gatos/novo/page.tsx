@@ -1,10 +1,11 @@
 import { CatForm } from "@/components/cat-form";
+import { PageHeader } from "@/components/page-header";
 import { createCatAction } from "../actions";
 
 export default function Page() {
   return (
-    <div className="grid gap-4">
-      <h1 className="text-xl font-semibold">Novo gato</h1>
+    <div className="grid gap-5">
+      <PageHeader title="Novo gato" backHref="/gatos" />
       <CatForm action={createCatAction} />
     </div>
   );

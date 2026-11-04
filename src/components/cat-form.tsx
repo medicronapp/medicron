@@ -1,29 +1,27 @@
 import type { Cat } from "@/lib/db/schema";
-import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/form-field";
+import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export function CatForm({ cat, action }: { cat?: Cat; action: (f: FormData) => Promise<void> }) {
   return (
     <form action={action} className="grid gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor="name">Nome</Label>
-        <Input id="name" name="name" required maxLength={60} defaultValue={cat?.name} className="h-11" />
+      <FormField label="Nome" htmlFor="name">
+        <Input id="name" name="name" required maxLength={60} defaultValue={cat?.name} />
+      </FormField>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField label="Nascimento" htmlFor="birthDate" hint="Opcional">
+          <Input id="birthDate" name="birthDate" type="date" defaultValue={cat?.birthDate ?? ""} />
+        </FormField>
+        <FormField label="Peso (kg)" htmlFor="weightKg" hint="Opcional">
+          <Input id="weightKg" name="weightKg" inputMode="decimal" placeholder="4,2" defaultValue={cat?.weightKg ?? ""} />
+        </FormField>
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="birthDate">Nascimento (opcional)</Label>
-        <Input id="birthDate" name="birthDate" type="date" defaultValue={cat?.birthDate ?? ""} className="h-11" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="weightKg">Peso em kg (opcional)</Label>
-        <Input id="weightKg" name="weightKg" inputMode="decimal" defaultValue={cat?.weightKg ?? ""} className="h-11" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="notes">Observações (opcional)</Label>
+      <FormField label="Observações" htmlFor="notes" hint="Opcional: alergias, temperamento, veterinário…">
         <Textarea id="notes" name="notes" defaultValue={cat?.notes ?? ""} />
-      </div>
-      <Button type="submit" className="h-11">Salvar</Button>
+      </FormField>
+      <SubmitButton>Salvar</SubmitButton>
     </form>
   );
 }
