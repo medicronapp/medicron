@@ -1,0 +1,111 @@
+import { describe, test, expect } from "vitest";
+import { createTestDb } from "@/lib/db/test-db";
+import { carePlans, pushSubscriptions, user, organization, member } from "@/lib/db/schema";
+import { createCat, archiveCat } from "@/lib/services/cats";
+import { createItem } from "@/lib/services/items";
+import { createPlan } from "@/lib/services/plans";
+import { recordDose } from "@/lib/services/doses";
+import { saveSubscription } from "@/lib/services/push";
+import { dispatchDue, type PushSender } from "@/lib/services/dispatch";
+
+const d = (s: string) => new Date(s);
+
+async function setup() {
+  const db = await createTestDb();
+  await db.insert(user).values([
+    { id: "u1", name: "Ana", email: "a@x.com" },
+    { id: "u2", name: "Bia", email: "b@x.com" },
+  ]);
+  await db.insert(organization).values({ id: "o1", name: "A", slug: "a", createdAt: new Date() });
+  await db.insert(member).values([
+    { id: "m1", organizationId: "o1", userId: "u1", role: "owner", createdAt: new Date() },
+    { id: "m2", organizationId: "o1", userId: "u2", role: "member", createdAt: new Date() },
+  ]);
+  await saveSubscription(db, "u1", { endpoint: "https://p/1", keys: { p256dh: "p", auth: "a" } });
+  await saveSubscription(db, "u2", { endpoint: "https://p/2", keys: { p256dh: "p", auth: "a" } });
+  const cat = await createCat(db, "o1", { name: "Mimi" });
+  const item = await createItem(db, "o1", { name: "Amoxicilina", kind: "medication", defaultDose: "1 comprimido" });
+  const plan = await createPlan(db, "o1", {
+    catId: cat.id, itemId: item.id, intervalMinutes: 480,
+    anchorAt: d("2026-11-04T08:00:00Z"), now: d("2026-11-04T07:00:00Z"),
+  });
+  const sent: { endpoint: string; title: string; body: string; tag: string }[] = [];
+  const send: PushSender = async (sub, payload) => {
+    sent.push({ endpoint: sub.endpoint, ...payload });
+    return { ok: true };
+  };
+  return { db, cat, item, plan, sent, send };
+}
+
+describe("dispatchDue", () => {
+  test("envia uma vez para cada membro e não repete no mesmo horário", async () => {
+    const { db, sent, send, plan } = await setup();
+    const now = d("2026-11-04T08:00:30Z");
+    const r1 = await dispatchDue(db, now, send);
+    expect(r1).toEqual({ plans: 1, sent: 2, removed: 0 });
+    expect(sent.map((s) => s.endpoint).sort()).toEqual(["https://p/1", "https://p/2"]);
+    expect(sent[0].body).toBe("Mimi — Amoxicilina (1 comprimido)");
+    expect(sent[0].tag).toBe(`${plan.id}-${plan.nextDueAt.getTime()}`);
+    const r2 = await dispatchDue(db, now, send);
+    expect(r2.sent).toBe(0);
+  });
+
+  test("antes do horário não envia; após registrar a dose, envia o próximo slot", async () => {
+    const { db, sent, send, plan } = await setup();
+    expect((await dispatchDue(db, d("2026-11-04T07:59:00Z"), send)).sent).toBe(0);
+    await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
+    await recordDose(db, "o1", "u1", {
+      planId: plan.id, scheduledFor: plan.nextDueAt, outcome: "done", now: d("2026-11-04T08:05:00Z"),
+    });
+    sent.length = 0;
+    expect((await dispatchDue(db, d("2026-11-04T16:00:30Z"), send)).sent).toBe(2);
+  });
+
+  test("inscrição expirada (gone) é removida e as demais continuam", async () => {
+    const { db } = await setup();
+    const delivered: string[] = [];
+    const send: PushSender = async (sub) => {
+      if (sub.endpoint === "https://p/1") return { ok: false, gone: true };
+      delivered.push(sub.endpoint);
+      return { ok: true };
+    };
+    const r = await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
+    expect(r).toEqual({ plans: 1, sent: 1, removed: 1 });
+    expect(delivered).toEqual(["https://p/2"]);
+    expect((await db.select().from(pushSubscriptions)).map((s) => s.endpoint)).toEqual(["https://p/2"]);
+  });
+
+  test("falha não-fatal de um envio não interrompe os demais", async () => {
+    const { db } = await setup();
+    const delivered: string[] = [];
+    const send: PushSender = async (sub) => {
+      if (sub.endpoint === "https://p/1") throw new Error("rede");
+      delivered.push(sub.endpoint);
+      return { ok: true };
+    };
+    const r = await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
+    expect(delivered).toEqual(["https://p/2"]);
+    expect(r.sent).toBe(1);
+  });
+
+  test("plano inativo, gato arquivado ou endAt vencido não notificam", async () => {
+    const a = await setup();
+    await a.db.update(carePlans).set({ active: false });
+    expect((await dispatchDue(a.db, d("2026-11-04T09:00:00Z"), a.send)).sent).toBe(0);
+
+    const b = await setup();
+    await archiveCat(b.db, "o1", b.cat.id);
+    expect((await dispatchDue(b.db, d("2026-11-04T09:00:00Z"), b.send)).sent).toBe(0);
+
+    const c = await setup();
+    await c.db.update(carePlans).set({ endAt: d("2026-11-04T07:30:00Z") });
+    expect((await dispatchDue(c.db, d("2026-11-04T09:00:00Z"), c.send)).sent).toBe(0);
+  });
+
+  test("execuções concorrentes enviam cada inscrição uma única vez", async () => {
+    const { db, sent, send } = await setup();
+    const now = d("2026-11-04T08:00:30Z");
+    await Promise.all([dispatchDue(db, now, send), dispatchDue(db, now, send)]);
+    expect(sent).toHaveLength(2);
+  });
+});
