@@ -3,8 +3,8 @@ import { test, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-const recordDoseAction = vi.fn(async (..._a: unknown[]) => ({ recorded: true } as { recorded: boolean; reason?: string }));
-vi.mock("@/app/(app)/actions", () => ({ recordDoseAction: (...a: unknown[]) => recordDoseAction(...a) }));
+const recordDoseAction = vi.fn<(input: unknown) => Promise<{ recorded: boolean; reason?: string }>>(async () => ({ recorded: true }));
+vi.mock("@/app/(app)/actions", () => ({ recordDoseAction: (input: unknown) => recordDoseAction(input) }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.fn() } }));
 
 import { StreakCard } from "@/components/home/streak-card";

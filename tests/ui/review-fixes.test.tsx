@@ -98,7 +98,7 @@ test("Sair cancela o push antes de encerrar a sessão", async () => {
 
 // I4 — teclado virtual na gaveta
 test("a gaveta do procedimento usa o VirtualKeyboardProvider do Base UI", () => {
-  expect(readFileSync("src/components/dose-card.tsx", "utf8")).toContain("VirtualKeyboardProvider");
+  expect(readFileSync("src/components/home/resolve-buttons.tsx", "utf8")).toContain("VirtualKeyboardProvider");
 });
 
 // I5 — alvos de toque de 44px
