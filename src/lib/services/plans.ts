@@ -1,11 +1,12 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db";
-import { carePlans, cats, items, type CarePlan, type Item } from "@/lib/db/schema";
+import { carePlans, careSlots, cats, items, type CarePlan, type Item } from "@/lib/db/schema";
 import { NotFound } from "@/lib/errors";
 import { firstDueAt } from "@/lib/schedule";
 import { getCat } from "@/lib/services/cats";
 import { getItem } from "@/lib/services/items";
+import { ensureSlots } from "@/lib/services/slots";
 
 const interval = z.number().int().min(5, "Intervalo mínimo de 5 minutos").max(60 * 24 * 365);
 
@@ -32,7 +33,7 @@ export async function createPlan(db: Db, orgId: string, input: PlanInput): Promi
   const [row] = await db.insert(carePlans).values({
     organizationId: orgId, catId: cat.id, itemId: item.id,
     intervalMinutes: p.intervalMinutes, anchorAt: p.anchorAt, endAt: p.endAt ?? null,
-    dose: p.dose || item.defaultDose, nextDueAt,
+    dose: p.dose || item.defaultDose, nextDueAt, startsAt: nextDueAt,
   }).returning();
   return row;
 }
@@ -67,11 +68,26 @@ export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanP
   const scheduleChanged = intervalMinutes !== cur.intervalMinutes || anchorAt.getTime() !== cur.anchorAt.getTime();
   const nextDueAt = scheduleChanged ? firstDueAt(anchorAt, intervalMinutes, patch.now ?? new Date()) : cur.nextDueAt;
   if (endAt && endAt.getTime() < nextDueAt.getTime()) throw new Error("A data final é anterior à próxima dose");
-  const [row] = await db.update(carePlans).set({
-    intervalMinutes, anchorAt, endAt, nextDueAt,
-    dose: patch.dose === undefined ? cur.dose : patch.dose,
-  }).where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId))).returning();
-  return row;
+  const now = patch.now ?? new Date();
+  // Congela o passado com a grade antiga antes de trocar a rotina.
+  if (scheduleChanged) await ensureSlots(db, now, orgId);
+  return db.transaction(async (tx) => {
+    let schedule: { startsAt?: Date; slotsThrough?: Date | null } = {};
+    if (scheduleChanged) {
+      await tx.delete(careSlots).where(and(
+        eq(careSlots.carePlanId, id), isNull(careSlots.outcome), gt(careSlots.scheduledFor, now),
+      ));
+      const [last] = await tx
+        .select({ at: sql`max(${careSlots.scheduledFor})`.mapWith(careSlots.scheduledFor) })
+        .from(careSlots).where(eq(careSlots.carePlanId, id));
+      schedule = { startsAt: nextDueAt, slotsThrough: last?.at ?? null };
+    }
+    const [row] = await tx.update(carePlans).set({
+      intervalMinutes, anchorAt, endAt, nextDueAt, ...schedule,
+      dose: patch.dose === undefined ? cur.dose : patch.dose,
+    }).where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId))).returning();
+    return row;
+  });
 }
 
 export async function deactivatePlan(db: Db, orgId: string, id: string): Promise<void> {
