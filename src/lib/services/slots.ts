@@ -1,6 +1,7 @@
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { carePlans, careSlots, cats, items } from "@/lib/db/schema";
+import { NotFound } from "@/lib/errors";
 import { slotsBetween } from "@/lib/schedule";
 import { dayBounds, dayKey } from "@/lib/time";
 
@@ -37,4 +38,40 @@ export async function ensureSlots(db: Db, now: Date, orgId?: string): Promise<nu
       .where(and(eq(carePlans.id, plan.id), or(isNull(carePlans.slotsThrough), lt(carePlans.slotsThrough, last))));
   }
   return inserted;
+}
+
+/** Um cuidado só pode ser resolvido até 15 min antes do horário (não há registro adiantado). */
+export const EARLY_WINDOW_MS = 15 * 60_000;
+
+export class TooEarly extends Error {
+  constructor() {
+    super("Este cuidado ainda não está na hora");
+  }
+}
+
+export type ResolveInput = {
+  planId: string; scheduledFor: Date; outcome: "done" | "skipped";
+  value?: string; note?: string; now?: Date;
+};
+
+/**
+ * Resolve (feito/pulado) o cuidado de um horário. Só atualiza o slot; a rotina não muda.
+ * Idempotente: o primeiro registro vence, os demais devolvem recorded:false.
+ */
+export async function resolveSlot(
+  db: Db, orgId: string, userId: string, input: ResolveInput,
+): Promise<{ recorded: boolean }> {
+  const now = input.now ?? new Date();
+  if (input.scheduledFor.getTime() > now.getTime() + EARLY_WINDOW_MS) throw new TooEarly();
+  await ensureSlots(db, now, orgId);
+  const [slot] = await db.select({ id: careSlots.id }).from(careSlots).where(and(
+    eq(careSlots.organizationId, orgId), eq(careSlots.carePlanId, input.planId),
+    eq(careSlots.scheduledFor, input.scheduledFor),
+  )).limit(1);
+  if (!slot) throw new NotFound("Cuidado");
+  const updated = await db.update(careSlots).set({
+    outcome: input.outcome, resolvedByUserId: userId, resolvedAt: now,
+    value: input.value?.trim() || null, note: input.note?.trim() || null,
+  }).where(and(eq(careSlots.id, slot.id), isNull(careSlots.outcome))).returning({ id: careSlots.id });
+  return { recorded: updated.length > 0 };
 }
