@@ -193,4 +193,17 @@ describe("getHome — sem fantasmas", () => {
     const h = await getHome(db, "o2", z("2026-11-04T13:00:00Z"));
     expect(h.cats).toEqual([]);
   });
+
+  test("C1: rotina encerrada às 10:00 não vira 'sem registro' quando o horário das 20:00 passa", async () => {
+    const db = await base();
+    const { plan } = await addPlan(db, "Izzy", { interval: 720, anchor: "2026-11-04T11:00:00Z", createdAt: "2026-11-04T10:00:00Z" });
+    await res(db, plan.id, "2026-11-04T11:00:00Z", "2026-11-04T11:02:00Z");
+    await deactivatePlan(db, "o1", plan.id, z("2026-11-04T13:00:00Z"));
+    const h = await getHome(db, "o1", z("2026-11-04T23:16:00Z"));
+    expect(h.attention).toEqual([]);
+    expect(h.cats[0].entries).toHaveLength(1);
+    expect(h.closedToday).toBe(true);
+    const amanha = await getHome(db, "o1", z("2026-11-06T12:00:00Z"));
+    expect(amanha.week.find((d) => d.key === "2026-11-04")?.status).toBe("ok");
+  });
 });

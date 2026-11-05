@@ -65,7 +65,9 @@ export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanP
   const intervalMinutes = patch.intervalMinutes === undefined ? cur.intervalMinutes : interval.parse(patch.intervalMinutes);
   const anchorAt = patch.anchorAt ?? cur.anchorAt;
   const endAt = patch.endAt === undefined ? cur.endAt : patch.endAt;
-  const scheduleChanged = intervalMinutes !== cur.intervalMinutes || anchorAt.getTime() !== cur.anchorAt.getTime();
+  const endChanged = (endAt?.getTime() ?? null) !== (cur.endAt?.getTime() ?? null);
+  const scheduleChanged =
+    intervalMinutes !== cur.intervalMinutes || anchorAt.getTime() !== cur.anchorAt.getTime() || endChanged;
   const nextDueAt = scheduleChanged ? firstDueAt(anchorAt, intervalMinutes, patch.now ?? new Date()) : cur.nextDueAt;
   if (endAt && endAt.getTime() < nextDueAt.getTime()) throw new Error("A data final é anterior à próxima dose");
   const now = patch.now ?? new Date();
@@ -90,7 +92,14 @@ export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanP
   });
 }
 
-export async function deactivatePlan(db: Db, orgId: string, id: string): Promise<void> {
-  await db.update(carePlans).set({ active: false })
-    .where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId)));
+/** Encerra a rotina: deixa de esperar cuidados dali em diante (apaga os horários futuros não resolvidos). */
+export async function deactivatePlan(db: Db, orgId: string, id: string, now: Date = new Date()): Promise<void> {
+  await db.transaction(async (tx) => {
+    const done = await tx.update(carePlans).set({ active: false })
+      .where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId))).returning({ id: carePlans.id });
+    if (done.length === 0) return;
+    await tx.delete(careSlots).where(and(
+      eq(careSlots.carePlanId, id), isNull(careSlots.outcome), gt(careSlots.scheduledFor, now),
+    ));
+  });
 }

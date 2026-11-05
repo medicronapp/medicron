@@ -137,3 +137,8 @@ test("nome longo de item trunca na linha do tempo", () => {
   render(<DayTimeline {...tlProps} cats={[{ ...cats[0], entries: [entry({ itemName: long, state: "done" })] }]} />);
   expect(screen.getByText(long).className).toContain("truncate");
 });
+
+test("M2: células da semana têm alvo de toque de 44px", () => {
+  render(<StreakCard {...streakProps} />);
+  for (const link of screen.getAllByRole("link")) expect(link.firstElementChild?.className).toContain("h-11");
+});

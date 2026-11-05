@@ -33,7 +33,7 @@ function Cell({ day }: { day: WeekDay }) {
     : day.status === "future" ? "bg-white/10 text-white/50"
     : "bg-white/20 text-white";
   const box = (
-    <span className={cn("flex h-8 items-center justify-center rounded-lg text-xs font-bold", tone, day.isToday && "ring-2 ring-white/70")}>
+    <span className={cn("flex h-11 items-center justify-center rounded-lg text-xs font-bold", tone, day.isToday && "ring-2 ring-white/70")}>
       {day.status === "future" ? "" : icon}
     </span>
   );

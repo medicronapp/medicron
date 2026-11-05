@@ -118,3 +118,29 @@ describe("congelamento ao editar rotina", () => {
     expect(await times(db)).toEqual(["2026-11-04T11:00:00.000Z", "2026-11-04T17:00:00.000Z"]);
   });
 });
+
+describe("editar só a data final (I3)", () => {
+  test("encurtar apaga os horários futuros depois do novo fim", async () => {
+    const { db, plan } = await setup();
+    const { updatePlan } = await import("@/lib/services/plans");
+    const now = z("2026-11-04T12:00:00Z");
+    await ensureSlots(db, now);
+    await updatePlan(db, "o1", plan.id, { endAt: z("2026-11-04T18:00:00Z"), now });
+    expect(await times(db)).not.toContain("2026-11-04T23:00:00.000Z");
+    await ensureSlots(db, now);
+    expect(await times(db)).toEqual(["2026-11-04T11:00:00.000Z", "2026-11-04T17:00:00.000Z"]);
+  });
+
+  test("estender rotina já terminada não preenche o intervalo passado com 'sem registro'", async () => {
+    const { db, plan } = await setup({ endAt: "2026-11-04T18:00:00Z" });
+    const { updatePlan } = await import("@/lib/services/plans");
+    await ensureSlots(db, z("2026-11-04T23:00:00Z"));
+    const now = z("2026-11-06T12:00:00Z");
+    await updatePlan(db, "o1", plan.id, { endAt: null, now });
+    await ensureSlots(db, now);
+    const all = (await db.select().from(careSlots)).map((s) => s.scheduledFor);
+    const novos = all.filter((t) => t.getTime() > z("2026-11-04T18:00:00Z").getTime());
+    expect(novos.length).toBeGreaterThan(0);
+    expect(novos.every((t) => t.getTime() > now.getTime())).toBe(true);
+  });
+});
