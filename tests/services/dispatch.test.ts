@@ -4,7 +4,7 @@ import { carePlans, pushSubscriptions, user, organization, member } from "@/lib/
 import { createCat, archiveCat } from "@/lib/services/cats";
 import { createItem } from "@/lib/services/items";
 import { createPlan } from "@/lib/services/plans";
-import { recordDose } from "@/lib/services/doses";
+import { resolveSlot } from "@/lib/services/slots";
 import { saveSubscription } from "@/lib/services/push";
 import { dispatchDue, type PushSender } from "@/lib/services/dispatch";
 
@@ -54,7 +54,7 @@ describe("dispatchDue", () => {
     const { db, sent, send, plan } = await setup();
     expect((await dispatchDue(db, d("2026-11-04T07:59:00Z"), send)).sent).toBe(0);
     await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
-    await recordDose(db, "o1", "u1", {
+    await resolveSlot(db, "o1", "u1", {
       planId: plan.id, scheduledFor: plan.nextDueAt, outcome: "done", now: d("2026-11-04T08:05:00Z"),
     });
     sent.length = 0;
@@ -135,5 +135,32 @@ describe("lembretes repetidos e falhas", () => {
     await db.update(carePlans).set({ endAt: d("2026-11-04T09:00:00Z") });
     await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
     expect((await dispatchDue(db, d("2026-11-04T16:00:30Z"), send)).sent).toBe(0);
+  });
+});
+
+
+describe("lembretes sobre slots", () => {
+  test("dose já resolvida antes do cron rodar não notifica", async () => {
+    const { db, sent, send, plan } = await setup();
+    await resolveSlot(db, "o1", "u1", { planId: plan.id, scheduledFor: d("2026-11-04T08:00:00Z"), outcome: "done", now: d("2026-11-04T07:50:00Z") });
+    expect((await dispatchDue(db, d("2026-11-04T08:00:30Z"), send)).sent).toBe(0);
+    expect(sent).toHaveLength(0);
+  });
+
+  test("cron parado com 3 slots pendentes envia 1 notificação (a mais recente) e não reenvia as antigas", async () => {
+    const { db, sent, send, plan } = await setup();
+    const r = await dispatchDue(db, d("2026-11-05T00:30:00Z"), send); // 08:00, 16:00 e 00:00 pendentes
+    expect(r.plans).toBe(1);
+    expect(sent).toHaveLength(2);
+    expect(new Set(sent.map((x) => x.tag))).toEqual(new Set([`${plan.id}-${d("2026-11-05T00:00:00Z").getTime()}`]));
+    expect((await dispatchDue(db, d("2026-11-05T00:40:00Z"), send)).sent).toBe(0);
+  });
+
+  test("horário já avisado pela versão anterior (notified_for_due_at) não é reenviado", async () => {
+    const { db, send, sent } = await setup();
+    await db.update(carePlans).set({ notifiedForDueAt: d("2026-11-04T08:00:00Z") });
+    expect((await dispatchDue(db, d("2026-11-04T08:00:30Z"), send)).sent).toBe(0);
+    expect(sent).toHaveLength(0);
+    expect((await dispatchDue(db, d("2026-11-04T16:00:30Z"), send)).sent).toBe(2);
   });
 });
