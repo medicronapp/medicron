@@ -64,3 +64,31 @@ describe("removeSubscription com dono", () => {
     expect(await listSubscriptionsForOrg(db, "o1")).toEqual([]);
   });
 });
+
+describe("vários aparelhos do mesmo usuário", () => {
+  test("cada aparelho (endpoint) é uma inscrição própria e todos aparecem para a conta", async () => {
+    const db = await seed();
+    await saveSubscription(db, "u1", sub("https://push/celular"));
+    await saveSubscription(db, "u1", sub("https://push/tablet"));
+    await saveSubscription(db, "u1", sub("https://push/notebook"));
+    const endpoints = (await listSubscriptionsForOrg(db, "o1")).map((s) => s.endpoint).sort();
+    expect(endpoints).toEqual(["https://push/celular", "https://push/notebook", "https://push/tablet"]);
+  });
+
+  test("remover um aparelho não derruba os outros do mesmo usuário", async () => {
+    const db = await seed();
+    await saveSubscription(db, "u1", sub("https://push/celular"));
+    await saveSubscription(db, "u1", sub("https://push/tablet"));
+    await removeSubscription(db, "https://push/celular", "u1");
+    expect((await listSubscriptionsForOrg(db, "o1")).map((s) => s.endpoint)).toEqual(["https://push/tablet"]);
+  });
+
+  test("reinscrever o mesmo aparelho atualiza as chaves sem criar duplicata", async () => {
+    const db = await seed();
+    await saveSubscription(db, "u1", sub("https://push/celular"));
+    await saveSubscription(db, "u1", { endpoint: "https://push/celular", keys: { p256dh: "novo", auth: "novo" } });
+    const rows = await listSubscriptionsForOrg(db, "o1");
+    expect(rows).toHaveLength(1);
+    expect(rows[0].p256dh).toBe("novo");
+  });
+});

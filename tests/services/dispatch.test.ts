@@ -164,3 +164,32 @@ describe("lembretes sobre slots", () => {
     expect((await dispatchDue(db, d("2026-11-04T16:00:30Z"), send)).sent).toBe(2);
   });
 });
+
+describe("vários aparelhos do mesmo usuário", () => {
+  test("cada aparelho recebe o lembrete (3 aparelhos de u1 + 1 de u2 = 4 envios)", async () => {
+    const { db, sent, send } = await setup();
+    await saveSubscription(db, "u1", { endpoint: "https://p/1-tablet", keys: { p256dh: "p", auth: "a" } });
+    await saveSubscription(db, "u1", { endpoint: "https://p/1-notebook", keys: { p256dh: "p", auth: "a" } });
+    const r = await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
+    expect(r.sent).toBe(4);
+    expect(sent.map((s) => s.endpoint).sort()).toEqual(
+      ["https://p/1", "https://p/1-notebook", "https://p/1-tablet", "https://p/2"],
+    );
+  });
+
+  test("um aparelho expirado (410) é removido e os outros do mesmo usuário continuam recebendo", async () => {
+    const { db } = await setup();
+    await saveSubscription(db, "u1", { endpoint: "https://p/1-tablet", keys: { p256dh: "p", auth: "a" } });
+    const delivered: string[] = [];
+    const send: PushSender = async (sub) => {
+      if (sub.endpoint === "https://p/1") return { ok: false, gone: true };
+      delivered.push(sub.endpoint);
+      return { ok: true };
+    };
+    const r = await dispatchDue(db, d("2026-11-04T08:00:30Z"), send);
+    expect(r).toEqual({ plans: 1, sent: 2, removed: 1 });
+    expect(delivered.sort()).toEqual(["https://p/1-tablet", "https://p/2"]);
+    const left = (await db.select().from(pushSubscriptions)).map((s) => s.endpoint).sort();
+    expect(left).toEqual(["https://p/1-tablet", "https://p/2"]);
+  });
+});
