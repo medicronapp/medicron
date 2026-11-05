@@ -1,16 +1,7 @@
 "use client";
-import { useState, useTransition } from "react";
-import { Check, Loader2, Pill, SkipForward, Stethoscope } from "lucide-react";
-import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
-import { toast } from "sonner";
-import { recordDoseAction } from "@/app/(app)/actions";
-import { FormField } from "@/components/form-field";
+import { Pill, Stethoscope } from "lucide-react";
+import { ResolveButtons } from "@/components/home/resolve-buttons";
 import { StatusBadge } from "@/components/status-badge";
-import { Button } from "@/components/ui/button";
-import {
-  Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle,
-} from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export type DoseCardProps = {
@@ -25,19 +16,7 @@ const STRIPE: Record<DoseCardProps["tone"], string> = {
 };
 
 export function DoseCard(p: DoseCardProps) {
-  const [pending, start] = useTransition();
-  const [open, setOpen] = useState(false);
   const Icon = p.kind === "procedure" ? Stethoscope : Pill;
-
-  function submit(outcome: "done" | "skipped", extra?: { value?: string; note?: string }) {
-    start(async () => {
-      const res = await recordDoseAction({ planId: p.planId, scheduledFor: p.scheduledFor, outcome, ...extra });
-      if (res.recorded) toast.success(outcome === "done" ? "Registrado" : "Marcado como pulado");
-      else toast.info("Este horário já tinha sido registrado por outra pessoa.");
-      setOpen(false);
-    });
-  }
-
   return (
     <article
       className={cn(
@@ -65,47 +44,8 @@ export function DoseCard(p: DoseCardProps) {
         <StatusBadge tone={p.tone} />
       </div>
       {p.tone !== "upcoming" && (
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Button size="lg" disabled={pending} onClick={() => (p.kind === "procedure" ? setOpen(true) : submit("done"))}>
-            {pending ? <Loader2 aria-hidden className="animate-spin" /> : <Check aria-hidden />}
-            Feito
-          </Button>
-          <Button size="lg" variant="outline" disabled={pending} onClick={() => submit("skipped")}>
-            <SkipForward aria-hidden />
-            Pular
-          </Button>
-        </div>
+        <ResolveButtons planId={p.planId} scheduledFor={p.scheduledFor} kind={p.kind} itemName={p.itemName} catName={p.catName} />
       )}
-
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent>
-          <DrawerPrimitive.VirtualKeyboardProvider>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              submit("done", { value: String(f.get("value") ?? ""), note: String(f.get("note") ?? "") });
-            }}
-            className="grid gap-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
-          >
-            <DrawerHeader className="px-0">
-              <DrawerTitle>{p.itemName}</DrawerTitle>
-              <DrawerDescription>{p.catName} · registre o resultado, se quiser.</DrawerDescription>
-            </DrawerHeader>
-            <FormField label="Valor" htmlFor={`value-${p.planId}`} hint="Ex.: 38,7 °C — opcional">
-              <Input id={`value-${p.planId}`} name="value" maxLength={60} autoComplete="off" />
-            </FormField>
-            <FormField label="Observação" htmlFor={`note-${p.planId}`} hint="Opcional">
-              <Input id={`note-${p.planId}`} name="note" maxLength={300} autoComplete="off" />
-            </FormField>
-            <DrawerFooter className="grid grid-cols-2 gap-2 px-0">
-              <Button type="button" variant="outline" size="lg" onClick={() => setOpen(false)}>Cancelar</Button>
-              <Button type="submit" size="lg" disabled={pending}>Confirmar</Button>
-            </DrawerFooter>
-          </form>
-          </DrawerPrimitive.VirtualKeyboardProvider>
-        </DrawerContent>
-      </Drawer>
     </article>
   );
 }
