@@ -207,3 +207,23 @@ describe("getHome — sem fantasmas", () => {
     expect(amanha.week.find((d) => d.key === "2026-11-04")?.status).toBe("ok");
   });
 });
+
+describe("getHome — reprogramar horários", () => {
+  test("a entrada indica se a rotina reprograma", async () => {
+    const db = await base();
+    const cat = await createCat(db, "o1", { name: "Izzy" });
+    const mk = async (name: string, reschedule: boolean) => {
+      const item = await createItem(db, "o1", { name, kind: "medication" });
+      await createPlan(db, "o1", {
+        catId: cat.id, itemId: item.id, intervalMinutes: 360, anchorAt: z("2026-11-04T11:00:00Z"),
+        now: z("2026-11-04T10:00:00Z"), reschedule,
+      });
+    };
+    await mk("Comum", false);
+    await mk("Reprograma", true);
+    const h = await getHome(db, "o1", z("2026-11-04T11:03:00Z"));
+    const flag = (n: string) => h.cats[0].entries.find((e) => e.itemName === n)?.reschedule;
+    expect(flag("Comum")).toBe(false);
+    expect(flag("Reprograma")).toBe(true);
+  });
+});

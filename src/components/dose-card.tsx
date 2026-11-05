@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export type DoseCardProps = {
   planId: string; scheduledFor: string; catName: string; itemName: string; dose: string | null;
-  kind: "medication" | "procedure"; timeLabel: string; relative: string; tone: "overdue" | "now" | "upcoming";
+  kind: "medication" | "procedure"; reschedule: boolean; timeLabel: string; relative: string; tone: "overdue" | "now" | "upcoming";
 };
 
 const STRIPE: Record<DoseCardProps["tone"], string> = {
@@ -44,7 +44,7 @@ export function DoseCard(p: DoseCardProps) {
         <StatusBadge tone={p.tone} />
       </div>
       {p.tone !== "upcoming" && (
-        <ResolveButtons planId={p.planId} scheduledFor={p.scheduledFor} kind={p.kind} itemName={p.itemName} catName={p.catName} />
+        <ResolveButtons planId={p.planId} scheduledFor={p.scheduledFor} kind={p.kind} reschedule={p.reschedule} itemName={p.itemName} catName={p.catName} />
       )}
     </article>
   );

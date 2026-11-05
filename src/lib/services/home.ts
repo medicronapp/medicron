@@ -12,7 +12,7 @@ export type SlotState = "done" | "skipped" | "missed" | "now" | "later";
 
 export type DayEntry = {
   planId: string; scheduledFor: Date; catId: string; catName: string; itemName: string;
-  kind: "medication" | "procedure"; dose: string | null; state: SlotState;
+  kind: "medication" | "procedure"; dose: string | null; reschedule: boolean; state: SlotState;
   resolvedBy: string | null; resolvedAt: Date | null; late: boolean; value: string | null; note: string | null;
 };
 export type CatDay = { catId: string; catName: string; entries: DayEntry[]; total: number; resolved: number; missed: number };
@@ -53,7 +53,7 @@ export async function getHome(db: Db, orgId: string, now: Date, selectedKey?: st
       : diff < -EARLY_WINDOW_MS ? "missed" : diff <= EARLY_WINDOW_MS ? "now" : "later";
     return {
       key, planId: plan.id, scheduledFor: slot.scheduledFor, catId, catName, itemName, kind,
-      dose: plan.dose, state, resolvedBy: userName ?? null, resolvedAt: slot.resolvedAt,
+      dose: plan.dose, reschedule: plan.reschedule, state, resolvedBy: userName ?? null, resolvedAt: slot.resolvedAt,
       late: slot.resolvedAt !== null && slot.resolvedAt.getTime() > windowEnd(key).getTime(),
       value: slot.value, note: slot.note,
     };

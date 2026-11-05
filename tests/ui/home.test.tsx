@@ -53,7 +53,7 @@ test("StreakCard: singular, zero, dia fechado e aviso de risco", () => {
 
 const entry = (over: Partial<SEntry>): SEntry => ({
   planId: "p1", scheduledFor: "2026-11-04T17:00:00.000Z", catId: "c1", catName: "Izzy", itemName: "Amoxicilina",
-  kind: "medication", dose: "1/2 comprimido", state: "missed", resolvedBy: null, resolvedAt: null,
+  kind: "medication", dose: "1/2 comprimido", reschedule: false, state: "missed", resolvedBy: null, resolvedAt: null,
   late: false, value: null, note: null, ...over,
 });
 const NOW = "2026-11-04T23:05:00.000Z";

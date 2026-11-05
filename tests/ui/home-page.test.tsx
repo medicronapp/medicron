@@ -20,11 +20,11 @@ const home: SHome = {
   progress: { resolved: 1, total: 3 }, closedToday: false,
   attention: [{
     planId: "p1", scheduledFor: "2026-11-03T23:00:00.000Z", catId: "c1", catName: "Izzy", itemName: "Amoxicilina",
-    kind: "medication", dose: null, state: "missed", resolvedBy: null, resolvedAt: null, late: false, value: null, note: null,
+    kind: "medication", dose: null, reschedule: false, state: "missed", resolvedBy: null, resolvedAt: null, late: false, value: null, note: null,
   }],
   cats: [{ catId: "c1", catName: "Izzy", total: 3, resolved: 1, missed: 1, entries: [{
     planId: "p1", scheduledFor: "2026-11-04T11:00:00.000Z", catId: "c1", catName: "Izzy", itemName: "Amoxicilina",
-    kind: "medication", dose: null, state: "done", resolvedBy: "Ana", resolvedAt: "2026-11-04T11:03:00.000Z", late: false, value: null, note: null,
+    kind: "medication", dose: null, reschedule: false, state: "done", resolvedBy: "Ana", resolvedAt: "2026-11-04T11:03:00.000Z", late: false, value: null, note: null,
   }] }],
 };
 

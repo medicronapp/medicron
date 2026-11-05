@@ -11,7 +11,7 @@ import { DoseCard, type DoseCardProps } from "@/components/dose-card";
 
 const base: DoseCardProps = {
   planId: "p1", scheduledFor: "2026-11-04T23:00:00.000Z", catName: "Izzy", itemName: "Agemoxi",
-  dose: "1/2 comprimido", kind: "medication", timeLabel: "20:00", relative: "há 10 min", tone: "overdue",
+  dose: "1/2 comprimido", kind: "medication", reschedule: false, timeLabel: "20:00", relative: "há 10 min", tone: "overdue",
 };
 
 beforeEach(() => recordDoseAction.mockClear());
@@ -46,6 +46,18 @@ test("procedimento: Feito abre a gaveta com Valor e só registra ao confirmar", 
   expect(recordDoseAction).toHaveBeenCalledWith(
     expect.objectContaining({ planId: "p1", outcome: "done", value: "38,7 °C" }),
   );
+});
+
+test("medicação que reprograma: Feito abre a gaveta com a hora da aplicação e envia appliedTime", async () => {
+  render(<DoseCard {...base} reschedule />);
+  await userEvent.click(screen.getByRole("button", { name: /Feito/ }));
+  expect(recordDoseAction).not.toHaveBeenCalled();
+  const time = await screen.findByLabelText("Hora da aplicação");
+  expect(screen.queryByLabelText("Valor")).not.toBeInTheDocument();
+  await userEvent.clear(time);
+  await userEvent.type(time, "13:20");
+  await userEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+  expect(recordDoseAction).toHaveBeenCalledWith(expect.objectContaining({ outcome: "done", appliedTime: "13:20" }));
 });
 
 test("cartão de próxima dose não oferece Feito/Pular", () => {

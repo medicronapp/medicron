@@ -93,7 +93,7 @@ export function DayTimeline({ cats, selectedKey, todayKey, selectedStatus }: Pro
                       </div>
                     </div>
                     {(e.state === "missed" || e.state === "now") && (
-                      <ResolveButtons planId={e.planId} scheduledFor={e.scheduledFor} kind={e.kind} itemName={e.itemName} catName={e.catName} size="default" />
+                      <ResolveButtons planId={e.planId} scheduledFor={e.scheduledFor} kind={e.kind} reschedule={e.reschedule} itemName={e.itemName} catName={e.catName} size="default" />
                     )}
                   </li>
                 );
