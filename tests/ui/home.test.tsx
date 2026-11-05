@@ -142,3 +142,10 @@ test("M2: células da semana têm alvo de toque de 44px", () => {
   render(<StreakCard {...streakProps} />);
   for (const link of screen.getAllByRole("link")) expect(link.firstElementChild?.className).toContain("h-11");
 });
+
+test("selo de progresso da aba selecionada usa fundo sólido (contraste AA), não branco translúcido", () => {
+  render(<DayTimeline {...tlProps} cats={[{ ...cats[1] }]} />);
+  const badge = screen.getByText("1/2");
+  expect(badge.className).toContain("bg-primary-foreground");
+  expect(badge.className).not.toContain("bg-white/20");
+});

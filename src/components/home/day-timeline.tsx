@@ -58,7 +58,7 @@ export function DayTimeline({ cats, selectedKey, todayKey, selectedStatus }: Pro
                 {c.missed > 0 ? (
                   <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-white">{c.missed}</span>
                 ) : (
-                  <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", c.catId === active.catId ? "bg-white/20" : "bg-brand-soft text-brand-ink")}>
+                  <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", c.catId === active.catId ? "bg-primary-foreground text-primary" : "bg-brand-soft text-brand-ink")}>
                     {c.resolved}/{c.total}
                   </span>
                 )}
