@@ -56,6 +56,12 @@ const BRT_MS = 3 * 3600_000;
 const DAY_MS = 86_400_000;
 const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
+/** "HH:mm" digitado (Brasília) -> instante mais recente com essa hora que não esteja depois de `now`. */
+export function localTimeToRecent(hhmm: string, now: Date): Date {
+  const today = parseLocalInput(`${dayKey(now)}T${hhmm}`);
+  return today.getTime() > now.getTime() ? new Date(today.getTime() - DAY_MS) : today;
+}
+
 /** "YYYY-MM-DD" do instante em Brasília. */
 export function dayKey(date: Date): string {
   return new Date(date.getTime() - BRT_MS).toISOString().slice(0, 10);

@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { parseLocalInput, toLocalInput, formatDateTime, intervalLabel } from "@/lib/time";
+import { parseLocalInput, toLocalInput, formatDateTime, intervalLabel, localTimeToRecent } from "@/lib/time";
 
 test("parseLocalInput interpreta datetime-local em America/Sao_Paulo", () => {
   expect(parseLocalInput("2026-11-04T08:00")).toEqual(new Date("2026-11-04T11:00:00Z"));
@@ -80,5 +80,14 @@ describe("dia em Brasília", () => {
     expect(weekdayShort("2026-11-04")).toBe("qua");
     expect(weekdayShort("2026-11-07")).toBe("sáb");
     expect(weekdayShort("2026-11-08")).toBe("dom");
+  });
+});
+
+describe("localTimeToRecent", () => {
+  test("hora de hoje em Brasília quando já passou", () => {
+    expect(localTimeToRecent("09:30", new Date("2026-11-04T15:00:00Z"))).toEqual(new Date("2026-11-04T12:30:00Z"));
+  });
+  test("hora que ainda não chegou vira a de ontem", () => {
+    expect(localTimeToRecent("23:50", new Date("2026-11-05T03:10:00Z"))).toEqual(new Date("2026-11-05T02:50:00Z"));
   });
 });

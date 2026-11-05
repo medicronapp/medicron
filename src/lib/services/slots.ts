@@ -1,4 +1,4 @@
-import { and, eq, isNull, lt, or } from "drizzle-orm";
+import { and, eq, gt, isNull, lt, lte, or } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { carePlans, careSlots, cats, items } from "@/lib/db/schema";
 import { NotFound } from "@/lib/errors";
@@ -49,13 +49,22 @@ export class TooEarly extends Error {
   }
 }
 
+export class InvalidAppliedAt extends Error {
+  constructor() {
+    super("Hora da aplicação inválida");
+  }
+}
+
 export type ResolveInput = {
   planId: string; scheduledFor: Date; outcome: "done" | "skipped";
   value?: string; note?: string; now?: Date;
+  /** Hora real da aplicação. Só vale em "done" de rotina que reprograma; desloca os próximos horários. */
+  appliedAt?: Date;
 };
 
 /**
- * Resolve (feito/pulado) o cuidado de um horário. Só atualiza o slot; a rotina não muda.
+ * Resolve (feito/pulado) o cuidado de um horário. Só atualiza o slot; a rotina muda apenas quando ela
+ * reprograma e o horário resolvido é o último vencido: aí a hora real vira a nova âncora.
  * Idempotente: o primeiro registro vence, os demais devolvem recorded:false.
  */
 export async function resolveSlot(
@@ -64,14 +73,43 @@ export async function resolveSlot(
   const now = input.now ?? new Date();
   if (input.scheduledFor.getTime() > now.getTime() + EARLY_WINDOW_MS) throw new TooEarly();
   await ensureSlots(db, now, orgId);
-  const [slot] = await db.select({ id: careSlots.id }).from(careSlots).where(and(
-    eq(careSlots.organizationId, orgId), eq(careSlots.carePlanId, input.planId),
-    eq(careSlots.scheduledFor, input.scheduledFor),
-  )).limit(1);
-  if (!slot) throw new NotFound("Cuidado");
-  const updated = await db.update(careSlots).set({
-    outcome: input.outcome, resolvedByUserId: userId, resolvedAt: now,
-    value: input.value?.trim() || null, note: input.note?.trim() || null,
-  }).where(and(eq(careSlots.id, slot.id), isNull(careSlots.outcome))).returning({ id: careSlots.id });
-  return { recorded: updated.length > 0 };
+  const [row] = await db.select({ id: careSlots.id, plan: carePlans }).from(careSlots)
+    .innerJoin(carePlans, eq(carePlans.id, careSlots.carePlanId))
+    .where(and(
+      eq(careSlots.organizationId, orgId), eq(careSlots.carePlanId, input.planId),
+      eq(careSlots.scheduledFor, input.scheduledFor),
+    )).limit(1);
+  if (!row) throw new NotFound("Cuidado");
+  const { plan } = row;
+
+  const appliedAt = plan.reschedule && input.outcome === "done" ? input.appliedAt : undefined;
+  const slotAt = input.scheduledFor.getTime();
+  if (appliedAt && (
+    appliedAt.getTime() > now.getTime() || appliedAt.getTime() < slotAt - (plan.intervalMinutes * 60_000) / 2
+  )) throw new InvalidAppliedAt();
+
+  return db.transaction(async (tx) => {
+    const updated = await tx.update(careSlots).set({
+      outcome: input.outcome, resolvedByUserId: userId, resolvedAt: appliedAt ?? now,
+      value: input.value?.trim() || null, note: input.note?.trim() || null,
+    }).where(and(eq(careSlots.id, row.id), isNull(careSlots.outcome))).returning({ id: careSlots.id });
+    if (updated.length === 0) return { recorded: false };
+    if (!appliedAt) return { recorded: true };
+
+    // Só desloca a grade se este for o último horário vencido; resolver um antigo não reescreve o futuro.
+    const [later] = await tx.select({ id: careSlots.id }).from(careSlots).where(and(
+      eq(careSlots.carePlanId, plan.id), gt(careSlots.scheduledFor, input.scheduledFor),
+      lte(careSlots.scheduledFor, new Date(now.getTime() + EARLY_WINDOW_MS)),
+    )).limit(1);
+    if (later) return { recorded: true };
+
+    const cutoff = new Date(Math.max(slotAt, appliedAt.getTime()));
+    await tx.delete(careSlots).where(and(
+      eq(careSlots.carePlanId, plan.id), isNull(careSlots.outcome), gt(careSlots.scheduledFor, cutoff),
+    ));
+    const next = new Date(appliedAt.getTime() + plan.intervalMinutes * 60_000);
+    await tx.update(carePlans).set({ anchorAt: appliedAt, nextDueAt: next, startsAt: next, slotsThrough: null })
+      .where(eq(carePlans.id, plan.id));
+    return { recorded: true };
+  });
 }

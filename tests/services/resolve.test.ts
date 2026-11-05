@@ -5,18 +5,18 @@ import { carePlans, careSlots } from "@/lib/db/schema";
 import { createCat } from "@/lib/services/cats";
 import { createItem } from "@/lib/services/items";
 import { createPlan } from "@/lib/services/plans";
-import { resolveSlot, TooEarly } from "@/lib/services/slots";
+import { ensureSlots, InvalidAppliedAt, resolveSlot, TooEarly } from "@/lib/services/slots";
 import { NotFound } from "@/lib/errors";
 
 const z = (s: string) => new Date(s);
 
-async function setup(org = "o1") {
+async function setup(org = "o1", extra: { reschedule?: boolean; endAt?: Date } = {}) {
   const db = await createTestDb();
   const cat = await createCat(db, org, { name: "Izzy" });
   const item = await createItem(db, org, { name: "Amoxicilina", kind: "medication" });
   const plan = await createPlan(db, org, {
     catId: cat.id, itemId: item.id, intervalMinutes: 360,
-    anchorAt: z("2026-11-04T11:00:00Z"), now: z("2026-11-04T10:00:00Z"),
+    anchorAt: z("2026-11-04T11:00:00Z"), now: z("2026-11-04T10:00:00Z"), ...extra,
   });
   return { db, plan };
 }
@@ -74,5 +74,88 @@ describe("resolveSlot", () => {
   test("resolver depois da janela de solução ainda grava", async () => {
     const { db, plan } = await setup();
     expect(await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", "2026-11-09T12:00:00Z"))).toEqual({ recorded: true });
+  });
+});
+
+describe("resolveSlot com reprogramação", () => {
+  const pending = async (db: Awaited<ReturnType<typeof setup>>["db"]) =>
+    (await db.select().from(careSlots).orderBy(careSlots.scheduledFor))
+      .filter((s) => s.outcome === null).map((s) => s.scheduledFor.toISOString());
+  const planRow = async (db: Awaited<ReturnType<typeof setup>>["db"]) => (await db.select().from(carePlans))[0];
+  const at = (hhmm: string) => z(`2026-11-04T${hhmm}:00Z`);
+
+  test("atrasado: próximas doses partem da hora real e o registro guarda a hora real", async () => {
+    const { db, plan } = await setup("o1", { reschedule: true });
+    const now = at("11:25");
+    await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", now.toISOString(), { appliedAt: at("11:20") }));
+    await ensureSlots(db, now, "o1");
+    expect(await pending(db)).toEqual(["2026-11-04T17:20:00.000Z", "2026-11-04T23:20:00.000Z"]);
+    const [done] = await db.select().from(careSlots).where(eq(careSlots.scheduledFor, at("11:00")));
+    expect(done).toMatchObject({ outcome: "done" });
+    expect(done.resolvedAt).toEqual(at("11:20"));
+    const p = await planRow(db);
+    expect(p.anchorAt).toEqual(at("11:20"));
+    expect(p.nextDueAt).toEqual(at("17:20"));
+  });
+
+  test("adiantado: aplicar antes do horário puxa a sequência para trás", async () => {
+    const { db, plan } = await setup("o1", { reschedule: true });
+    const now = at("11:03");
+    await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", now.toISOString(), { appliedAt: at("10:40") }));
+    await ensureSlots(db, now, "o1");
+    expect((await pending(db))[0]).toBe("2026-11-04T16:40:00.000Z");
+  });
+
+  test("hora no futuro ou mais de meio intervalo antes é rejeitada e nada é gravado", async () => {
+    const { db, plan } = await setup("o1", { reschedule: true });
+    const now = "2026-11-04T11:03:00Z";
+    await expect(resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", now, { appliedAt: at("11:04") })))
+      .rejects.toBeInstanceOf(InvalidAppliedAt);
+    await expect(resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", now, { appliedAt: at("07:00") })))
+      .rejects.toBeInstanceOf(InvalidAppliedAt);
+    expect((await db.select().from(careSlots)).every((s) => s.outcome === null)).toBe(true);
+    expect((await planRow(db)).anchorAt).toEqual(at("11:00"));
+  });
+
+  test("pular não desloca a sequência", async () => {
+    const { db, plan } = await setup("o1", { reschedule: true });
+    const now = at("11:25");
+    await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", now.toISOString(), { outcome: "skipped", appliedAt: at("11:20") }));
+    await ensureSlots(db, now, "o1");
+    expect(await pending(db)).toEqual(["2026-11-04T17:00:00.000Z", "2026-11-04T23:00:00.000Z"]);
+    expect((await planRow(db)).anchorAt).toEqual(at("11:00"));
+  });
+
+  test("rotina sem reprogramação ignora appliedAt", async () => {
+    const { db, plan } = await setup("o1");
+    const now = at("11:25");
+    await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", now.toISOString(), { appliedAt: at("11:20") }));
+    await ensureSlots(db, now, "o1");
+    expect(await pending(db)).toEqual(["2026-11-04T17:00:00.000Z", "2026-11-04T23:00:00.000Z"]);
+    const [done] = await db.select().from(careSlots).where(eq(careSlots.scheduledFor, at("11:00")));
+    expect(done.resolvedAt).toEqual(now);
+  });
+
+  test("segunda chamada no mesmo horário não desloca de novo", async () => {
+    const { db, plan } = await setup("o1", { reschedule: true });
+    await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", "2026-11-04T11:25:00Z", { appliedAt: at("11:20") }));
+    const r = await resolveSlot(db, "o1", "u2", input(plan.id, "2026-11-04T11:00:00Z", "2026-11-04T11:55:00Z", { appliedAt: at("11:50") }));
+    expect(r).toEqual({ recorded: false });
+    expect((await planRow(db)).anchorAt).toEqual(at("11:20"));
+  });
+
+  test("horário antigo (já existe um posterior vencido) registra sem deslocar a grade", async () => {
+    const { db, plan } = await setup("o1", { reschedule: true });
+    const r = await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", "2026-11-04T23:05:00Z", { appliedAt: at("23:00") }));
+    expect(r).toEqual({ recorded: true });
+    expect((await planRow(db)).anchorAt).toEqual(at("11:00"));
+  });
+
+  test("a data final continua valendo depois do deslocamento", async () => {
+    const { db, plan } = await setup("o1", { reschedule: true, endAt: at("20:00") });
+    const now = at("11:25");
+    await resolveSlot(db, "o1", "u1", input(plan.id, "2026-11-04T11:00:00Z", now.toISOString(), { appliedAt: at("11:20") }));
+    await ensureSlots(db, now, "o1");
+    expect(await pending(db)).toEqual(["2026-11-04T17:20:00.000Z"]);
   });
 });
