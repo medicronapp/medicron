@@ -41,6 +41,7 @@ export const carePlans = pgTable("care_plans", {
   anchorAt: tz("anchor_at").notNull(),
   endAt: tz("end_at"),
   active: boolean("active").notNull().default(true),
+  reschedule: boolean("reschedule").notNull().default(false),
   nextDueAt: tz("next_due_at").notNull(),
   notifiedForDueAt: tz("notified_for_due_at"),
   startsAt: tz("starts_at").notNull().defaultNow(),

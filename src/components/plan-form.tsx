@@ -3,7 +3,9 @@ import { INTERVAL_PRESETS } from "@/lib/schedule";
 import { FormField } from "@/components/form-field";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
+import { Switch } from "@/components/ui/switch";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -46,6 +48,15 @@ export function PlanForm({ items, defaultAnchor, action }: {
         <FormField label="Horário da primeira dose" htmlFor="anchorAt" hint="Horário de Brasília. Os próximos seguem a frequência a partir daqui.">
           <Input id="anchorAt" name="anchorAt" type="datetime-local" required defaultValue={defaultAnchor} />
         </FormField>
+        <div className="flex items-start justify-between gap-4">
+          <div className="grid gap-1">
+            <Label htmlFor="reschedule">Reprogramar horários</Label>
+            <p className="text-sm text-muted-foreground">
+              Se uma dose atrasar, as próximas acompanham a hora real da aplicação.
+            </p>
+          </div>
+          <Switch id="reschedule" name="reschedule" value="on" />
+        </div>
       </Section>
       <Section title="Até quando">
         <FormField label="Data final" htmlFor="endAt" hint="Opcional. Deixe vazio para um uso contínuo.">

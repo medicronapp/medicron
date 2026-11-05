@@ -18,6 +18,7 @@ export async function createPlanAction(catId: string, f: FormData) {
     anchorAt: parseLocalInput(String(f.get("anchorAt"))),
     endAt: endRaw ? parseLocalInput(endRaw) : undefined,
     dose: String(f.get("dose") ?? "") || undefined,
+    reschedule: f.get("reschedule") === "on",
   });
   revalidatePath("/", "layout");
   redirect(`/gatos/${catId}`);

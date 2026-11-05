@@ -74,3 +74,12 @@ describe("plans", () => {
     await expect(updatePlan(db, "o2", plan.id, { dose: "x" })).rejects.toBeInstanceOf(NotFound);
   });
 });
+
+describe("plans: reprogramar horários", () => {
+  test("reschedule é falso por padrão e verdadeiro quando informado", async () => {
+    const { db, cat, item } = await setup();
+    const base = { catId: cat.id, itemId: item.id, intervalMinutes: 480, anchorAt: d("2026-11-04T08:00:00Z"), now };
+    expect((await createPlan(db, "o1", base)).reschedule).toBe(false);
+    expect((await createPlan(db, "o1", { ...base, reschedule: true })).reschedule).toBe(true);
+  });
+});

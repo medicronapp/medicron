@@ -1,0 +1,1 @@
+ALTER TABLE "care_plans" ADD COLUMN "reschedule" boolean DEFAULT false NOT NULL;

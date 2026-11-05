@@ -17,6 +17,7 @@ const planInput = z.object({
   anchorAt: z.date(),
   endAt: z.date().optional(),
   dose: z.string().trim().max(120).optional(),
+  reschedule: z.boolean().optional(),
 });
 export type PlanInput = z.input<typeof planInput> & { now?: Date };
 
@@ -33,7 +34,7 @@ export async function createPlan(db: Db, orgId: string, input: PlanInput): Promi
   const [row] = await db.insert(carePlans).values({
     organizationId: orgId, catId: cat.id, itemId: item.id,
     intervalMinutes: p.intervalMinutes, anchorAt: p.anchorAt, endAt: p.endAt ?? null,
-    dose: p.dose || item.defaultDose, nextDueAt, startsAt: nextDueAt,
+    dose: p.dose || item.defaultDose, reschedule: p.reschedule ?? false, nextDueAt, startsAt: nextDueAt,
   }).returning();
   return row;
 }
