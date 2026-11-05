@@ -51,3 +51,39 @@ export function relativeLabel(target: Date, now: Date): string {
 export function formatLongDate(date: Date): string {
   return new Intl.DateTimeFormat("pt-BR", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" }).format(date);
 }
+
+const BRT_MS = 3 * 3600_000;
+const DAY_MS = 86_400_000;
+const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+
+/** "YYYY-MM-DD" do instante em Brasília. */
+export function dayKey(date: Date): string {
+  return new Date(date.getTime() - BRT_MS).toISOString().slice(0, 10);
+}
+
+/** Início (00:00:00.000) e fim (23:59:59.999) do dia em Brasília. */
+export function dayBounds(key: string): { start: Date; end: Date } {
+  const start = new Date(`${key}T00:00:00.000-03:00`);
+  return { start, end: new Date(start.getTime() + DAY_MS - 1) };
+}
+
+export function addDays(key: string, n: number): string {
+  const noon = new Date(`${key}T12:00:00.000Z`).getTime() + n * DAY_MS;
+  return new Date(noon).toISOString().slice(0, 10);
+}
+
+/** Fim da janela de solução: 23:59:59.999 do dia seguinte. */
+export function windowEnd(key: string): Date {
+  return dayBounds(addDays(key, 1)).end;
+}
+
+/** Segunda a domingo da semana que contém `todayKey`. */
+export function weekKeys(todayKey: string): string[] {
+  const dow = new Date(`${todayKey}T12:00:00.000Z`).getUTCDay(); // 0 = domingo
+  const monday = addDays(todayKey, -((dow + 6) % 7));
+  return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+}
+
+export function weekdayShort(key: string): string {
+  return WEEKDAYS[new Date(`${key}T12:00:00.000Z`).getUTCDay()];
+}

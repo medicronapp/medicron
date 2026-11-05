@@ -60,3 +60,23 @@ describe("latestSlotAtOrBefore", () => {
     expect(latestSlotAtOrBefore(anchor, 480, d("2026-11-04T07:59:00Z"))).toBeNull();
   });
 });
+
+import { slotsBetween } from "@/lib/schedule";
+
+describe("slotsBetween", () => {
+  const z = (s: string) => new Date(`2026-11-04T${s}:00Z`);
+  test("lista a grade dentro do intervalo, extremos incluídos", () => {
+    expect(slotsBetween(z("11:00"), 360, z("11:00"), z("23:00"))).toEqual([z("11:00"), z("17:00"), z("23:00")]);
+  });
+  test("from entre slots começa no próximo; antes da âncora começa na âncora", () => {
+    expect(slotsBetween(z("11:00"), 360, z("12:00"), z("23:00"))).toEqual([z("17:00"), z("23:00")]);
+    expect(slotsBetween(z("11:00"), 360, z("01:00"), z("12:00"))).toEqual([z("11:00")]);
+  });
+  test("limit corta e from > to devolve vazio", () => {
+    expect(slotsBetween(z("11:00"), 60, z("11:00"), z("23:00"), 3)).toHaveLength(3);
+    expect(slotsBetween(z("11:00"), 60, z("12:00"), z("11:00"))).toEqual([]);
+  });
+  test("intervalo inválido lança RangeError", () => {
+    expect(() => slotsBetween(z("11:00"), 0, z("11:00"), z("12:00"))).toThrow(RangeError);
+  });
+});

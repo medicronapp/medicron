@@ -51,3 +51,34 @@ describe("relativeLabel", () => {
 test("formatLongDate escreve a data por extenso em Brasília", () => {
   expect(formatLongDate(new Date("2026-11-04T15:00:00Z"))).toBe("quarta-feira, 4 de novembro");
 });
+
+import { dayKey, dayBounds, addDays, windowEnd, weekKeys, weekdayShort } from "@/lib/time";
+
+describe("dia em Brasília", () => {
+  test("dayKey vira o dia às 03:00Z", () => {
+    expect(dayKey(new Date("2026-11-05T02:59:59Z"))).toBe("2026-11-04");
+    expect(dayKey(new Date("2026-11-05T03:00:00Z"))).toBe("2026-11-05");
+  });
+  test("dayBounds cobre 00:00:00.000 a 23:59:59.999 BRT", () => {
+    const b = dayBounds("2026-11-04");
+    expect(b.start).toEqual(new Date("2026-11-04T03:00:00.000Z"));
+    expect(b.end).toEqual(new Date("2026-11-05T02:59:59.999Z"));
+  });
+  test("addDays atravessa mês e fevereiro", () => {
+    expect(addDays("2026-11-30", 1)).toBe("2026-12-01");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+  test("windowEnd é o fim do dia seguinte", () => {
+    expect(windowEnd("2026-11-04")).toEqual(new Date("2026-11-06T02:59:59.999Z"));
+  });
+  test("weekKeys vai de segunda a domingo", () => {
+    expect(weekKeys("2026-11-04")).toEqual(["2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08"]);
+    expect(weekKeys("2026-11-08")[0]).toBe("2026-11-02");
+    expect(weekKeys("2026-11-02")[0]).toBe("2026-11-02");
+  });
+  test("weekdayShort em português", () => {
+    expect(weekdayShort("2026-11-04")).toBe("qua");
+    expect(weekdayShort("2026-11-07")).toBe("sáb");
+    expect(weekdayShort("2026-11-08")).toBe("dom");
+  });
+});

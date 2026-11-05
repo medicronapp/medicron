@@ -38,3 +38,18 @@ export function latestSlotAtOrBefore(anchor: Date, intervalMinutes: number, at: 
   const k = Math.floor((at.getTime() - anchor.getTime()) / step);
   return new Date(anchor.getTime() + k * step);
 }
+
+/** Horários anchor + k*intervalo (k >= 0) com from <= t <= to, crescentes, no máximo `limit`. */
+export function slotsBetween(anchor: Date, intervalMinutes: number, from: Date, to: Date, limit = 1000): Date[] {
+  if (!(intervalMinutes > 0)) throw new RangeError("intervalMinutes deve ser > 0");
+  if (from.getTime() > to.getTime()) return [];
+  const step = intervalMinutes * MS_PER_MIN;
+  const k0 = Math.max(0, Math.ceil((from.getTime() - anchor.getTime()) / step));
+  const out: Date[] = [];
+  for (let k = k0; out.length < limit; k++) {
+    const t = anchor.getTime() + k * step;
+    if (t > to.getTime()) break;
+    out.push(new Date(t));
+  }
+  return out;
+}
