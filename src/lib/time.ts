@@ -56,10 +56,23 @@ const BRT_MS = 3 * 3600_000;
 const DAY_MS = 86_400_000;
 const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
-/** "HH:mm" digitado (Brasília) -> instante mais recente com essa hora que não esteja depois de `now`. */
-export function localTimeToRecent(hhmm: string, now: Date): Date {
+const CLOCK_SKEW_MS = 2 * 60_000;
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * "HH:mm" digitado (Brasília) -> instante da aplicação, ou null se inválido.
+ * - até 2 min à frente de `now` (relógio do aparelho adiantado) vira `now`;
+ * - mais à frente só vale como "ontem" se o horário previsto é de um dia anterior a hoje
+ *   (marcar depois da meia-noite) ou se a hora de ontem fica a no máximo 1 h antes do horário previsto.
+ */
+export function resolveAppliedTime(hhmm: string, scheduledFor: Date, now: Date): Date | null {
+  if (!HHMM.test(hhmm)) return null;
   const today = parseLocalInput(`${dayKey(now)}T${hhmm}`);
-  return today.getTime() > now.getTime() ? new Date(today.getTime() - DAY_MS) : today;
+  if (today.getTime() <= now.getTime()) return today;
+  if (today.getTime() - now.getTime() <= CLOCK_SKEW_MS) return new Date(now.getTime());
+  const yesterday = new Date(today.getTime() - DAY_MS);
+  const slotIsOlderDay = dayKey(scheduledFor) < dayKey(now);
+  return slotIsOlderDay || yesterday.getTime() >= scheduledFor.getTime() - 3600_000 ? yesterday : null;
 }
 
 /** "YYYY-MM-DD" do instante em Brasília. */

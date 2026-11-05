@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { parseLocalInput, toLocalInput, formatDateTime, intervalLabel, localTimeToRecent } from "@/lib/time";
+import { parseLocalInput, toLocalInput, formatDateTime, intervalLabel, resolveAppliedTime } from "@/lib/time";
 
 test("parseLocalInput interpreta datetime-local em America/Sao_Paulo", () => {
   expect(parseLocalInput("2026-11-04T08:00")).toEqual(new Date("2026-11-04T11:00:00Z"));
@@ -83,11 +83,27 @@ describe("dia em Brasília", () => {
   });
 });
 
-describe("localTimeToRecent", () => {
-  test("hora de hoje em Brasília quando já passou", () => {
-    expect(localTimeToRecent("09:30", new Date("2026-11-04T15:00:00Z"))).toEqual(new Date("2026-11-04T12:30:00Z"));
+describe("resolveAppliedTime", () => {
+  const slotToday = new Date("2026-11-04T16:00:00Z"); // 13:00 BRT
+  const now = new Date("2026-11-04T16:20:00Z"); // 13:20 BRT
+
+  test("hora válida de hoje já passada", () => {
+    expect(resolveAppliedTime("13:10", slotToday, now)).toEqual(new Date("2026-11-04T16:10:00Z"));
   });
-  test("hora que ainda não chegou vira a de ontem", () => {
-    expect(localTimeToRecent("23:50", new Date("2026-11-05T03:10:00Z"))).toEqual(new Date("2026-11-05T02:50:00Z"));
+  test("hora futura de hoje para horário de hoje é inválida (não vira ontem)", () => {
+    expect(resolveAppliedTime("14:00", slotToday, now)).toBeNull();
+  });
+  test("hora até 2 min à frente (relógio do aparelho adiantado) vira agora", () => {
+    expect(resolveAppliedTime("13:21", slotToday, now)).toEqual(now);
+  });
+  test("horário de ontem marcado depois da meia-noite aceita a hora de ontem", () => {
+    const slotYesterday = new Date("2026-11-05T02:00:00Z"); // 23:00 BRT de 04/11
+    const n = new Date("2026-11-05T03:10:00Z"); // 00:10 BRT de 05/11
+    expect(resolveAppliedTime("23:50", slotYesterday, n)).toEqual(new Date("2026-11-05T02:50:00Z"));
+  });
+  test("formato inválido ou fora da faixa", () => {
+    for (const bad of ["99:99", "24:00", "12:60", "9:30", "", "abc"]) {
+      expect(resolveAppliedTime(bad, slotToday, now)).toBeNull();
+    }
   });
 });
