@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { getOrgContext } from "@/lib/session";
 import { getCat } from "@/lib/services/cats";
 import { listPlansForCat } from "@/lib/services/plans";
+import { nextSlotAfter } from "@/lib/schedule";
 import { formatDateTime, intervalLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { CatForm } from "@/components/cat-form";
@@ -23,6 +24,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const cat = await getCat(db, orgId, id);
   if (!cat) notFound();
   const plans = await listPlansForCat(db, orgId, cat.id);
+  const now = new Date();
   const add = (
     <Link href={`/gatos/${cat.id}/rotina/nova`} className={cn(buttonVariants({ variant: plans.length ? "secondary" : "default" }))}>
       <Plus aria-hidden /> Adicionar
@@ -54,7 +56,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                     {p.dose && <p className="truncate text-sm text-muted-foreground">{p.dose}</p>}
                     <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                       <Badge variant="secondary">{intervalLabel(p.intervalMinutes)}</Badge>
-                      <span className="text-xs text-muted-foreground">próxima {formatDateTime(p.nextDueAt)}</span>
+                      <span className="text-xs text-muted-foreground">próxima {formatDateTime(nextSlotAfter(p.anchorAt, p.intervalMinutes, now))}</span>
                     </div>
                   </div>
                   <ConfirmAction
