@@ -12,6 +12,7 @@ import { CatForm } from "@/components/cat-form";
 import { ConfirmAction } from "@/components/confirm-action";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
+import { RescheduleToggle } from "@/components/reschedule-toggle";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { archiveCatAction, updateCatAction } from "../actions";
@@ -47,17 +48,18 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             {plans.map((p) => {
               const Icon = p.item.kind === "procedure" ? Stethoscope : Pill;
               return (
-                <li key={p.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3.5">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink">
-                    <Icon aria-hidden className="size-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{p.item.name}</p>
-                    {p.dose && <p className="truncate text-sm text-muted-foreground">{p.dose}</p>}
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <Badge variant="secondary">{intervalLabel(p.intervalMinutes)}</Badge>
-                      <span className="text-xs text-muted-foreground">próxima {formatDateTime(nextSlotAfter(p.anchorAt, p.intervalMinutes, now))}</span>
-                    </div>
+                <li key={p.id} className="grid gap-3 rounded-2xl border bg-card p-3.5">
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink">
+                      <Icon aria-hidden className="size-5" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{p.item.name}</p>
+                      {p.dose && <p className="truncate text-sm text-muted-foreground">{p.dose}</p>}
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <Badge variant="secondary">{intervalLabel(p.intervalMinutes)}</Badge>
+                        <span className="text-xs text-muted-foreground">próxima {formatDateTime(nextSlotAfter(p.anchorAt, p.intervalMinutes, now))}</span>
+                      </div>
                   </div>
                   <ConfirmAction
                     triggerLabel="Encerrar" triggerVariant="outline"
@@ -66,6 +68,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                     confirmLabel="Encerrar rotina"
                     action={deactivatePlanAction.bind(null, cat.id, p.id)}
                   />
+                  </div>
+                  <RescheduleToggle planId={p.id} checked={p.reschedule} />
                 </li>
               );
             })}

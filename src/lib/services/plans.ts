@@ -93,6 +93,14 @@ export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanP
   });
 }
 
+/** Liga/desliga a reprogramação de uma rotina. Só vale para as próximas doses registradas; não mexe nos horários. */
+export async function setPlanReschedule(db: Db, orgId: string, id: string, reschedule: boolean): Promise<CarePlan> {
+  const [row] = await db.update(carePlans).set({ reschedule })
+    .where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId))).returning();
+  if (!row) throw new NotFound("Plano");
+  return row;
+}
+
 /** Encerra a rotina: deixa de esperar cuidados dali em diante (apaga os horários futuros não resolvidos). */
 export async function deactivatePlan(db: Db, orgId: string, id: string, now: Date = new Date()): Promise<void> {
   await db.transaction(async (tx) => {

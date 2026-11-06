@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
 import { getOrgContext } from "@/lib/session";
-import { createPlan, deactivatePlan } from "@/lib/services/plans";
+import { createPlan, deactivatePlan, setPlanReschedule } from "@/lib/services/plans";
 import { parseLocalInput } from "@/lib/time";
 
 export async function createPlanAction(catId: string, f: FormData) {
@@ -29,4 +29,10 @@ export async function deactivatePlanAction(catId: string, planId: string) {
   await deactivatePlan(getDb(), orgId, planId);
   revalidatePath("/", "layout");
   redirect(`/gatos/${catId}`);
+}
+
+export async function setRescheduleAction(planId: string, reschedule: boolean) {
+  const { orgId } = await getOrgContext();
+  await setPlanReschedule(getDb(), orgId, planId, reschedule);
+  revalidatePath("/", "layout");
 }

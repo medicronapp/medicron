@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { createTestDb } from "@/lib/db/test-db";
 import { createCat } from "@/lib/services/cats";
 import { createItem } from "@/lib/services/items";
-import { createPlan, listPlansForCat, updatePlan, deactivatePlan } from "@/lib/services/plans";
+import { createPlan, listPlansForCat, updatePlan, deactivatePlan, setPlanReschedule } from "@/lib/services/plans";
 import { NotFound } from "@/lib/errors";
 
 const d = (s: string) => new Date(s);
@@ -81,5 +81,27 @@ describe("plans: reprogramar horários", () => {
     const base = { catId: cat.id, itemId: item.id, intervalMinutes: 480, anchorAt: d("2026-11-04T08:00:00Z"), now };
     expect((await createPlan(db, "o1", base)).reschedule).toBe(false);
     expect((await createPlan(db, "o1", { ...base, reschedule: true })).reschedule).toBe(true);
+  });
+});
+
+describe("plans: alterar reprogramação", () => {
+  test("liga e desliga sem mexer nos horários", async () => {
+    const { db, cat, item } = await setup();
+    const plan = await createPlan(db, "o1", {
+      catId: cat.id, itemId: item.id, intervalMinutes: 480, anchorAt: d("2026-11-04T08:00:00Z"), now,
+    });
+    const on = await setPlanReschedule(db, "o1", plan.id, true);
+    expect(on.reschedule).toBe(true);
+    expect(on.anchorAt).toEqual(plan.anchorAt);
+    expect(on.nextDueAt).toEqual(plan.nextDueAt);
+    expect((await setPlanReschedule(db, "o1", plan.id, false)).reschedule).toBe(false);
+  });
+
+  test("rotina de outra organização lança NotFound", async () => {
+    const { db, cat, item } = await setup();
+    const plan = await createPlan(db, "o1", {
+      catId: cat.id, itemId: item.id, intervalMinutes: 480, anchorAt: d("2026-11-04T08:00:00Z"), now,
+    });
+    await expect(setPlanReschedule(db, "o2", plan.id, true)).rejects.toBeInstanceOf(NotFound);
   });
 });
