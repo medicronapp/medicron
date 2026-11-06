@@ -17,8 +17,8 @@ export function HomeView({ home, hasPatients }: { home: SHome; hasPatients: bool
   const riskCount = home.attention.filter((e) => home.streak.pendingKeys.includes(dayKey(new Date(e.scheduledFor)))).length;
   return (
     <div className="grid gap-6">
-      <PageHeader title="Hoje" description={formatLongDate(now)} />
       <EnableNotifications compact />
+      <PageHeader title="Hoje" description={formatLongDate(now)} />
       {!hasPatients ? (
         <EmptyState
           icon={HeartPulse}

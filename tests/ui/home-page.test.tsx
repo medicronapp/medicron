@@ -5,6 +5,8 @@ import { render } from "@testing-library/react";
 vi.mock("@/app/(app)/actions", () => ({ recordDoseAction: vi.fn(async () => ({ recorded: true })) }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.fn() } }));
 
+vi.mock("@/components/enable-notifications", () => ({ EnableNotifications: () => <div data-testid="banner-avisos" /> }));
+
 import { HomeView } from "@/components/home/home-view";
 import type { SHome } from "@/components/home/serialize";
 
@@ -50,4 +52,11 @@ test("sem pacientes mostra o convite para cadastrar e não mostra sequência", (
   const { container } = render(<HomeView home={{ ...home, attention: [], patients: [] }} hasPatients={false} />);
   expect(container.textContent).toContain("Comece cadastrando seu primeiro paciente");
   expect(container.textContent).not.toContain("dias seguidos em dia");
+});
+
+test("o banner de avisos vem acima do título Hoje", () => {
+  const { getByTestId, getByRole } = render(<HomeView home={home} hasPatients />);
+  const banner = getByTestId("banner-avisos");
+  const title = getByRole("heading", { name: "Hoje" });
+  expect(banner.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
