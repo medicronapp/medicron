@@ -33,7 +33,7 @@ export function WelcomeSheet() {
     <Drawer open={open} onOpenChange={(o) => { if (!o) finish(); }}>
       <DrawerContent>
         <div
-          className="grid justify-items-center gap-3 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2 text-center"
+          className="grid justify-items-center gap-3 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-8 text-center"
           onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
           onTouchEnd={(e) => {
             if (touchX === null) return;

@@ -67,3 +67,10 @@ test("primeiros passos: com tudo feito o botão vira Concluir", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Concluir" }));
   expect(dismissChecklistAction).toHaveBeenCalledTimes(1);
 });
+
+test("boas-vindas: o ícone tem respiro no topo do sheet (não fica colado)", async () => {
+  render(<WelcomeSheet />);
+  const title = await screen.findByText("Bem-vindo ao Medicron");
+  const content = title.parentElement!;
+  expect(content.className).toContain("pt-8");
+});
