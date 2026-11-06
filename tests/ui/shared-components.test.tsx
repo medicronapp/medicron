@@ -47,10 +47,12 @@ test("SpeciesIcon desenha um ícone decorativo para cada tipo", () => {
   }
 });
 
-test("BrandMark não usa mais a pata e desenha um símbolo decorativo", () => {
+test("BrandMark é o anel do ciclo com a dose marcada, decorativo e sem a pata", () => {
   const { container } = render(<BrandMark />);
   expect(container.querySelector(".lucide-paw-print")).toBeNull();
   const svg = container.querySelector("svg");
-  expect(svg).not.toBeNull();
   expect(svg).toHaveAttribute("aria-hidden", "true");
+  const circles = svg!.querySelectorAll("circle");
+  expect(circles).toHaveLength(2);
+  expect(circles[0]).toHaveAttribute("stroke-dasharray");
 });
