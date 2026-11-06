@@ -1,6 +1,7 @@
 import {
   index, pgTable, pgEnum, text, integer, boolean, numeric, date, timestamp, unique,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth-schema";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -97,6 +98,13 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   p256dh: text("p256dh").notNull(),
   auth: text("auth").notNull(),
   createdAt: createdAt(),
+});
+
+/** Marcas de onboarding por usuário: ausência de linha ou de data = ainda não viu. */
+export const userOnboarding = pgTable("user_onboarding", {
+  userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
+  welcomeSeenAt: tz("welcome_seen_at"),
+  checklistDoneAt: tz("checklist_done_at"),
 });
 
 export type Patient = typeof patients.$inferSelect;

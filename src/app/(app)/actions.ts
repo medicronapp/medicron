@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
 import { getOrgContext } from "@/lib/session";
+import { dismissChecklist, markWelcomeSeen } from "@/lib/services/onboarding";
 import { InvalidAppliedAt, resolveSlot, TooEarly } from "@/lib/services/slots";
 import { resolveAppliedTime } from "@/lib/time";
 
@@ -26,4 +27,18 @@ export async function recordDoseAction(input: {
     if (err instanceof InvalidAppliedAt) return { recorded: false, reason: "invalid-time" };
     throw err;
   }
+}
+
+/** O usuário concluiu ou pulou as boas-vindas: não mostrar de novo. */
+export async function completeWelcomeAction(): Promise<void> {
+  const { userId } = await getOrgContext();
+  await markWelcomeSeen(getDb(), userId);
+  revalidatePath("/");
+}
+
+/** O usuário concluiu ou dispensou o checklist de primeiros passos. */
+export async function dismissChecklistAction(): Promise<void> {
+  const { userId } = await getOrgContext();
+  await dismissChecklist(getDb(), userId);
+  revalidatePath("/");
 }

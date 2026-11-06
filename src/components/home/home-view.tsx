@@ -4,21 +4,26 @@ import { EmptyState } from "@/components/empty-state";
 import { EnableNotifications } from "@/components/enable-notifications";
 import { PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
+import type { Onboarding } from "@/lib/services/onboarding";
 import { dayKey, formatLongDate } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { AttentionList } from "./attention-list";
 import { DayTimeline } from "./day-timeline";
+import { FirstStepsCard } from "./first-steps-card";
 import type { SHome } from "./serialize";
 import { StreakCard } from "./streak-card";
+import { WelcomeSheet } from "./welcome-sheet";
 
-/** Composição da home: sequência → atenção → linha do dia. */
-export function HomeView({ home, hasPatients }: { home: SHome; hasPatients: boolean }) {
+/** Composição da home: avisos → título → primeiros passos → sequência → atenção → linha do dia. */
+export function HomeView({ home, hasPatients, onboarding }: { home: SHome; hasPatients: boolean; onboarding: Onboarding }) {
   const now = new Date(home.now);
   const riskCount = home.attention.filter((e) => home.streak.pendingKeys.includes(dayKey(new Date(e.scheduledFor)))).length;
   return (
     <div className="grid gap-6">
       <EnableNotifications compact />
       <PageHeader title="Hoje" description={formatLongDate(now)} />
+      {onboarding.showWelcome && <WelcomeSheet />}
+      {onboarding.checklist.show && <FirstStepsCard steps={onboarding.checklist.steps} />}
       {!hasPatients ? (
         <EmptyState
           icon={HeartPulse}
