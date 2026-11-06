@@ -1,23 +1,19 @@
-import Link from "next/link";
-import { Pill, Plus, Stethoscope } from "lucide-react";
+import { Pill, Stethoscope } from "lucide-react";
 import { getDb } from "@/lib/db";
 import { getOrgContext } from "@/lib/session";
 import { listItems } from "@/lib/services/items";
-import { cn } from "@/lib/utils";
+import { AddLink } from "@/components/add-link";
 import { EmptyState } from "@/components/empty-state";
 import { ItemCard } from "@/components/item-card";
 import { PageHeader } from "@/components/page-header";
 import { SegmentedLinks } from "@/components/segmented-links";
-import { buttonVariants } from "@/components/ui/button";
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ tipo?: string }> }) {
   const { tipo } = await searchParams;
   const kind = tipo === "procedure" ? "procedure" : "medication";
   const { orgId } = await getOrgContext();
   const items = await listItems(getDb(), orgId, kind);
-  const add = (
-    <Link href={`/itens/novo?tipo=${kind}`} className={cn(buttonVariants())}><Plus aria-hidden /> Novo</Link>
-  );
+  const add = <AddLink href={`/itens/novo?tipo=${kind}`} label="Novo" />;
   return (
     <div className="grid gap-5">
       <PageHeader title="Itens" description="Medicações e procedimentos que entram nas rotinas." actions={add} />

@@ -26,7 +26,7 @@ export async function updateCatAction(id: string, f: FormData) {
   const { orgId } = await getOrgContext();
   await updateCat(getDb(), orgId, id, parse(f));
   revalidatePath("/gatos");
-  redirect(`/gatos/${id}`);
+  redirect(`/gatos/${id}?aba=dados`);
 }
 
 export async function archiveCatAction(id: string) {
