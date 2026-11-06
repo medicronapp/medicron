@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { createTestDb } from "@/lib/db/test-db";
 import { carePlans, pushSubscriptions, user, organization, member } from "@/lib/db/schema";
-import { createCat, archiveCat } from "@/lib/services/cats";
+import { createPatient, archivePatient } from "@/lib/services/patients";
 import { createItem } from "@/lib/services/items";
 import { createPlan } from "@/lib/services/plans";
 import { resolveSlot } from "@/lib/services/slots";
@@ -23,10 +23,10 @@ async function setup() {
   ]);
   await saveSubscription(db, "u1", { endpoint: "https://p/1", keys: { p256dh: "p", auth: "a" } });
   await saveSubscription(db, "u2", { endpoint: "https://p/2", keys: { p256dh: "p", auth: "a" } });
-  const cat = await createCat(db, "o1", { name: "Mimi" });
+  const patient = await createPatient(db, "o1", { name: "Mimi" });
   const item = await createItem(db, "o1", { name: "Amoxicilina", kind: "medication", defaultDose: "1 comprimido" });
   const plan = await createPlan(db, "o1", {
-    catId: cat.id, itemId: item.id, intervalMinutes: 480,
+    patientId: patient.id, itemId: item.id, intervalMinutes: 480,
     anchorAt: d("2026-11-04T08:00:00Z"), now: d("2026-11-04T07:00:00Z"),
   });
   const sent: { endpoint: string; title: string; body: string; tag: string }[] = [];
@@ -34,7 +34,7 @@ async function setup() {
     sent.push({ endpoint: sub.endpoint, ...payload });
     return { ok: true };
   };
-  return { db, cat, item, plan, sent, send };
+  return { db, patient, item, plan, sent, send };
 }
 
 describe("dispatchDue", () => {
@@ -94,7 +94,7 @@ describe("dispatchDue", () => {
     expect((await dispatchDue(a.db, d("2026-11-04T09:00:00Z"), a.send)).sent).toBe(0);
 
     const b = await setup();
-    await archiveCat(b.db, "o1", b.cat.id);
+    await archivePatient(b.db, "o1", b.patient.id);
     expect((await dispatchDue(b.db, d("2026-11-04T09:00:00Z"), b.send)).sent).toBe(0);
 
     const c = await setup();

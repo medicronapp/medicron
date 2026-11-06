@@ -9,7 +9,7 @@ test("initials usa até duas letras maiúsculas", () => {
   expect(initials("")).toBe("?");
 });
 
-import { ageLabel, catTone } from "@/lib/format";
+import { ageLabel, patientTone } from "@/lib/format";
 
 test("ageLabel descreve idade em meses e anos", () => {
   const now = new Date("2026-11-04T12:00:00Z");
@@ -19,10 +19,10 @@ test("ageLabel descreve idade em meses e anos", () => {
   expect(ageLabel("2021-03-10", now)).toBe("5 anos");
 });
 
-test("catTone é estável e fica entre 0 e 5", () => {
-  expect(catTone("Mimi")).toBe(catTone("Mimi"));
+test("patientTone é estável e fica entre 0 e 5", () => {
+  expect(patientTone("Mimi")).toBe(patientTone("Mimi"));
   for (const n of ["Mimi", "Izzy", "A", "Nome muito longo de gato 123"]) {
-    const t = catTone(n);
+    const t = patientTone(n);
     expect(t).toBeGreaterThanOrEqual(0);
     expect(t).toBeLessThanOrEqual(5);
   }

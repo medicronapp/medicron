@@ -3,7 +3,7 @@ import { safeNext } from "@/lib/redirect";
 
 test("aceita caminhos internos", () => {
   expect(safeNext("/convite/abc")).toBe("/convite/abc");
-  expect(safeNext("/gatos?x=1")).toBe("/gatos?x=1");
+  expect(safeNext("/pacientes?x=1")).toBe("/pacientes?x=1");
 });
 
 test("rejeita URLs externas, protocolo relativo e vazio", () => {

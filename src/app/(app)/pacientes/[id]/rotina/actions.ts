@@ -6,13 +6,13 @@ import { getOrgContext } from "@/lib/session";
 import { createPlan, deactivatePlan, updatePlan } from "@/lib/services/plans";
 import { parseLocalInput } from "@/lib/time";
 
-export async function createPlanAction(catId: string, f: FormData) {
+export async function createPlanAction(patientId: string, f: FormData) {
   const { orgId } = await getOrgContext();
   const custom = Number(String(f.get("customHours") ?? "").replace(",", "."));
   const preset = Number(f.get("intervalMinutes"));
   const endRaw = String(f.get("endAt") ?? "");
   await createPlan(getDb(), orgId, {
-    catId,
+    patientId,
     itemId: String(f.get("itemId")),
     intervalMinutes: preset === 0 && custom > 0 ? Math.round(custom * 60) : preset,
     anchorAt: parseLocalInput(String(f.get("anchorAt"))),
@@ -21,14 +21,14 @@ export async function createPlanAction(catId: string, f: FormData) {
     reschedule: f.get("reschedule") === "on",
   });
   revalidatePath("/", "layout");
-  redirect(`/gatos/${catId}`);
+  redirect(`/pacientes/${patientId}`);
 }
 
-export async function deactivatePlanAction(catId: string, planId: string) {
+export async function deactivatePlanAction(patientId: string, planId: string) {
   const { orgId } = await getOrgContext();
   await deactivatePlan(getDb(), orgId, planId);
   revalidatePath("/", "layout");
-  redirect(`/gatos/${catId}`);
+  redirect(`/pacientes/${patientId}`);
 }
 
 /** Edita dose, data final e reprogramação de uma rotina. Devolve a mensagem de erro, se houver. */

@@ -22,11 +22,11 @@ import { OrgSwitcher } from "@/components/app-shell/org-switcher";
 import { ThemeProvider } from "@/components/theme-provider";
 
 test("isActive casa por segmento, e '/' só exato", () => {
-  expect(isActive("/gatos/abc", "/gatos")).toBe(true);
-  expect(isActive("/gatos", "/gatos")).toBe(true);
-  expect(isActive("/gatosx", "/gatos")).toBe(false);
+  expect(isActive("/pacientes/abc", "/pacientes")).toBe(true);
+  expect(isActive("/pacientes", "/pacientes")).toBe(true);
+  expect(isActive("/gatosx", "/pacientes")).toBe(false);
   expect(isActive("/", "/")).toBe(true);
-  expect(isActive("/gatos", "/")).toBe(false);
+  expect(isActive("/pacientes", "/")).toBe(false);
 });
 
 test("NAV_ITEMS tem Hoje, Gatos, Itens e Conta", () => {

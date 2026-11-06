@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { formatTime } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { ResolveButtons } from "./resolve-buttons";
-import type { SCatDay, SEntry } from "./serialize";
+import type { SPatientDay, SEntry } from "./serialize";
 
 const STATE: Record<SEntry["state"], { label: string; icon: LucideIcon; dot: string }> = {
   done: { label: "Feito", icon: CheckCircle2, dot: "bg-success-soft text-success-ink" },
@@ -17,11 +17,11 @@ const STATE: Record<SEntry["state"], { label: string; icon: LucideIcon; dot: str
   later: { label: "Mais tarde", icon: Clock, dot: "bg-muted text-muted-foreground" },
 };
 
-type Props = { cats: SCatDay[]; selectedKey: string; todayKey: string; selectedStatus: DayStatus; now: string };
+type Props = { patients: SPatientDay[]; selectedKey: string; todayKey: string; selectedStatus: DayStatus; now: string };
 
-export function DayTimeline({ cats, selectedKey, todayKey, selectedStatus }: Props) {
-  const [selectedCat, setSelectedCat] = useState<string | null>(null);
-  const active = cats.find((c) => c.catId === selectedCat) ?? cats[0];
+export function DayTimeline({ patients, selectedKey, todayKey, selectedStatus }: Props) {
+  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
+  const active = patients.find((c) => c.patientId === selectedPatient) ?? patients[0];
   const past = selectedKey !== todayKey;
 
   return (
@@ -44,28 +44,28 @@ export function DayTimeline({ cats, selectedKey, todayKey, selectedStatus }: Pro
       ) : (
         <>
           <div role="tablist" aria-label="Gatos" className="flex gap-2 overflow-x-auto pb-1">
-            {cats.map((c) => (
+            {patients.map((c) => (
               <button
-                key={c.catId} role="tab" type="button" id={`tab-${c.catId}`} aria-controls={`panel-${c.catId}`}
-                aria-selected={c.catId === active.catId}
-                onClick={() => setSelectedCat(c.catId)}
+                key={c.patientId} role="tab" type="button" id={`tab-${c.patientId}`} aria-controls={`panel-${c.patientId}`}
+                aria-selected={c.patientId === active.patientId}
+                onClick={() => setSelectedPatient(c.patientId)}
                 className={cn(
                   "flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                  c.catId === active.catId ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted",
+                  c.patientId === active.patientId ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted",
                 )}
               >
-                <span className="max-w-32 truncate">{c.catName}</span>
+                <span className="max-w-32 truncate">{c.patientName}</span>
                 {c.missed > 0 ? (
                   <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-white">{c.missed}</span>
                 ) : (
-                  <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", c.catId === active.catId ? "bg-primary-foreground text-primary" : "bg-brand-soft text-brand-ink")}>
+                  <span className={cn("rounded-full px-2 py-0.5 text-xs font-bold", c.patientId === active.patientId ? "bg-primary-foreground text-primary" : "bg-brand-soft text-brand-ink")}>
                     {c.resolved}/{c.total}
                   </span>
                 )}
               </button>
             ))}
           </div>
-          <div role="tabpanel" id={`panel-${active.catId}`} aria-labelledby={`tab-${active.catId}`} className="rounded-2xl border bg-card p-3">
+          <div role="tabpanel" id={`panel-${active.patientId}`} aria-labelledby={`tab-${active.patientId}`} className="rounded-2xl border bg-card p-3">
             <ul className="divide-y">
               {active.entries.map((e) => {
                 const s = STATE[e.state];
@@ -93,7 +93,7 @@ export function DayTimeline({ cats, selectedKey, todayKey, selectedStatus }: Pro
                       </div>
                     </div>
                     {(e.state === "missed" || e.state === "now") && (
-                      <ResolveButtons planId={e.planId} scheduledFor={e.scheduledFor} kind={e.kind} reschedule={e.reschedule} itemName={e.itemName} catName={e.catName} size="default" />
+                      <ResolveButtons planId={e.planId} scheduledFor={e.scheduledFor} kind={e.kind} reschedule={e.reschedule} itemName={e.itemName} patientName={e.patientName} size="default" />
                     )}
                   </li>
                 );

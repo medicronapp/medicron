@@ -4,13 +4,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const updatePlanAction = vi.fn<(planId: string, f: FormData) => Promise<{ error?: string }>>(async () => ({}));
-vi.mock("@/app/(app)/gatos/[id]/rotina/actions", () => ({ updatePlanAction: (planId: string, f: FormData) => updatePlanAction(planId, f) }));
+vi.mock("@/app/(app)/pacientes/[id]/rotina/actions", () => ({ updatePlanAction: (planId: string, f: FormData) => updatePlanAction(planId, f) }));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock("sonner", () => ({ toast }));
 
 import { EditPlanSheet } from "@/components/edit-plan-sheet";
 
-const props = { planId: "p1", itemName: "Agemoxi", catName: "Izzy", dose: "1/2 comprimido", endAt: null, reschedule: false };
+const props = { planId: "p1", itemName: "Agemoxi", patientName: "Izzy", dose: "1/2 comprimido", endAt: null, reschedule: false };
 beforeEach(() => { updatePlanAction.mockClear(); toast.success.mockClear(); toast.error.mockClear(); });
 
 test("Editar abre o sheet com os valores atuais e salva a reprogramação", async () => {

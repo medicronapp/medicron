@@ -1,10 +1,10 @@
 import { test, expect } from "vitest";
 import { createTestDb } from "@/lib/db/test-db";
-import { cats, items, carePlans, doseLogs } from "@/lib/db/schema";
+import { patients, items, carePlans, doseLogs } from "@/lib/db/schema";
 
 test("insere gato, item, plano e log; log duplicado viola unique", async () => {
   const db = await createTestDb();
-  const [cat] = await db.insert(cats).values({ organizationId: "o1", name: "Mimi" }).returning();
+  const [patient] = await db.insert(patients).values({ organizationId: "o1", name: "Mimi" }).returning();
   const [item] = await db
     .insert(items)
     .values({ organizationId: "o1", name: "Amoxicilina", kind: "medication" })
@@ -13,7 +13,7 @@ test("insere gato, item, plano e log; log duplicado viola unique", async () => {
   const [plan] = await db
     .insert(carePlans)
     .values({
-      organizationId: "o1", catId: cat.id, itemId: item.id,
+      organizationId: "o1", patientId: patient.id, itemId: item.id,
       intervalMinutes: 480, anchorAt: at, nextDueAt: at,
     })
     .returning();
@@ -26,11 +26,11 @@ import { careSlots } from "@/lib/db/schema";
 
 test("care_slots: unique (rotina, horário), campos de resolução e notificação nascem nulos, rotina ganha startsAt", async () => {
   const db = await createTestDb();
-  const [cat] = await db.insert(cats).values({ organizationId: "o1", name: "Mimi" }).returning();
+  const [patient] = await db.insert(patients).values({ organizationId: "o1", name: "Mimi" }).returning();
   const [item] = await db.insert(items).values({ organizationId: "o1", name: "X", kind: "medication" }).returning();
   const at = new Date("2026-11-04T11:00:00Z");
   const [plan] = await db.insert(carePlans).values({
-    organizationId: "o1", catId: cat.id, itemId: item.id, intervalMinutes: 360, anchorAt: at, nextDueAt: at,
+    organizationId: "o1", patientId: patient.id, itemId: item.id, intervalMinutes: 360, anchorAt: at, nextDueAt: at,
   }).returning();
   expect(plan.startsAt).toBeInstanceOf(Date);
   expect(plan.slotsThrough).toBeNull();

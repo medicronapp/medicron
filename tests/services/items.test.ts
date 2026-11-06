@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { createTestDb } from "@/lib/db/test-db";
-import { carePlans, cats } from "@/lib/db/schema";
+import { carePlans, patients } from "@/lib/db/schema";
 import { createItem, listItems, getItem, updateItem, archiveItem } from "@/lib/services/items";
 
 describe("items", () => {
@@ -31,10 +31,10 @@ describe("items", () => {
   test("archiveItem some da lista e desativa os planos do item", async () => {
     const db = await createTestDb();
     const item = await createItem(db, "o1", { name: "X", kind: "medication" });
-    const [cat] = await db.insert(cats).values({ organizationId: "o1", name: "Mimi" }).returning();
+    const [patient] = await db.insert(patients).values({ organizationId: "o1", name: "Mimi" }).returning();
     const at = new Date();
     await db.insert(carePlans).values({
-      organizationId: "o1", catId: cat.id, itemId: item.id, intervalMinutes: 60, anchorAt: at, nextDueAt: at,
+      organizationId: "o1", patientId: patient.id, itemId: item.id, intervalMinutes: 60, anchorAt: at, nextDueAt: at,
     });
     await archiveItem(db, "o1", item.id);
     expect(await listItems(db, "o1")).toEqual([]);

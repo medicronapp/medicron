@@ -19,17 +19,17 @@ const home: SHome = {
   ],
   progress: { resolved: 1, total: 3 }, closedToday: false,
   attention: [{
-    planId: "p1", scheduledFor: "2026-11-03T23:00:00.000Z", catId: "c1", catName: "Izzy", itemName: "Amoxicilina",
+    planId: "p1", scheduledFor: "2026-11-03T23:00:00.000Z", patientId: "c1", patientName: "Izzy", itemName: "Amoxicilina",
     kind: "medication", dose: null, reschedule: false, state: "missed", resolvedBy: null, resolvedAt: null, late: false, value: null, note: null,
   }],
-  cats: [{ catId: "c1", catName: "Izzy", total: 3, resolved: 1, missed: 1, entries: [{
-    planId: "p1", scheduledFor: "2026-11-04T11:00:00.000Z", catId: "c1", catName: "Izzy", itemName: "Amoxicilina",
+  patients: [{ patientId: "c1", patientName: "Izzy", total: 3, resolved: 1, missed: 1, entries: [{
+    planId: "p1", scheduledFor: "2026-11-04T11:00:00.000Z", patientId: "c1", patientName: "Izzy", itemName: "Amoxicilina",
     kind: "medication", dose: null, reschedule: false, state: "done", resolvedBy: "Ana", resolvedAt: "2026-11-04T11:03:00.000Z", late: false, value: null, note: null,
   }] }],
 };
 
 test("ordem: sequência, atenção e linha do dia; sem 'Próximas 24 horas' nem 'Últimos registros'", () => {
-  const { container } = render(<HomeView home={home} hasCats />);
+  const { container } = render(<HomeView home={home} hasPatients />);
   const text = container.textContent ?? "";
   const a = text.indexOf("3 dias seguidos em dia");
   const b = text.indexOf("Precisa de atenção");
@@ -42,12 +42,12 @@ test("ordem: sequência, atenção e linha do dia; sem 'Próximas 24 horas' nem 
 });
 
 test("aviso de risco usa a quantidade de pendências de ontem na atenção", () => {
-  const { container } = render(<HomeView home={home} hasCats />);
+  const { container } = render(<HomeView home={home} hasPatients />);
   expect(container.textContent).toContain("Ontem tem 1 dose sem registro");
 });
 
 test("sem gatos mostra o convite para cadastrar e não mostra sequência", () => {
-  const { container } = render(<HomeView home={{ ...home, attention: [], cats: [] }} hasCats={false} />);
+  const { container } = render(<HomeView home={{ ...home, attention: [], patients: [] }} hasPatients={false} />);
   expect(container.textContent).toContain("Comece cadastrando seu primeiro gato");
   expect(container.textContent).not.toContain("dias seguidos em dia");
 });

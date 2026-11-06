@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb } from "@/lib/db/test-db";
 import { carePlans, careSlots } from "@/lib/db/schema";
-import { createCat, archiveCat } from "@/lib/services/cats";
+import { createPatient, archivePatient } from "@/lib/services/patients";
 import { createItem, archiveItem } from "@/lib/services/items";
 import { createPlan } from "@/lib/services/plans";
 import { ensureSlots } from "@/lib/services/slots";
@@ -14,14 +14,14 @@ const times = async (db: Awaited<ReturnType<typeof createTestDb>>) =>
 async function setup(opts: { interval?: number; anchor?: string; createdAt?: string; endAt?: string; org?: string } = {}) {
   const db = await createTestDb();
   const org = opts.org ?? "o1";
-  const cat = await createCat(db, org, { name: "Izzy" });
+  const patient = await createPatient(db, org, { name: "Izzy" });
   const item = await createItem(db, org, { name: "Amoxicilina", kind: "medication" });
   const plan = await createPlan(db, org, {
-    catId: cat.id, itemId: item.id, intervalMinutes: opts.interval ?? 360,
+    patientId: patient.id, itemId: item.id, intervalMinutes: opts.interval ?? 360,
     anchorAt: z(opts.anchor ?? "2026-11-04T11:00:00Z"), now: z(opts.createdAt ?? "2026-11-04T10:00:00Z"),
     endAt: opts.endAt ? z(opts.endAt) : undefined,
   });
-  return { db, cat, item, plan };
+  return { db, patient, item, plan };
 }
 
 describe("ensureSlots", () => {
@@ -56,7 +56,7 @@ describe("ensureSlots", () => {
     await a.db.update(carePlans).set({ active: false });
     expect(await ensureSlots(a.db, z("2026-11-04T23:00:00Z"))).toBe(0);
     const b = await setup();
-    await archiveCat(b.db, "o1", b.cat.id);
+    await archivePatient(b.db, "o1", b.patient.id);
     expect(await ensureSlots(b.db, z("2026-11-04T23:00:00Z"))).toBe(0);
     const c = await setup();
     await archiveItem(c.db, "o1", c.item.id);

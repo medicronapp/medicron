@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { test, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Cat } from "lucide-react";
+import { HeartPulse } from "lucide-react";
 import { NativeSelect } from "@/components/ui/native-select";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -46,7 +46,7 @@ test("PageHeader sem backHref não mostra Voltar", () => {
 });
 
 test("EmptyState mostra título, descrição e ação", () => {
-  render(<EmptyState icon={Cat} title="Nenhum gato" description="Cadastre o primeiro" action={<button>Novo</button>} />);
+  render(<EmptyState icon={HeartPulse} title="Nenhum gato" description="Cadastre o primeiro" action={<button>Novo</button>} />);
   expect(screen.getByText("Nenhum gato")).toBeInTheDocument();
   expect(screen.getByText("Cadastre o primeiro")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Novo" })).toBeInTheDocument();

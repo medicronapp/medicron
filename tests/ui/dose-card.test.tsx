@@ -10,7 +10,7 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.f
 import { DoseCard, type DoseCardProps } from "@/components/dose-card";
 
 const base: DoseCardProps = {
-  planId: "p1", scheduledFor: "2026-11-04T23:00:00.000Z", catName: "Izzy", itemName: "Agemoxi",
+  planId: "p1", scheduledFor: "2026-11-04T23:00:00.000Z", patientName: "Izzy", itemName: "Agemoxi",
   dose: "1/2 comprimido", kind: "medication", reschedule: false, timeLabel: "20:00", relative: "há 10 min", tone: "overdue",
 };
 

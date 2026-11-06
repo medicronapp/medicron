@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Archive } from "lucide-react";
 
-vi.mock("@/app/(app)/gatos/[id]/rotina/actions", () => ({ updatePlanAction: vi.fn() }));
+vi.mock("@/app/(app)/pacientes/[id]/rotina/actions", () => ({ updatePlanAction: vi.fn() }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 import { ConfirmAction } from "@/components/confirm-action";
@@ -25,7 +25,7 @@ test("ConfirmAction com ícone vira botão só de ícone, com nome acessível e 
 });
 
 test("Editar rotina é um botão só de ícone com nome acessível e alvo de 44px", () => {
-  render(<EditPlanSheet planId="p1" itemName="Agemoxi" catName="Izzy" dose={null} endAt={null} reschedule={false} />);
+  render(<EditPlanSheet planId="p1" itemName="Agemoxi" patientName="Izzy" dose={null} endAt={null} reschedule={false} />);
   const btn = screen.getByRole("button", { name: "Editar" });
   expect(btn.textContent).toBe("");
   expect(btn.className).toContain("size-11");

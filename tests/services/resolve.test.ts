@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { eq } from "drizzle-orm";
 import { createTestDb } from "@/lib/db/test-db";
 import { carePlans, careSlots } from "@/lib/db/schema";
-import { createCat } from "@/lib/services/cats";
+import { createPatient } from "@/lib/services/patients";
 import { createItem } from "@/lib/services/items";
 import { createPlan } from "@/lib/services/plans";
 import { ensureSlots, InvalidAppliedAt, resolveSlot, TooEarly } from "@/lib/services/slots";
@@ -12,10 +12,10 @@ const z = (s: string) => new Date(s);
 
 async function setup(org = "o1", extra: { reschedule?: boolean; endAt?: Date } = {}) {
   const db = await createTestDb();
-  const cat = await createCat(db, org, { name: "Izzy" });
+  const patient = await createPatient(db, org, { name: "Izzy" });
   const item = await createItem(db, org, { name: "Amoxicilina", kind: "medication" });
   const plan = await createPlan(db, org, {
-    catId: cat.id, itemId: item.id, intervalMinutes: 360,
+    patientId: patient.id, itemId: item.id, intervalMinutes: 360,
     anchorAt: z("2026-11-04T11:00:00Z"), now: z("2026-11-04T10:00:00Z"), ...extra,
   });
   return { db, plan };

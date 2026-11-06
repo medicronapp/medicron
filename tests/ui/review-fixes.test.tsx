@@ -111,7 +111,7 @@ test("alvos de toque ≥ 44px: segmented, menu do usuário, diálogo e botão En
   await userEvent.click(trigger);
   expect((await screen.findByRole("menuitem", { name: /Minha conta/ })).className).toContain("h-11");
   expect(readFileSync("src/components/ui/dialog.tsx", "utf8")).toContain('size="icon"');
-  expect(readFileSync("src/app/(app)/gatos/[id]/page.tsx", "utf8")).not.toContain('triggerSize="sm"');
+  expect(readFileSync("src/app/(app)/pacientes/[id]/page.tsx", "utf8")).not.toContain('triggerSize="sm"');
 });
 
 // Texto em inglês na UI

@@ -6,14 +6,14 @@ import userEvent from "@testing-library/user-event";
 vi.mock("next/navigation", () => ({ usePathname: () => "/itens", useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }));
 
 import { SegmentedLinks } from "@/components/segmented-links";
-import { CatCard } from "@/components/cat-card";
+import { PatientCard } from "@/components/patient-card";
 import { ItemCard } from "@/components/item-card";
 import { PlanForm } from "@/components/plan-form";
 import { ConfirmAction } from "@/components/confirm-action";
-import type { Cat, Item } from "@/lib/db/schema";
+import type { Patient, Item } from "@/lib/db/schema";
 
 const longName = "N".repeat(60);
-const cat = { id: "c1", organizationId: "o", name: longName, birthDate: null, weightKg: "4.2", notes: null, archivedAt: null, createdAt: new Date() } as Cat;
+const patient = { id: "c1", organizationId: "o", name: longName, birthDate: null, weightKg: "4.2", notes: null, archivedAt: null, createdAt: new Date() } as Patient;
 const mkItem = (over: Partial<Item>): Item =>
   ({ id: "i1", organizationId: "o", name: "Amoxicilina", kind: "medication", defaultDose: "1 comprimido", notes: null, archivedAt: null, createdAt: new Date(), ...over }) as Item;
 
@@ -24,10 +24,10 @@ test("SegmentedLinks marca só o ativo com aria-current", () => {
   expect(screen.getByRole("navigation", { name: "Tipo" })).toBeInTheDocument();
 });
 
-test("CatCard com nome de 60 caracteres trunca e mostra iniciais e peso", () => {
-  render(<CatCard cat={cat} />);
+test("PatientCard com nome de 60 caracteres trunca e mostra iniciais e peso", () => {
+  render(<PatientCard patient={patient} />);
   expect(screen.getByText(longName).className).toContain("truncate");
-  expect(screen.getByRole("link")).toHaveAttribute("href", "/gatos/c1");
+  expect(screen.getByRole("link")).toHaveAttribute("href", "/pacientes/c1");
   expect(screen.getByText("N")).toBeInTheDocument();
   expect(screen.getByText(/4,2 kg/)).toBeInTheDocument();
 });

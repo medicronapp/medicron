@@ -7,9 +7,9 @@ import { AddLink } from "@/components/add-link";
 import { ListRow } from "@/components/list-row";
 
 test("AddLink é um link com o botão padrão e o rótulo informado", () => {
-  render(<AddLink href="/gatos/novo" label="Novo gato" />);
+  render(<AddLink href="/pacientes/novo" label="Novo gato" />);
   const link = screen.getByRole("link", { name: "Novo gato" });
-  expect(link).toHaveAttribute("href", "/gatos/novo");
+  expect(link).toHaveAttribute("href", "/pacientes/novo");
   expect(link.className).toContain("bg-primary");
 });
 

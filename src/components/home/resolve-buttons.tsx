@@ -14,11 +14,11 @@ import { toLocalInput } from "@/lib/time";
 
 type Props = {
   planId: string; scheduledFor: string; kind: "medication" | "procedure"; reschedule: boolean;
-  itemName: string; catName: string; size?: "default" | "lg";
+  itemName: string; patientName: string; size?: "default" | "lg";
 };
 
 /** "Feito" e "Pular" de um horário. Procedimento pede valor/observação numa gaveta antes de registrar. */
-export function ResolveButtons({ planId, scheduledFor, kind, reschedule, itemName, catName, size = "lg" }: Props) {
+export function ResolveButtons({ planId, scheduledFor, kind, reschedule, itemName, patientName, size = "lg" }: Props) {
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [nowTime, setNowTime] = useState("");
@@ -67,7 +67,7 @@ export function ResolveButtons({ planId, scheduledFor, kind, reschedule, itemNam
             >
               <DrawerHeader className="px-0">
                 <DrawerTitle>{itemName}</DrawerTitle>
-                <DrawerDescription>{catName}{kind === "procedure" ? " · registre o resultado, se quiser." : ""}</DrawerDescription>
+                <DrawerDescription>{patientName}{kind === "procedure" ? " · registre o resultado, se quiser." : ""}</DrawerDescription>
               </DrawerHeader>
               {reschedule && (
                 <FormField label="Hora da aplicação" htmlFor={`time-${planId}-${scheduledFor}`} hint="Ajuste se a aplicação foi antes de você marcar.">

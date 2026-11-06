@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { cn } from "@/lib/utils";
 
 export type DoseCardProps = {
-  planId: string; scheduledFor: string; catName: string; itemName: string; dose: string | null;
+  planId: string; scheduledFor: string; patientName: string; itemName: string; dose: string | null;
   kind: "medication" | "procedure"; reschedule: boolean; timeLabel: string; relative: string; tone: "overdue" | "now" | "upcoming";
 };
 
@@ -30,7 +30,7 @@ export function DoseCard(p: DoseCardProps) {
           <Icon aria-hidden className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold">{p.catName}</p>
+          <p className="truncate text-base font-semibold">{p.patientName}</p>
           <p className="line-clamp-2 text-sm text-muted-foreground">
             {p.itemName}{p.dose ? ` · ${p.dose}` : ""}
           </p>
@@ -44,7 +44,7 @@ export function DoseCard(p: DoseCardProps) {
         <StatusBadge tone={p.tone} />
       </div>
       {p.tone !== "upcoming" && (
-        <ResolveButtons planId={p.planId} scheduledFor={p.scheduledFor} kind={p.kind} reschedule={p.reschedule} itemName={p.itemName} catName={p.catName} />
+        <ResolveButtons planId={p.planId} scheduledFor={p.scheduledFor} kind={p.kind} reschedule={p.reschedule} itemName={p.itemName} patientName={p.patientName} />
       )}
     </article>
   );

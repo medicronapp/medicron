@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull, lt, lte, or } from "drizzle-orm";
 import type { Db } from "@/lib/db";
-import { carePlans, careSlots, cats, items, type PushSubscriptionRow } from "@/lib/db/schema";
+import { carePlans, careSlots, patients, items, type PushSubscriptionRow } from "@/lib/db/schema";
 import { ensureSlots } from "@/lib/services/slots";
 import { listSubscriptionsForOrg, removeSubscription } from "@/lib/services/push";
 
@@ -20,10 +20,10 @@ export async function dispatchDue(
   await ensureSlots(db, now);
 
   const candidates = await db
-    .select({ slot: careSlots, plan: carePlans, catName: cats.name, itemName: items.name })
+    .select({ slot: careSlots, plan: carePlans, patientName: patients.name, itemName: items.name })
     .from(careSlots)
     .innerJoin(carePlans, eq(carePlans.id, careSlots.carePlanId))
-    .innerJoin(cats, and(eq(cats.id, carePlans.catId), isNull(cats.archivedAt)))
+    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt)))
     .innerJoin(items, and(eq(items.id, carePlans.itemId), isNull(items.archivedAt)))
     .where(and(
       eq(carePlans.active, true),
@@ -50,14 +50,14 @@ export async function dispatchDue(
     if (!claimed.some((c) => c.id === latest.slot.id)) continue; // outra execução já reivindicou
     plans++;
 
-    const { plan, catName, itemName, slot } = latest;
+    const { plan, patientName, itemName, slot } = latest;
     if (!subsByOrg.has(plan.organizationId)) {
       subsByOrg.set(plan.organizationId, await listSubscriptionsForOrg(db, plan.organizationId));
     }
     const subs = subsByOrg.get(plan.organizationId)!;
     const payload: PushPayload = {
       title: "Hora do cuidado",
-      body: `${catName} — ${itemName}${plan.dose ? ` (${plan.dose})` : ""}`,
+      body: `${patientName} — ${itemName}${plan.dose ? ` (${plan.dose})` : ""}`,
       tag: `${plan.id}-${slot.scheduledFor.getTime()}`,
       url: "/",
     };

@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import { Loader2, Pencil } from "lucide-react";
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import { toast } from "sonner";
-import { updatePlanAction } from "@/app/(app)/gatos/[id]/rotina/actions";
+import { updatePlanAction } from "@/app/(app)/pacientes/[id]/rotina/actions";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,12 +15,12 @@ import { Switch } from "@/components/ui/switch";
 import { toLocalInput } from "@/lib/time";
 
 type Props = {
-  planId: string; itemName: string; catName: string;
+  planId: string; itemName: string; patientName: string;
   dose: string | null; endAt: string | null; reschedule: boolean;
 };
 
 /** Botão "Editar" de uma rotina: abre um sheet com dose, data final e reprogramação de horários. */
-export function EditPlanSheet({ planId, itemName, catName, dose, endAt, reschedule }: Props) {
+export function EditPlanSheet({ planId, itemName, patientName, dose, endAt, reschedule }: Props) {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const id = (name: string) => `${name}-${planId}`;
@@ -48,7 +48,7 @@ export function EditPlanSheet({ planId, itemName, catName, dose, endAt, reschedu
             >
               <DrawerHeader className="px-0">
                 <DrawerTitle>{itemName}</DrawerTitle>
-                <DrawerDescription>{catName} · editar rotina</DrawerDescription>
+                <DrawerDescription>{patientName} · editar rotina</DrawerDescription>
               </DrawerHeader>
               <FormField label="Dose / instrução" htmlFor={id("dose")} hint="Opcional.">
                 <Input id={id("dose")} name="dose" maxLength={120} defaultValue={dose ?? ""} autoComplete="off" />

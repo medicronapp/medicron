@@ -1,10 +1,10 @@
-import { BellRing, Cat, Users } from "lucide-react";
+import { BellRing, HeartPulse, Users } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 
 const BENEFITS = [
   { icon: BellRing, text: "Lembretes no celular na hora de cada remédio ou cuidado" },
   { icon: Users, text: "Convide a família para cuidar juntos, na mesma conta" },
-  { icon: Cat, text: "Vários gatos, cada um com a sua rotina" },
+  { icon: HeartPulse, text: "Vários gatos, cada um com a sua rotina" },
 ];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

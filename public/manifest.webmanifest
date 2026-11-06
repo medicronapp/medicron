@@ -17,6 +17,6 @@
   ],
   "shortcuts": [
     { "name": "Hoje", "url": "/", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Gatos", "url": "/gatos", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Gatos", "url": "/pacientes", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

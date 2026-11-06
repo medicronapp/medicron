@@ -10,7 +10,7 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.f
 import { StreakCard } from "@/components/home/streak-card";
 import { AttentionList } from "@/components/home/attention-list";
 import { DayTimeline } from "@/components/home/day-timeline";
-import type { SEntry, SCatDay } from "@/components/home/serialize";
+import type { SEntry, SPatientDay } from "@/components/home/serialize";
 
 beforeEach(() => recordDoseAction.mockClear());
 
@@ -52,7 +52,7 @@ test("StreakCard: singular, zero, dia fechado e aviso de risco", () => {
 });
 
 const entry = (over: Partial<SEntry>): SEntry => ({
-  planId: "p1", scheduledFor: "2026-11-04T17:00:00.000Z", catId: "c1", catName: "Izzy", itemName: "Amoxicilina",
+  planId: "p1", scheduledFor: "2026-11-04T17:00:00.000Z", patientId: "c1", patientName: "Izzy", itemName: "Amoxicilina",
   kind: "medication", dose: "1/2 comprimido", reschedule: false, state: "missed", resolvedBy: null, resolvedAt: null,
   late: false, value: null, note: null, ...over,
 });
@@ -73,19 +73,19 @@ test("AttentionList some quando vazia", () => {
   expect(container).toBeEmptyDOMElement();
 });
 
-const cats: SCatDay[] = [
-  { catId: "c1", catName: "Izzy", total: 4, resolved: 2, missed: 1, entries: [
+const patients: SPatientDay[] = [
+  { patientId: "c1", patientName: "Izzy", total: 4, resolved: 2, missed: 1, entries: [
     entry({ scheduledFor: "2026-11-04T11:00:00.000Z", state: "done", resolvedBy: "Ana", resolvedAt: "2026-11-04T11:03:00.000Z" }),
     entry({ scheduledFor: "2026-11-04T13:00:00.000Z", state: "skipped", itemName: "Medir temperatura", resolvedBy: "Bia", resolvedAt: "2026-11-04T13:10:00.000Z" }),
     entry({ scheduledFor: "2026-11-04T17:00:00.000Z", state: "missed" }),
     entry({ scheduledFor: "2026-11-04T23:00:00.000Z", state: "now", itemName: "Gabapentina" }),
   ] },
-  { catId: "c2", catName: "Sir Bigodes", total: 2, resolved: 1, missed: 0, entries: [
-    entry({ catId: "c2", catName: "Sir Bigodes", planId: "p9", scheduledFor: "2026-11-04T11:00:00.000Z", state: "done", itemName: "Gaba", late: true }),
-    entry({ catId: "c2", catName: "Sir Bigodes", planId: "p9", scheduledFor: "2026-11-05T02:30:00.000Z", state: "later", itemName: "Gaba noite" }),
+  { patientId: "c2", patientName: "Sir Bigodes", total: 2, resolved: 1, missed: 0, entries: [
+    entry({ patientId: "c2", patientName: "Sir Bigodes", planId: "p9", scheduledFor: "2026-11-04T11:00:00.000Z", state: "done", itemName: "Gaba", late: true }),
+    entry({ patientId: "c2", patientName: "Sir Bigodes", planId: "p9", scheduledFor: "2026-11-05T02:30:00.000Z", state: "later", itemName: "Gaba noite" }),
   ] },
 ];
-const tlProps = { cats, selectedKey: "2026-11-04", todayKey: "2026-11-04", selectedStatus: "open" as const, now: NOW };
+const tlProps = { patients, selectedKey: "2026-11-04", todayKey: "2026-11-04", selectedStatus: "open" as const, now: NOW };
 
 test("DayTimeline: uma aba por gato, selo vermelho com pendências e progresso nas demais", () => {
   render(<DayTimeline {...tlProps} />);
@@ -128,13 +128,13 @@ test("DayTimeline de dia anterior mostra cabeçalho, 'dose sem solução' e link
 });
 
 test("DayTimeline sem cuidados mostra estado vazio", () => {
-  render(<DayTimeline {...tlProps} cats={[]} />);
+  render(<DayTimeline {...tlProps} patients={[]} />);
   expect(screen.getByText("Nenhum cuidado neste dia")).toBeInTheDocument();
 });
 
 test("nome longo de item trunca na linha do tempo", () => {
   const long = "M".repeat(80);
-  render(<DayTimeline {...tlProps} cats={[{ ...cats[0], entries: [entry({ itemName: long, state: "done" })] }]} />);
+  render(<DayTimeline {...tlProps} patients={[{ ...patients[0], entries: [entry({ itemName: long, state: "done" })] }]} />);
   expect(screen.getByText(long).className).toContain("truncate");
 });
 
@@ -144,7 +144,7 @@ test("M2: células da semana têm alvo de toque de 44px", () => {
 });
 
 test("selo de progresso da aba selecionada usa fundo sólido (contraste AA), não branco translúcido", () => {
-  render(<DayTimeline {...tlProps} cats={[{ ...cats[1] }]} />);
+  render(<DayTimeline {...tlProps} patients={[{ ...patients[1] }]} />);
   const badge = screen.getByText("1/2");
   expect(badge.className).toContain("bg-primary-foreground");
   expect(badge.className).not.toContain("bg-white/20");

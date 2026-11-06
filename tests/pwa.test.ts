@@ -20,6 +20,6 @@ test("todos os ícones do manifest existem em disco e há 192, 512 e um maskable
 });
 
 test("manifest tem atalhos para Hoje e Gatos", () => {
-  expect(manifest.shortcuts.map((s: { url: string }) => s.url)).toEqual(["/", "/gatos"]);
+  expect(manifest.shortcuts.map((s: { url: string }) => s.url)).toEqual(["/", "/pacientes"]);
   expect(manifest.categories).toContain("health");
 });

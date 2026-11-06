@@ -1,17 +1,17 @@
 import { and, asc, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db";
-import { carePlans, careSlots, cats, items, type CarePlan, type Item } from "@/lib/db/schema";
+import { carePlans, careSlots, patients, items, type CarePlan, type Item } from "@/lib/db/schema";
 import { NotFound } from "@/lib/errors";
 import { firstDueAt } from "@/lib/schedule";
-import { getCat } from "@/lib/services/cats";
+import { getPatient } from "@/lib/services/patients";
 import { getItem } from "@/lib/services/items";
 import { ensureSlots } from "@/lib/services/slots";
 
 const interval = z.number().int().min(5, "Intervalo mínimo de 5 minutos").max(60 * 24 * 365);
 
 const planInput = z.object({
-  catId: z.string().min(1),
+  patientId: z.string().min(1),
   itemId: z.string().min(1),
   intervalMinutes: interval,
   anchorAt: z.date(),
@@ -24,15 +24,15 @@ export type PlanInput = z.input<typeof planInput> & { now?: Date };
 export async function createPlan(db: Db, orgId: string, input: PlanInput): Promise<CarePlan> {
   const { now = new Date(), ...rest } = input;
   const p = planInput.parse(rest);
-  const [cat, item] = await Promise.all([getCat(db, orgId, p.catId), getItem(db, orgId, p.itemId)]);
-  if (!cat) throw new NotFound("Gato");
+  const [patient, item] = await Promise.all([getPatient(db, orgId, p.patientId), getItem(db, orgId, p.itemId)]);
+  if (!patient) throw new NotFound("Gato");
   if (!item) throw new NotFound("Item");
   const nextDueAt = firstDueAt(p.anchorAt, p.intervalMinutes, now);
   if (p.endAt && p.endAt.getTime() < nextDueAt.getTime()) {
     throw new Error("A data final é anterior à primeira dose");
   }
   const [row] = await db.insert(carePlans).values({
-    organizationId: orgId, catId: cat.id, itemId: item.id,
+    organizationId: orgId, patientId: patient.id, itemId: item.id,
     intervalMinutes: p.intervalMinutes, anchorAt: p.anchorAt, endAt: p.endAt ?? null,
     dose: p.dose || item.defaultDose, reschedule: p.reschedule ?? false, nextDueAt, startsAt: nextDueAt,
   }).returning();
@@ -41,15 +41,15 @@ export async function createPlan(db: Db, orgId: string, input: PlanInput): Promi
 
 export type PlanWithItem = CarePlan & { item: Item };
 
-export async function listPlansForCat(db: Db, orgId: string, catId: string): Promise<PlanWithItem[]> {
+export async function listPlansForPatient(db: Db, orgId: string, patientId: string): Promise<PlanWithItem[]> {
   const rows = await db
     .select({ plan: carePlans, item: items })
     .from(carePlans)
     .innerJoin(items, eq(items.id, carePlans.itemId))
-    .innerJoin(cats, eq(cats.id, carePlans.catId))
+    .innerJoin(patients, eq(patients.id, carePlans.patientId))
     .where(and(
-      eq(carePlans.organizationId, orgId), eq(carePlans.catId, catId), eq(carePlans.active, true),
-      isNull(items.archivedAt), isNull(cats.archivedAt),
+      eq(carePlans.organizationId, orgId), eq(carePlans.patientId, patientId), eq(carePlans.active, true),
+      isNull(items.archivedAt), isNull(patients.archivedAt),
     ))
     .orderBy(asc(carePlans.nextDueAt));
   return rows.map((r) => ({ ...r.plan, item: r.item }));

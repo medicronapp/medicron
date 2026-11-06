@@ -9,7 +9,7 @@ const tz = (name: string) => timestamp(name, { withTimezone: true });
 export const itemKind = pgEnum("item_kind", ["medication", "procedure"]);
 export const doseOutcome = pgEnum("dose_outcome", ["done", "skipped"]);
 
-export const cats = pgTable("cats", {
+export const patients = pgTable("patients", {
   id: id(),
   organizationId: text("organization_id").notNull(),
   name: text("name").notNull(),
@@ -34,7 +34,7 @@ export const items = pgTable("items", {
 export const carePlans = pgTable("care_plans", {
   id: id(),
   organizationId: text("organization_id").notNull(),
-  catId: text("cat_id").notNull().references(() => cats.id),
+  patientId: text("patient_id").notNull().references(() => patients.id),
   itemId: text("item_id").notNull().references(() => items.id),
   dose: text("dose"),
   intervalMinutes: integer("interval_minutes").notNull(),
@@ -97,7 +97,7 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   createdAt: createdAt(),
 });
 
-export type Cat = typeof cats.$inferSelect;
+export type Patient = typeof patients.$inferSelect;
 export type Item = typeof items.$inferSelect;
 export type CarePlan = typeof carePlans.$inferSelect;
 export type CareSlot = typeof careSlots.$inferSelect;

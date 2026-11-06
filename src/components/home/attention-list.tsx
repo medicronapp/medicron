@@ -23,7 +23,7 @@ export function AttentionList({ entries, now }: { entries: SEntry[]; now: string
         return (
           <DoseCard
             key={`${e.planId}-${e.scheduledFor}`}
-            planId={e.planId} scheduledFor={e.scheduledFor} catName={e.catName} itemName={e.itemName}
+            planId={e.planId} scheduledFor={e.scheduledFor} patientName={e.patientName} itemName={e.itemName}
             dose={e.dose} kind={e.kind} reschedule={e.reschedule} tone={e.state === "now" ? "now" : "overdue"}
             timeLabel={dayKey(at) === dayKey(nowDate) ? formatTime(at) : formatDateTime(at)}
             relative={relativeLabel(at, nowDate)}

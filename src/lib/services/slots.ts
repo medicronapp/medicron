@@ -1,6 +1,6 @@
 import { and, eq, gt, isNull, lt, lte, or } from "drizzle-orm";
 import type { Db } from "@/lib/db";
-import { carePlans, careSlots, cats, items } from "@/lib/db/schema";
+import { carePlans, careSlots, patients, items } from "@/lib/db/schema";
 import { NotFound } from "@/lib/errors";
 import { slotsBetween } from "@/lib/schedule";
 import { dayBounds, dayKey } from "@/lib/time";
@@ -14,7 +14,7 @@ export async function ensureSlots(db: Db, now: Date, orgId?: string): Promise<nu
   const rows = await db
     .select({ plan: carePlans })
     .from(carePlans)
-    .innerJoin(cats, and(eq(cats.id, carePlans.catId), isNull(cats.archivedAt)))
+    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt)))
     .innerJoin(items, and(eq(items.id, carePlans.itemId), isNull(items.archivedAt)))
     .where(and(eq(carePlans.active, true), orgId ? eq(carePlans.organizationId, orgId) : undefined));
 
