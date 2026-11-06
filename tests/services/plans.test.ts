@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { createTestDb } from "@/lib/db/test-db";
 import { createCat } from "@/lib/services/cats";
 import { createItem } from "@/lib/services/items";
-import { createPlan, listPlansForCat, updatePlan, deactivatePlan, setPlanReschedule } from "@/lib/services/plans";
+import { createPlan, listPlansForCat, updatePlan, deactivatePlan } from "@/lib/services/plans";
 import { NotFound } from "@/lib/errors";
 
 const d = (s: string) => new Date(s);
@@ -84,24 +84,32 @@ describe("plans: reprogramar horários", () => {
   });
 });
 
-describe("plans: alterar reprogramação", () => {
-  test("liga e desliga sem mexer nos horários", async () => {
+describe("plans: editar reprogramação, dose e data final", () => {
+  const mk = async () => {
     const { db, cat, item } = await setup();
     const plan = await createPlan(db, "o1", {
       catId: cat.id, itemId: item.id, intervalMinutes: 480, anchorAt: d("2026-11-04T08:00:00Z"), now,
     });
-    const on = await setPlanReschedule(db, "o1", plan.id, true);
+    return { db, plan };
+  };
+
+  test("liga e desliga reschedule sem mexer nos horários", async () => {
+    const { db, plan } = await mk();
+    const on = await updatePlan(db, "o1", plan.id, { reschedule: true, now });
     expect(on.reschedule).toBe(true);
     expect(on.anchorAt).toEqual(plan.anchorAt);
     expect(on.nextDueAt).toEqual(plan.nextDueAt);
-    expect((await setPlanReschedule(db, "o1", plan.id, false)).reschedule).toBe(false);
+    expect((await updatePlan(db, "o1", plan.id, { reschedule: false, now })).reschedule).toBe(false);
+  });
+
+  test("sem reschedule no patch, o valor atual é mantido", async () => {
+    const { db, plan } = await mk();
+    await updatePlan(db, "o1", plan.id, { reschedule: true, now });
+    expect((await updatePlan(db, "o1", plan.id, { dose: "2 comprimidos", now })).reschedule).toBe(true);
   });
 
   test("rotina de outra organização lança NotFound", async () => {
-    const { db, cat, item } = await setup();
-    const plan = await createPlan(db, "o1", {
-      catId: cat.id, itemId: item.id, intervalMinutes: 480, anchorAt: d("2026-11-04T08:00:00Z"), now,
-    });
-    await expect(setPlanReschedule(db, "o2", plan.id, true)).rejects.toBeInstanceOf(NotFound);
+    const { db, plan } = await mk();
+    await expect(updatePlan(db, "o2", plan.id, { reschedule: true, now })).rejects.toBeInstanceOf(NotFound);
   });
 });

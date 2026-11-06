@@ -56,7 +56,7 @@ export async function listPlansForCat(db: Db, orgId: string, catId: string): Pro
 }
 
 export type PlanPatch = {
-  intervalMinutes?: number; anchorAt?: Date; endAt?: Date | null; dose?: string | null; now?: Date;
+  intervalMinutes?: number; anchorAt?: Date; endAt?: Date | null; dose?: string | null; reschedule?: boolean; now?: Date;
 };
 
 export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanPatch): Promise<CarePlan> {
@@ -88,17 +88,10 @@ export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanP
     const [row] = await tx.update(carePlans).set({
       intervalMinutes, anchorAt, endAt, nextDueAt, ...schedule,
       dose: patch.dose === undefined ? cur.dose : patch.dose,
+      reschedule: patch.reschedule ?? cur.reschedule,
     }).where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId))).returning();
     return row;
   });
-}
-
-/** Liga/desliga a reprogramação de uma rotina. Só vale para as próximas doses registradas; não mexe nos horários. */
-export async function setPlanReschedule(db: Db, orgId: string, id: string, reschedule: boolean): Promise<CarePlan> {
-  const [row] = await db.update(carePlans).set({ reschedule })
-    .where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId))).returning();
-  if (!row) throw new NotFound("Plano");
-  return row;
 }
 
 /** Encerra a rotina: deixa de esperar cuidados dali em diante (apaga os horários futuros não resolvidos). */
