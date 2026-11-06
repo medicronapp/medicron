@@ -2,9 +2,9 @@ import { test, expect } from "vitest";
 import { createTestDb } from "@/lib/db/test-db";
 import { patients, items, carePlans, doseLogs } from "@/lib/db/schema";
 
-test("insere gato, item, plano e log; log duplicado viola unique", async () => {
+test("insere paciente, item, plano e log; log duplicado viola unique", async () => {
   const db = await createTestDb();
-  const [patient] = await db.insert(patients).values({ organizationId: "o1", name: "Mimi" }).returning();
+  const [patient] = await db.insert(patients).values({ organizationId: "o1", name: "Mimi", species: "cat" }).returning();
   const [item] = await db
     .insert(items)
     .values({ organizationId: "o1", name: "Amoxicilina", kind: "medication" })
@@ -26,7 +26,7 @@ import { careSlots } from "@/lib/db/schema";
 
 test("care_slots: unique (rotina, horário), campos de resolução e notificação nascem nulos, rotina ganha startsAt", async () => {
   const db = await createTestDb();
-  const [patient] = await db.insert(patients).values({ organizationId: "o1", name: "Mimi" }).returning();
+  const [patient] = await db.insert(patients).values({ organizationId: "o1", name: "Mimi", species: "cat" }).returning();
   const [item] = await db.insert(items).values({ organizationId: "o1", name: "X", kind: "medication" }).returning();
   const at = new Date("2026-11-04T11:00:00Z");
   const [plan] = await db.insert(carePlans).values({

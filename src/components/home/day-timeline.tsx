@@ -43,7 +43,7 @@ export function DayTimeline({ patients, selectedKey, todayKey, selectedStatus }:
         <EmptyState icon={CalendarCheck} title="Nenhum cuidado neste dia" description="Quando houver cuidados esperados, eles aparecem aqui." />
       ) : (
         <>
-          <div role="tablist" aria-label="Gatos" className="flex gap-2 overflow-x-auto pb-1">
+          <div role="tablist" aria-label="Pacientes" className="flex gap-2 overflow-x-auto pb-1">
             {patients.map((c) => (
               <button
                 key={c.patientId} role="tab" type="button" id={`tab-${c.patientId}`} aria-controls={`panel-${c.patientId}`}

@@ -4,7 +4,7 @@ import { BrandMark } from "@/components/brand-mark";
 const BENEFITS = [
   { icon: BellRing, text: "Lembretes no celular na hora de cada remédio ou cuidado" },
   { icon: Users, text: "Convide a família para cuidar juntos, na mesma conta" },
-  { icon: HeartPulse, text: "Vários gatos, cada um com a sua rotina" },
+  { icon: HeartPulse, text: "Vários pacientes, cada um com a sua rotina" },
 ];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -30,13 +30,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             ))}
           </ul>
         </div>
-        <p className="text-xs text-primary-foreground/70">Controle de medicações e procedimentos dos seus gatos.</p>
+        <p className="text-xs text-primary-foreground/70">Controle de medicações e procedimentos de quem você cuida.</p>
       </aside>
       <main className="flex items-center justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
         <div className="grid w-full max-w-sm gap-8">
           <div className="flex flex-col items-center gap-3 text-center md:hidden">
             <BrandMark className="size-14 rounded-2xl [&_svg]:size-7" />
-            <p className="text-sm text-muted-foreground">Horários de remédios e cuidados dos seus gatos</p>
+            <p className="text-sm text-muted-foreground">Horários de remédios e cuidados de quem você cuida</p>
           </div>
           {children}
         </div>

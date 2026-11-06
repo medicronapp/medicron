@@ -21,7 +21,7 @@ test("ageLabel descreve idade em meses e anos", () => {
 
 test("patientTone é estável e fica entre 0 e 5", () => {
   expect(patientTone("Mimi")).toBe(patientTone("Mimi"));
-  for (const n of ["Mimi", "Izzy", "A", "Nome muito longo de gato 123"]) {
+  for (const n of ["Mimi", "Izzy", "A", "Nome muito longo de paciente 123"]) {
     const t = patientTone(n);
     expect(t).toBeGreaterThanOrEqual(0);
     expect(t).toBeLessThanOrEqual(5);

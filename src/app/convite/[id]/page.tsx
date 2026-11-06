@@ -38,7 +38,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <div className="grid gap-1.5">
               <h1 className="text-balance">Entrar em {invitation.organizationName}</h1>
               <p className="text-sm text-muted-foreground">
-                <span className="break-all">{invitation.inviterEmail}</span> convidou você para cuidar dos gatos juntos.
+                <span className="break-all">{invitation.inviterEmail}</span> convidou você para cuidar dos pacientes juntos.
               </p>
             </div>
             <AcceptInvite invitationId={id} />

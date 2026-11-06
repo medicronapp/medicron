@@ -22,9 +22,9 @@ export function HomeView({ home, hasPatients }: { home: SHome; hasPatients: bool
       {!hasPatients ? (
         <EmptyState
           icon={HeartPulse}
-          title="Comece cadastrando seu primeiro gato"
+          title="Comece cadastrando seu primeiro paciente"
           description="Depois é só cadastrar as medicações e montar a rotina de cada um."
-          action={<Link href="/pacientes/novo" className={cn(buttonVariants({ size: "lg" }))}>Cadastrar gato</Link>}
+          action={<Link href="/pacientes/novo" className={cn(buttonVariants({ size: "lg" }))}>Cadastrar paciente</Link>}
         />
       ) : (
         <>

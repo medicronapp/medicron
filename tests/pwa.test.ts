@@ -19,7 +19,7 @@ test("todos os ícones do manifest existem em disco e há 192, 512 e um maskable
   expect(existsSync("public/icons/apple-touch-icon.png")).toBe(true);
 });
 
-test("manifest tem atalhos para Hoje e Gatos", () => {
+test("manifest tem atalhos para Hoje e Pacientes", () => {
   expect(manifest.shortcuts.map((s: { url: string }) => s.url)).toEqual(["/", "/pacientes"]);
   expect(manifest.categories).toContain("health");
 });

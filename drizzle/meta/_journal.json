@@ -36,6 +36,13 @@
       "when": 1793972590938,
       "tag": "0004_rename_cats_to_patients",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793972742921,
+      "tag": "0005_patient_species",
+      "breakpoints": true
     }
   ]
 }

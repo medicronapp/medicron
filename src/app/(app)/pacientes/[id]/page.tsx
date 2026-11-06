@@ -5,6 +5,7 @@ import { getOrgContext } from "@/lib/session";
 import { getPatient } from "@/lib/services/patients";
 import { listPlansForPatient } from "@/lib/services/plans";
 import { nextSlotAfter } from "@/lib/schedule";
+import { speciesLabel } from "@/lib/species";
 import { formatDateTime, intervalLabel } from "@/lib/time";
 import { AddLink } from "@/components/add-link";
 import { PatientForm } from "@/components/patient-form";
@@ -33,9 +34,9 @@ export default async function Page({
 
   return (
     <div className="grid gap-5">
-      <PageHeader title={patient.name} backHref="/pacientes" actions={tab === "rotina" ? add : undefined} />
+      <PageHeader title={patient.name} description={speciesLabel(patient.species)} backHref="/pacientes" actions={tab === "rotina" ? add : undefined} />
       <SegmentedLinks
-        label="Seções do gato"
+        label="Seções do paciente"
         items={[
           { href: `/pacientes/${patient.id}?aba=dados`, label: "Dados", active: tab === "dados" },
           { href: `/pacientes/${patient.id}?aba=rotina`, label: "Rotina", active: tab === "rotina" },
@@ -46,9 +47,9 @@ export default async function Page({
         <div className="grid gap-8">
           <PatientForm patient={patient} action={updatePatientAction.bind(null, patient.id)} />
           <ConfirmAction
-            triggerLabel="Arquivar gato" triggerSize="lg" triggerClassName="w-full"
+            triggerLabel="Arquivar paciente" triggerSize="lg" triggerClassName="w-full"
             title={`Arquivar ${patient.name}?`}
-            description="O gato some das listas e todas as rotinas dele são encerradas."
+            description="O paciente some das listas e todas as rotinas dele são encerradas."
             confirmLabel="Arquivar"
             action={archivePatientAction.bind(null, patient.id)}
           />

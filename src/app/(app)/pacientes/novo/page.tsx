@@ -5,7 +5,7 @@ import { createPatientAction } from "../actions";
 export default function Page() {
   return (
     <div className="grid gap-5">
-      <PageHeader title="Novo gato" backHref="/pacientes" />
+      <PageHeader title="Novo paciente" backHref="/pacientes" />
       <PatientForm action={createPatientAction} />
     </div>
   );

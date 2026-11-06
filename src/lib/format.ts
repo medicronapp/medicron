@@ -17,7 +17,7 @@ export function ageLabel(birthDate: string, now: Date): string {
   return `${years} ${years === 1 ? "ano" : "anos"}`;
 }
 
-/** Índice estável (0–5) para escolher a cor do avatar de um gato pelo nome. */
+/** Índice estável (0–5) para escolher a cor do avatar de um paciente pelo nome. */
 export function patientTone(name: string): number {
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;

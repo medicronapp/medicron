@@ -23,7 +23,7 @@ test("NativeSelect é um combobox que repassa name e defaultValue", () => {
 
 test("FormField liga rótulo, dica e erro ao controle", () => {
   render(
-    <FormField label="Nome" htmlFor="nome" hint="Como o gato é chamado" error="Obrigatório">
+    <FormField label="Nome" htmlFor="nome" hint="Como o paciente é chamado" error="Obrigatório">
       <Input id="nome" />
     </FormField>,
   );
@@ -35,7 +35,7 @@ test("FormField liga rótulo, dica e erro ao controle", () => {
 });
 
 test("PageHeader tem um único h1 e link Voltar quando há backHref", () => {
-  render(<PageHeader title="Gatos" backHref="/" />);
+  render(<PageHeader title="Pacientes" backHref="/" />);
   expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   expect(screen.getByRole("link", { name: "Voltar" })).toHaveAttribute("href", "/");
 });
@@ -46,8 +46,8 @@ test("PageHeader sem backHref não mostra Voltar", () => {
 });
 
 test("EmptyState mostra título, descrição e ação", () => {
-  render(<EmptyState icon={HeartPulse} title="Nenhum gato" description="Cadastre o primeiro" action={<button>Novo</button>} />);
-  expect(screen.getByText("Nenhum gato")).toBeInTheDocument();
+  render(<EmptyState icon={HeartPulse} title="Nenhum paciente" description="Cadastre o primeiro" action={<button>Novo</button>} />);
+  expect(screen.getByText("Nenhum paciente")).toBeInTheDocument();
   expect(screen.getByText("Cadastre o primeiro")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Novo" })).toBeInTheDocument();
 });

@@ -56,7 +56,7 @@ describe("getHome — dia de hoje", () => {
     expect(h.patients[0].entries.map((e) => e.state)).toEqual(["done", "skipped", "done"]);
   });
 
-  test("exemplo 7: dois gatos; sem registro em qualquer um impede o fechamento; gato com pendência vem primeiro", async () => {
+  test("exemplo 7: dois pacientes; sem registro em qualquer um impede o fechamento; paciente com pendência vem primeiro", async () => {
     const db = await base();
     const a = await addPlan(db, "Izzy", { interval: 720, anchor: "2026-11-04T11:00:00Z", createdAt: "2026-11-04T10:00:00Z" });
     const b = await addPlan(db, "Bigodes", { interval: 720, anchor: "2026-11-04T11:00:00Z", createdAt: "2026-11-04T10:00:00Z", itemName: "Gaba" });
@@ -69,7 +69,7 @@ describe("getHome — dia de hoje", () => {
     expect(h.patients[0].missed).toBe(1);
   });
 
-  test("dois gatos com o mesmo nome continuam separados", async () => {
+  test("dois pacientes com o mesmo nome continuam separados", async () => {
     const db = await base();
     await addPlan(db, "Izzy", { interval: 720, anchor: "2026-11-04T11:00:00Z", createdAt: "2026-11-04T10:00:00Z" });
     await addPlan(db, "Izzy", { interval: 720, anchor: "2026-11-04T11:00:00Z", createdAt: "2026-11-04T10:00:00Z", itemName: "Outro" });
@@ -176,7 +176,7 @@ describe("getHome — sem fantasmas", () => {
     expect(h.patients[0].entries).toHaveLength(1);
   });
 
-  test("gato arquivado some de abas, atenção e cálculo", async () => {
+  test("paciente arquivado some de abas, atenção e cálculo", async () => {
     const db = await base();
     const { patient } = await addPlan(db, "Izzy", { interval: 720, anchor: "2026-11-04T11:00:00Z", createdAt: "2026-11-04T10:00:00Z" });
     await getHome(db, "o1", z("2026-11-04T13:00:00Z"));

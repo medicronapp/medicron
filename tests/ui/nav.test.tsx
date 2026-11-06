@@ -29,8 +29,8 @@ test("isActive casa por segmento, e '/' só exato", () => {
   expect(isActive("/pacientes", "/")).toBe(false);
 });
 
-test("NAV_ITEMS tem Hoje, Gatos, Itens e Conta", () => {
-  expect(NAV_ITEMS.map((i) => i.label)).toEqual(["Hoje", "Gatos", "Itens", "Conta"]);
+test("NAV_ITEMS tem Hoje, Pacientes, Itens e Conta", () => {
+  expect(NAV_ITEMS.map((i) => i.label)).toEqual(["Hoje", "Pacientes", "Itens", "Conta"]);
 });
 
 test("BottomNav marca só o item da rota atual com aria-current", () => {

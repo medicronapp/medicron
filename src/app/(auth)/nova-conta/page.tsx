@@ -35,7 +35,7 @@ export default function Page() {
       <div className="grid gap-1.5">
         <h1>Nova conta</h1>
         <p className="text-sm text-muted-foreground">
-          Cada conta tem seus próprios gatos, itens e pessoas. Use uma para cada casa ou família.
+          Cada conta tem seus próprios pacientes, itens e pessoas. Use uma para cada casa ou família.
         </p>
       </div>
       <form onSubmit={onSubmit} className="grid gap-4">

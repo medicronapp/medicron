@@ -87,7 +87,7 @@ const patients: SPatientDay[] = [
 ];
 const tlProps = { patients, selectedKey: "2026-11-04", todayKey: "2026-11-04", selectedStatus: "open" as const, now: NOW };
 
-test("DayTimeline: uma aba por gato, selo vermelho com pendências e progresso nas demais", () => {
+test("DayTimeline: uma aba por paciente, selo vermelho com pendências e progresso nas demais", () => {
   render(<DayTimeline {...tlProps} />);
   const tabs = screen.getAllByRole("tab");
   expect(tabs).toHaveLength(2);

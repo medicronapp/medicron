@@ -6,7 +6,8 @@ import { patients, carePlans, type Patient } from "@/lib/db/schema";
 export const patientInput = z.object({
   name: z.string().trim().min(1, "Informe o nome").max(60),
   birthDate: z.string().date().optional(),
-  weightKg: z.number().positive().max(30).optional(),
+  weightKg: z.number().positive().max(500).optional(),
+  species: z.enum(["cat", "dog", "human", "other"]).default("other"),
   notes: z.string().trim().max(1000).optional(),
 });
 export type PatientInput = z.input<typeof patientInput>;
@@ -15,6 +16,7 @@ const toRow = (i: z.output<typeof patientInput>) => ({
   name: i.name,
   birthDate: i.birthDate ?? null,
   weightKg: i.weightKg === undefined ? null : String(i.weightKg),
+  species: i.species,
   notes: i.notes || null,
 });
 

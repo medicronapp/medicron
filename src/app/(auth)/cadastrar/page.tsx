@@ -52,7 +52,7 @@ function Form() {
     <div className="grid gap-6">
       <div className="grid gap-1.5">
         <h1>Criar conta</h1>
-        <p className="text-sm text-muted-foreground">Leva menos de um minuto. Depois é só cadastrar seus gatos.</p>
+        <p className="text-sm text-muted-foreground">Leva menos de um minuto. Depois é só cadastrar seus pacientes.</p>
       </div>
       <form onSubmit={onSubmit} className="grid gap-4">
         <FormField label="Seu nome" htmlFor="name">

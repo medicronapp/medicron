@@ -25,7 +25,7 @@ export async function createPlan(db: Db, orgId: string, input: PlanInput): Promi
   const { now = new Date(), ...rest } = input;
   const p = planInput.parse(rest);
   const [patient, item] = await Promise.all([getPatient(db, orgId, p.patientId), getItem(db, orgId, p.itemId)]);
-  if (!patient) throw new NotFound("Gato");
+  if (!patient) throw new NotFound("Paciente");
   if (!item) throw new NotFound("Item");
   const nextDueAt = firstDueAt(p.anchorAt, p.intervalMinutes, now);
   if (p.endAt && p.endAt.getTime() < nextDueAt.getTime()) {

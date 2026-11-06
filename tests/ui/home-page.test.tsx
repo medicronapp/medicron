@@ -46,8 +46,8 @@ test("aviso de risco usa a quantidade de pendências de ontem na atenção", () 
   expect(container.textContent).toContain("Ontem tem 1 dose sem registro");
 });
 
-test("sem gatos mostra o convite para cadastrar e não mostra sequência", () => {
+test("sem pacientes mostra o convite para cadastrar e não mostra sequência", () => {
   const { container } = render(<HomeView home={{ ...home, attention: [], patients: [] }} hasPatients={false} />);
-  expect(container.textContent).toContain("Comece cadastrando seu primeiro gato");
+  expect(container.textContent).toContain("Comece cadastrando seu primeiro paciente");
   expect(container.textContent).not.toContain("dias seguidos em dia");
 });

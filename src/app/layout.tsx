@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Medicron",
-  description: "Horários de medicação e cuidados dos seus gatos",
+  description: "Horários de medicação e cuidados de quem você cuida",
   manifest: "/manifest.webmanifest",
   icons: { apple: "/icons/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Medicron", statusBarStyle: "default" },

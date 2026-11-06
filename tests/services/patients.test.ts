@@ -31,7 +31,7 @@ describe("patients", () => {
     await expect(createPatient(db, "o1", { name: "   " })).rejects.toThrow();
   });
 
-  test("archivePatient some da lista e desativa os planos do gato", async () => {
+  test("archivePatient some da lista e desativa os planos do paciente", async () => {
     const db = await createTestDb();
     const patient = await createPatient(db, "o1", { name: "Mimi" });
     const [item] = await db.insert(items).values({ organizationId: "o1", name: "X", kind: "medication" }).returning();
@@ -46,10 +46,30 @@ describe("patients", () => {
     expect(after.active).toBe(false);
   });
 
-  test("archivePatient de outra organização não afeta o gato", async () => {
+  test("archivePatient de outra organização não afeta o paciente", async () => {
     const db = await createTestDb();
     const patient = await createPatient(db, "o1", { name: "Mimi" });
     await archivePatient(db, "o2", patient.id);
     expect(await listPatients(db, "o1")).toHaveLength(1);
+  });
+
+  test("tipo é 'other' por padrão e aceita paciente, cachorro e pessoa", async () => {
+    const db = await createTestDb();
+    expect((await createPatient(db, "o1", { name: "A" })).species).toBe("other");
+    expect((await createPatient(db, "o1", { name: "B", species: "dog" })).species).toBe("dog");
+    expect((await createPatient(db, "o1", { name: "C", species: "human" })).species).toBe("human");
+    await expect(createPatient(db, "o1", { name: "D", species: "dragon" as never })).rejects.toThrow();
+  });
+
+  test("updatePatient troca o tipo", async () => {
+    const db = await createTestDb();
+    const p = await createPatient(db, "o1", { name: "Rex", species: "cat" });
+    expect((await updatePatient(db, "o1", p.id, { name: "Rex", species: "dog" }))?.species).toBe("dog");
+  });
+
+  test("peso de pessoa (70 kg) é aceito; acima de 500 kg é rejeitado", async () => {
+    const db = await createTestDb();
+    expect((await createPatient(db, "o1", { name: "Ana", species: "human", weightKg: 70 })).weightKg).toBe("70");
+    await expect(createPatient(db, "o1", { name: "X", weightKg: 501 })).rejects.toThrow();
   });
 });

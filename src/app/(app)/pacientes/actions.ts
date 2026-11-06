@@ -11,6 +11,7 @@ function parse(f: FormData): PatientInput {
     name: String(f.get("name") ?? ""),
     birthDate: String(f.get("birthDate") ?? "") || undefined,
     weightKg: weight ? Number(weight) : undefined,
+    species: (String(f.get("species") ?? "") || undefined) as PatientInput["species"],
     notes: String(f.get("notes") ?? "") || undefined,
   };
 }

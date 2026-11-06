@@ -10,7 +10,7 @@ type Props = {
 
 const ROW = "flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-xs";
 
-/** Linha de lista com ícone, título e subtítulo — padrão de Itens, reaproveitado nas rotinas do gato. */
+/** Linha de lista com ícone, título e subtítulo — padrão de Itens, reaproveitado nas rotinas do paciente. */
 export function ListRow({ icon: Icon, title, subtitle, href, trailing, children }: Props) {
   const content = (
     <>

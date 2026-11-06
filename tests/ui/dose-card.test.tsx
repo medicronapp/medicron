@@ -16,7 +16,7 @@ const base: DoseCardProps = {
 
 beforeEach(() => recordDoseAction.mockClear());
 
-test("cartão atrasado mostra status em texto, gato, item e dose", () => {
+test("cartão atrasado mostra status em texto, paciente, item e dose", () => {
   render(<DoseCard {...base} />);
   expect(screen.getByText("Atrasada")).toBeInTheDocument();
   expect(screen.getByText("Izzy")).toBeInTheDocument();

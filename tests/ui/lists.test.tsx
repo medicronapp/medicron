@@ -13,7 +13,7 @@ import { ConfirmAction } from "@/components/confirm-action";
 import type { Patient, Item } from "@/lib/db/schema";
 
 const longName = "N".repeat(60);
-const patient = { id: "c1", organizationId: "o", name: longName, birthDate: null, weightKg: "4.2", notes: null, archivedAt: null, createdAt: new Date() } as Patient;
+const patient = { id: "c1", organizationId: "o", name: longName, birthDate: null, weightKg: "4.2", species: "cat", notes: null, archivedAt: null, createdAt: new Date() } as Patient;
 const mkItem = (over: Partial<Item>): Item =>
   ({ id: "i1", organizationId: "o", name: "Amoxicilina", kind: "medication", defaultDose: "1 comprimido", notes: null, archivedAt: null, createdAt: new Date(), ...over }) as Item;
 
@@ -24,12 +24,11 @@ test("SegmentedLinks marca só o ativo com aria-current", () => {
   expect(screen.getByRole("navigation", { name: "Tipo" })).toBeInTheDocument();
 });
 
-test("PatientCard com nome de 60 caracteres trunca e mostra iniciais e peso", () => {
+test("PatientCard com nome de 60 caracteres trunca e mostra tipo e peso", () => {
   render(<PatientCard patient={patient} />);
   expect(screen.getByText(longName).className).toContain("truncate");
   expect(screen.getByRole("link")).toHaveAttribute("href", "/pacientes/c1");
-  expect(screen.getByText("N")).toBeInTheDocument();
-  expect(screen.getByText(/4,2 kg/)).toBeInTheDocument();
+  expect(screen.getByText(/Gato · 4,2 kg/)).toBeInTheDocument();
 });
 
 test("ItemCard trunca nome longo e mostra o tipo", () => {
@@ -53,9 +52,9 @@ test("PlanForm oferece as 8 frequências + personalizada e agrupa itens por tipo
 
 test("ConfirmAction só dispara a action depois de confirmar no diálogo", async () => {
   const action = vi.fn(async () => {});
-  render(<ConfirmAction triggerLabel="Arquivar gato" title="Arquivar Mimi?" description="Ela some da lista." confirmLabel="Arquivar" action={action} />);
+  render(<ConfirmAction triggerLabel="Arquivar paciente" title="Arquivar Mimi?" description="Ela some da lista." confirmLabel="Arquivar" action={action} />);
   expect(screen.queryByText("Arquivar Mimi?")).toBeNull();
-  await userEvent.click(screen.getByRole("button", { name: "Arquivar gato" }));
+  await userEvent.click(screen.getByRole("button", { name: "Arquivar paciente" }));
   expect(await screen.findByText("Arquivar Mimi?")).toBeInTheDocument();
   expect(action).not.toHaveBeenCalled();
   await userEvent.click(screen.getByRole("button", { name: "Arquivar" }));

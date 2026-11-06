@@ -51,7 +51,7 @@ describe("ensureSlots", () => {
     expect(await times(db)).toEqual(["2026-11-04T11:00:00.000Z", "2026-11-04T17:00:00.000Z"]);
   });
 
-  test("rotina inativa, de gato arquivado ou de item arquivado não gera", async () => {
+  test("rotina inativa, de paciente arquivado ou de item arquivado não gera", async () => {
     const a = await setup();
     await a.db.update(carePlans).set({ active: false });
     expect(await ensureSlots(a.db, z("2026-11-04T23:00:00Z"))).toBe(0);

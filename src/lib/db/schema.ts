@@ -7,6 +7,7 @@ const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull(
 const tz = (name: string) => timestamp(name, { withTimezone: true });
 
 export const itemKind = pgEnum("item_kind", ["medication", "procedure"]);
+export const patientSpecies = pgEnum("patient_species", ["cat", "dog", "human", "other"]);
 export const doseOutcome = pgEnum("dose_outcome", ["done", "skipped"]);
 
 export const patients = pgTable("patients", {
@@ -15,6 +16,7 @@ export const patients = pgTable("patients", {
   name: text("name").notNull(),
   birthDate: date("birth_date"),
   weightKg: numeric("weight_kg"),
+  species: patientSpecies("species").notNull(),
   notes: text("notes"),
   archivedAt: tz("archived_at"),
   createdAt: createdAt(),

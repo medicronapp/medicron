@@ -33,7 +33,7 @@ describe("plans", () => {
     expect(plan.nextDueAt).toEqual(d("2026-11-04T08:00:00Z"));
   });
 
-  test("gato ou item de outra organização lança NotFound", async () => {
+  test("paciente ou item de outra organização lança NotFound", async () => {
     const { db, patient, item } = await setup();
     await expect(
       createPlan(db, "o2", { patientId: patient.id, itemId: item.id, intervalMinutes: 60, anchorAt: now, now }),

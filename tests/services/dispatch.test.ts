@@ -88,7 +88,7 @@ describe("dispatchDue", () => {
     expect(r.sent).toBe(1);
   });
 
-  test("plano inativo, gato arquivado ou endAt vencido não notificam", async () => {
+  test("plano inativo, paciente arquivado ou endAt vencido não notificam", async () => {
     const a = await setup();
     await a.db.update(carePlans).set({ active: false });
     expect((await dispatchDue(a.db, d("2026-11-04T09:00:00Z"), a.send)).sent).toBe(0);

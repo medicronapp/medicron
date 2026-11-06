@@ -1,7 +1,7 @@
 {
   "name": "Medicron",
   "short_name": "Medicron",
-  "description": "Horários de medicação e cuidados dos seus gatos",
+  "description": "Horários de medicação e cuidados de quem você cuida",
   "lang": "pt-BR",
   "start_url": "/",
   "scope": "/",
@@ -17,6 +17,6 @@
   ],
   "shortcuts": [
     { "name": "Hoje", "url": "/", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Gatos", "url": "/pacientes", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Pacientes", "url": "/pacientes", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
