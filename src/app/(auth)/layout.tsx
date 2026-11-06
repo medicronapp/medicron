@@ -10,7 +10,7 @@ const BENEFITS = [
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-dvh md:grid-cols-2">
-      <aside className="hidden flex-col justify-between bg-gradient-to-br from-primary to-[oklch(0.36_0.08_200)] p-12 text-primary-foreground md:flex">
+      <aside className="hidden flex-col justify-between bg-gradient-to-br from-hero-from to-hero-to p-12 text-white md:flex">
         <div className="flex items-center gap-3">
           <BrandMark className="bg-white/15 text-white" />
           <span className="text-xl font-semibold tracking-tight">Medicron</span>
@@ -21,16 +21,16 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </p>
           <ul className="grid gap-4">
             {BENEFITS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3 text-sm text-primary-foreground/90">
+              <li key={text} className="flex items-center gap-3 text-sm text-white/90">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/15">
-                  <Icon aria-hidden className="size-4" />
+                  <Icon aria-hidden className="size-4 text-hero-accent" />
                 </span>
                 {text}
               </li>
             ))}
           </ul>
         </div>
-        <p className="text-xs text-primary-foreground/70">Controle de medicações e procedimentos de quem você cuida.</p>
+        <p className="text-xs text-white/70">Controle de medicações e procedimentos de quem você cuida.</p>
       </aside>
       <main className="flex items-center justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
         <div className="grid w-full max-w-sm gap-8">

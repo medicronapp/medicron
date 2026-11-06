@@ -77,7 +77,7 @@ function Form() {
       </form>
       <p className="text-center text-sm text-muted-foreground">
         Já tem conta?{" "}
-        <Link className="font-medium text-primary underline-offset-4 hover:underline" href={`/entrar?next=${encodeURIComponent(next)}`}>
+        <Link className="font-medium text-link underline-offset-4 hover:underline" href={`/entrar?next=${encodeURIComponent(next)}`}>
           Entrar
         </Link>
       </p>

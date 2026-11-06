@@ -29,7 +29,7 @@ export function DayTimeline({ patients, selectedKey, todayKey, selectedStatus }:
       <div className="flex items-center justify-between gap-2">
         <h2 id="linha-do-dia">Linha do dia</h2>
         {past && (
-          <Link href="/" className="text-sm font-medium text-primary underline-offset-4 hover:underline">Voltar para hoje</Link>
+          <Link href="/" className="text-sm font-medium text-link underline-offset-4 hover:underline">Voltar para hoje</Link>
         )}
       </div>
       {past && (

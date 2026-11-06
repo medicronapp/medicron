@@ -33,7 +33,7 @@ function Cell({ day }: { day: WeekDay }) {
     : day.status === "future" ? "bg-white/10 text-white/50"
     : "bg-white/20 text-white";
   const box = (
-    <span className={cn("flex h-11 items-center justify-center rounded-lg text-xs font-bold", tone, day.isToday && "ring-2 ring-white/70")}>
+    <span className={cn("flex h-11 items-center justify-center rounded-lg text-xs font-bold", tone, day.isToday && "ring-2 ring-hero-accent")}>
       {day.status === "future" ? "" : icon}
     </span>
   );
@@ -56,7 +56,7 @@ export function StreakCard({ streak, week, progress, closedToday, riskCount }: P
     : `${streak.days} dias seguidos em dia`;
   const pct = progress.total === 0 ? 0 : Math.round((progress.resolved / progress.total) * 100);
   return (
-    <section aria-label="Sequência" className="grid gap-3 rounded-2xl bg-gradient-to-br from-primary to-[oklch(0.36_0.08_200)] p-4 text-primary-foreground shadow-sm">
+    <section aria-label="Sequência" className="grid gap-3 rounded-2xl bg-gradient-to-br from-hero-from to-hero-to p-4 text-white shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-base font-semibold">
@@ -66,15 +66,15 @@ export function StreakCard({ streak, week, progress, closedToday, riskCount }: P
           {closedToday ? (
             <p className="mt-1 text-sm font-medium">Dia fechado!</p>
           ) : (
-            progress.total > 0 && <p className="mt-1 text-sm text-primary-foreground/85">Faltam {progress.total - progress.resolved} para fechar hoje</p>
+            progress.total > 0 && <p className="mt-1 text-sm text-white/85">Faltam {progress.total - progress.resolved} para fechar hoje</p>
           )}
         </div>
         <div
           role="img" aria-label={`${progress.resolved} de ${progress.total} cuidados de hoje resolvidos`}
           className="flex size-16 shrink-0 items-center justify-center rounded-full"
-          style={{ background: `conic-gradient(#fff ${pct}%, rgba(255,255,255,.25) 0)` }}
+          style={{ background: `conic-gradient(var(--hero-accent) ${pct}%, rgba(255,255,255,.25) 0)` }}
         >
-          <span className="flex size-12 items-center justify-center rounded-full bg-primary text-sm font-semibold tabular-nums">
+          <span className="flex size-12 items-center justify-center rounded-full bg-hero-core text-sm font-semibold tabular-nums">
             {progress.resolved}/{progress.total}
           </span>
         </div>
