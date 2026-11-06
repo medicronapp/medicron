@@ -69,11 +69,11 @@ export function EnableNotifications({ compact = false }: { compact?: boolean }) 
     );
   }
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-brand/30 bg-brand-soft p-4 text-brand-ink">
+    <div className="flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand-soft p-4 text-brand-ink">
       <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background/70">
         <BellRing aria-hidden className="size-5" />
       </span>
-      <div className="grid min-w-0 flex-1 gap-3">
+      <div className={state === "default" ? "flex min-w-0 flex-1 items-center justify-between gap-3" : "grid min-w-0 flex-1 gap-3"}>
         {state === "needs-install" && (
           <p className="text-sm">No iPhone, para receber avisos: toque em Compartilhar → <b>Adicionar à Tela de Início</b> e abra o Medicron por lá.</p>
         )}
@@ -82,11 +82,11 @@ export function EnableNotifications({ compact = false }: { compact?: boolean }) 
         )}
         {state === "default" && (
           <>
-            <div>
+            <div className="min-w-0">
               <p className="font-medium">Receba avisos no celular</p>
               <p className="text-sm">Um alerta na hora de cada medicação ou cuidado.</p>
             </div>
-            <Button className="justify-self-start" onClick={enable}>Ativar notificações</Button>
+            <Button className="shrink-0" aria-label="Ativar notificações" onClick={enable}>Ativar</Button>
           </>
         )}
       </div>
