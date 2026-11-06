@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarClock, Pill, Plus, Stethoscope } from "lucide-react";
+import { CalendarClock, Pill, Plus, CircleStop, Stethoscope } from "lucide-react";
 import { getDb } from "@/lib/db";
 import { getOrgContext } from "@/lib/session";
 import { getCat } from "@/lib/services/cats";
@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { archiveCatAction, updateCatAction } from "../actions";
 import { deactivatePlanAction } from "./rotina/actions";
 
@@ -36,62 +37,66 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     <div className="grid gap-8">
       <PageHeader title={cat.name} backHref="/gatos" />
 
-      <section className="grid gap-3" aria-labelledby="rotina">
-        <div className="flex items-center justify-between gap-2">
-          <h2 id="rotina">Rotina</h2>
-          {plans.length > 0 && add}
-        </div>
-        {plans.length === 0 ? (
-          <EmptyState icon={CalendarClock} title="Sem rotina ainda" description="Associe uma medicação ou procedimento e defina a frequência." action={add} />
-        ) : (
-          <ul className="grid gap-2">
-            {plans.map((p) => {
-              const Icon = p.item.kind === "procedure" ? Stethoscope : Pill;
-              return (
-                <li key={p.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3.5">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink">
-                    <Icon aria-hidden className="size-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{p.item.name}</p>
-                    {p.dose && <p className="truncate text-sm text-muted-foreground">{p.dose}</p>}
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <Badge variant="secondary">{intervalLabel(p.intervalMinutes)}</Badge>
-                      <span className="text-xs text-muted-foreground">próxima {formatDateTime(nextSlotAfter(p.anchorAt, p.intervalMinutes, now))}</span>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 flex-col gap-2">
-                    <EditPlanSheet
-                      planId={p.id} itemName={p.item.name} catName={cat.name}
-                      dose={p.dose} endAt={p.endAt?.toISOString() ?? null} reschedule={p.reschedule}
-                    />
-                    <ConfirmAction
-                      triggerLabel="Encerrar" triggerVariant="outline"
-                      title={`Encerrar ${p.item.name}?`}
-                      description={`Os lembretes de ${p.item.name} para ${cat.name} serão interrompidos. O histórico é mantido.`}
-                      confirmLabel="Encerrar rotina"
-                      action={deactivatePlanAction.bind(null, cat.id, p.id)}
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      <section className="grid gap-3" aria-labelledby="dados">
-        <h2 id="dados">Dados</h2>
-        <CatForm cat={cat} action={updateCatAction.bind(null, cat.id)} />
-      </section>
-
-      <ConfirmAction
-        triggerLabel="Arquivar gato" triggerSize="lg" triggerClassName="w-full"
-        title={`Arquivar ${cat.name}?`}
-        description="O gato some das listas e todas as rotinas dele são encerradas."
-        confirmLabel="Arquivar"
-        action={archiveCatAction.bind(null, cat.id)}
-      />
+      <Tabs defaultValue="rotina">
+        <TabsList className="h-11 w-full">
+          <TabsTrigger value="dados">Dados</TabsTrigger>
+          <TabsTrigger value="rotina">Rotina</TabsTrigger>
+        </TabsList>
+        <TabsContent value="dados" className="grid gap-8 pt-3">
+          <div className="grid gap-3">
+            <CatForm cat={cat} action={updateCatAction.bind(null, cat.id)} />
+          </div>
+          <ConfirmAction
+            triggerLabel="Arquivar gato" triggerSize="lg" triggerClassName="w-full"
+            title={`Arquivar ${cat.name}?`}
+            description="O gato some das listas e todas as rotinas dele são encerradas."
+            confirmLabel="Arquivar"
+            action={archiveCatAction.bind(null, cat.id)}
+          />
+        </TabsContent>
+        <TabsContent value="rotina" className="pt-3">
+          <div className="grid gap-3">
+            {plans.length > 0 && <div className="flex justify-end">{add}</div>}
+            {plans.length === 0 ? (
+              <EmptyState icon={CalendarClock} title="Sem rotina ainda" description="Associe uma medicação ou procedimento e defina a frequência." action={add} />
+            ) : (
+              <ul className="grid gap-2">
+                {plans.map((p) => {
+                  const Icon = p.item.kind === "procedure" ? Stethoscope : Pill;
+                  return (
+                    <li key={p.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3.5">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink">
+                        <Icon aria-hidden className="size-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold">{p.item.name}</p>
+                        {p.dose && <p className="truncate text-sm text-muted-foreground">{p.dose}</p>}
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <Badge variant="secondary">{intervalLabel(p.intervalMinutes)}</Badge>
+                          <span className="text-xs text-muted-foreground">próxima {formatDateTime(nextSlotAfter(p.anchorAt, p.intervalMinutes, now))}</span>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <EditPlanSheet
+                          planId={p.id} itemName={p.item.name} catName={cat.name}
+                          dose={p.dose} endAt={p.endAt?.toISOString() ?? null} reschedule={p.reschedule}
+                        />
+                        <ConfirmAction
+                          triggerLabel="Encerrar" triggerVariant="outline" triggerIcon={<CircleStop aria-hidden />}
+                          title={`Encerrar ${p.item.name}?`}
+                          description={`Os lembretes de ${p.item.name} para ${cat.name} serão interrompidos. O histórico é mantido.`}
+                          confirmLabel="Encerrar rotina"
+                          action={deactivatePlanAction.bind(null, cat.id, p.id)}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

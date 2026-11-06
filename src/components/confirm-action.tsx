@@ -10,18 +10,23 @@ type Props = {
   triggerLabel: string; title: string; description: string; confirmLabel: string;
   action: () => Promise<void>; triggerVariant?: React.ComponentProps<typeof Button>["variant"];
   triggerSize?: React.ComponentProps<typeof Button>["size"]; triggerClassName?: string;
+  /** Se informado, o gatilho vira um botão só de ícone (triggerLabel passa a ser o nome acessível). */
+  triggerIcon?: React.ReactNode;
 };
 
 /** Botão que abre um diálogo de confirmação antes de executar uma Server Action. */
 export function ConfirmAction({
   triggerLabel, title, description, confirmLabel, action,
-  triggerVariant = "destructive", triggerSize = "default", triggerClassName,
+  triggerVariant = "destructive", triggerSize = "default", triggerClassName, triggerIcon,
 }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button type="button" variant={triggerVariant} size={triggerSize} className={triggerClassName} onClick={() => setOpen(true)}>
-        {triggerLabel}
+      <Button
+        type="button" variant={triggerVariant} size={triggerIcon ? "icon" : triggerSize} className={triggerClassName}
+        aria-label={triggerIcon ? triggerLabel : undefined} onClick={() => setOpen(true)}
+      >
+        {triggerIcon ?? triggerLabel}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

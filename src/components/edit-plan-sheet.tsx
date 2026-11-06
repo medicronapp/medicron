@@ -27,8 +27,8 @@ export function EditPlanSheet({ planId, itemName, catName, dose, endAt, reschedu
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-        <Pencil aria-hidden /> Editar
+      <Button type="button" variant="outline" size="icon" aria-label="Editar" onClick={() => setOpen(true)}>
+        <Pencil aria-hidden />
       </Button>
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerContent>
