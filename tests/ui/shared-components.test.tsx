@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { Pill } from "lucide-react";
 
 import { AddLink } from "@/components/add-link";
+import { BrandMark } from "@/components/brand-mark";
 import { ListRow } from "@/components/list-row";
 import { SpeciesIcon } from "@/components/species-icon";
 
@@ -44,4 +45,12 @@ test("SpeciesIcon desenha um ícone decorativo para cada tipo", () => {
     expect(svg).toHaveAttribute("aria-hidden", "true");
     unmount();
   }
+});
+
+test("BrandMark não usa mais a pata e desenha um símbolo decorativo", () => {
+  const { container } = render(<BrandMark />);
+  expect(container.querySelector(".lucide-paw-print")).toBeNull();
+  const svg = container.querySelector("svg");
+  expect(svg).not.toBeNull();
+  expect(svg).toHaveAttribute("aria-hidden", "true");
 });
