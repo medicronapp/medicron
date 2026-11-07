@@ -11,15 +11,33 @@
       "supportsTablet": false
     },
     "android": {
-      "package": "app.medicron"
+      "package": "app.medicron",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundColor": "#0f766e"
+      }
     },
     "web": {
-      "output": "single"
+      "output": "single",
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0f766e",
+          "dark": {
+            "backgroundColor": "#0b3f3b"
+          }
+        }
+      ]
+    ],
+    "icon": "./assets/icon.png"
   }
 }
