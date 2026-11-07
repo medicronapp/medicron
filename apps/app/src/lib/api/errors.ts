@@ -1,3 +1,6 @@
+/** Mensagem única para falha de rede, usada pela API e pelas telas de login. */
+export const NETWORK_MESSAGE = "Sem conexão. Verifique a internet e tente de novo.";
+
 /** Erro de uma chamada à API: status HTTP (0 = sem rede), código estável e mensagem em português. */
 export class ApiClientError extends Error {
   constructor(

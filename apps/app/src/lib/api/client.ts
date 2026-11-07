@@ -1,5 +1,5 @@
 import { API_PREFIX, type ErrorDto } from "@medicron/shared";
-import { ApiClientError, AppOutdatedError, UnauthorizedError } from "./errors";
+import { ApiClientError, AppOutdatedError, NETWORK_MESSAGE, UnauthorizedError } from "./errors";
 
 export type ApiClientOptions = {
   baseUrl: string;
@@ -28,7 +28,7 @@ export function createApiClient({ baseUrl, getCookie, appVersion, fetch: fetchIm
         body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch {
-      throw new ApiClientError(0, "network", "Sem conexão. Verifique a internet e tente de novo.");
+      throw new ApiClientError(0, "network", NETWORK_MESSAGE);
     }
 
     if (res.status === 204) return undefined as T;
