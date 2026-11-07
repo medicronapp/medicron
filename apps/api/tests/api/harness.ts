@@ -22,6 +22,8 @@ export async function call<P extends Record<string, string> = Record<string, str
   handler: Handler<P>,
   path: string,
   init: Omit<RequestInit, "body"> & { json?: unknown; rawBody?: string; params?: P } = {},
+  // O corpo é JSON arbitrário nos testes; tipar cada resposta só atrapalharia a leitura.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ status: number; body: any; res: Response }> {
   const { json, rawBody, params, headers, ...rest } = init;
   const h = new Headers(headers);
