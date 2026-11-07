@@ -18,7 +18,8 @@ export function useAppSession(): AppSession {
 
   if (session.isPending) return { status: "loading", orgCount: 0, activeOrgId: null, signOut };
   if (!session.data) return { status: "signedOut", orgCount: 0, activeOrgId: null, signOut };
-  if (orgs.isPending) return { status: "loading", orgCount: 0, activeOrgId: null, signOut };
+  // Logo após o login a lista pode ainda não ter sido buscada (nula): esperar, e não concluir "sem conta".
+  if (orgs.isPending || orgs.data == null) return { status: "loading", orgCount: 0, activeOrgId: null, signOut };
   const activeOrgId =
     (session.data as { session?: { activeOrganizationId?: string | null } }).session?.activeOrganizationId ?? null;
   return { status: "signedIn", orgCount: orgs.data?.length ?? 0, activeOrgId, signOut };

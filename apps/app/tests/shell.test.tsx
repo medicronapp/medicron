@@ -109,6 +109,11 @@ describe("AppHeader", () => {
     await fireEvent.press(screen.getByRole("button", { name: "Nova conta…" }));
     expect(mockRouter.push).toHaveBeenCalledWith("/nova-conta");
   });
+  test("sem conta ativa na sessão, usa a que a API informa (orgId de /me)", async () => {
+    mockSession.value = { ...mockSession.value, activeOrgId: null };
+    await renderApp(<AppHeader />);
+    expect(await screen.findByRole("button", { name: "Conta ativa: Casa da Vovó" })).toBeOnTheScreen();
+  });
   test("menu do usuário: 'Minha conta' vai a /conta e 'Sair' sai e leva a /entrar", async () => {
     await renderApp(<AppHeader />);
     await fireEvent.press(await screen.findByRole("button", { name: "Menu do usuário" }));

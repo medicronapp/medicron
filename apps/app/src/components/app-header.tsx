@@ -26,7 +26,8 @@ export function AppHeader({ showBrand = true }: { showBrand?: boolean }) {
   const [orgsOpen, setOrgsOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
 
-  const active = orgs?.find((o) => o.id === activeOrgId);
+  const currentOrgId = me.data?.orgId ?? activeOrgId; // o servidor escolhe a conta quando a sessão ainda não tem uma
+  const active = orgs?.find((o) => o.id === currentOrgId);
   const name = me.data?.user.name ?? "Usuário";
 
   async function switchOrg(id: string) {
@@ -70,7 +71,7 @@ export function AppHeader({ showBrand = true }: { showBrand?: boolean }) {
         onOpenChange={setOrgsOpen}
         title="Contas"
         items={[
-          ...(orgs ?? []).map((o) => ({ key: o.id, label: o.name, selected: o.id === activeOrgId, onPress: () => void switchOrg(o.id) })),
+          ...(orgs ?? []).map((o) => ({ key: o.id, label: o.name, selected: o.id === currentOrgId, onPress: () => void switchOrg(o.id) })),
           { key: "nova", label: "Nova conta…", icon: Plus, onPress: () => router.push("/nova-conta") },
         ]}
       />

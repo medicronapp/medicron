@@ -43,6 +43,13 @@ test("carregando enquanto a sessão (ou a lista de contas, com sessão) não che
   expect(screen.getAllByTestId("s").at(-1)!.props.children).toBe("loading|0|null");
 });
 
+test("lista de contas ainda não carregada (nula, sem pendência) é carregando, não 'sem conta'", async () => {
+  mock.session = { data: { session: { activeOrganizationId: null } }, isPending: false };
+  mock.orgs = { data: null, isPending: false };
+  await render(<Probe />);
+  expect(state()).toBe("loading|0|null");
+});
+
 test("sem sessão", async () => {
   await render(<Probe />);
   expect(state()).toBe("signedOut|0|null");
