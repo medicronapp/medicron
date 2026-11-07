@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@medicron/shared"],
   // O app se chamava "gatos"; mantém atalhos do PWA e links salvos funcionando.
   async redirects() {
     return [
