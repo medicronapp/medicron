@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { safeNext } from "@medicron/shared";
 import { authClient } from "@/lib/auth-client";
 import { NETWORK_MESSAGE } from "@/lib/api/errors";
+import { loginErrorMessage } from "@/lib/auth-errors";
 import { AuthLink } from "@/components/auth-link";
 import { FormError } from "@/components/form-error";
 import { FormHeader } from "@/components/form-header";
@@ -28,7 +29,7 @@ export default function Entrar() {
     try {
       const { error: failure } = await authClient.signIn.email({ email: email.trim(), password });
       if (failure) {
-        setError("E-mail ou senha incorretos.");
+        setError(loginErrorMessage(failure));
         return;
       }
       router.replace(next as never);

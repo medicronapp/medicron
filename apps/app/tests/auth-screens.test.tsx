@@ -67,6 +67,14 @@ describe("entrar", () => {
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 
+  test("limite de tentativas (429) não é tratado como senha errada", async () => {
+    mockAuth.signIn.email.mockResolvedValue({ data: null, error: { status: 429 } });
+    await renderApp(<Entrar />);
+    await fill();
+    await fireEvent.press(screen.getByRole("button", { name: "Entrar" }));
+    expect(await screen.findByText("Muitas tentativas. Aguarde um instante e tente de novo.")).toBeOnTheScreen();
+  });
+
   test("sucesso vai para o destino seguro", async () => {
     mockParams.value = { next: "/pacientes" };
     await renderApp(<Entrar />);

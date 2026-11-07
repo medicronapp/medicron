@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { orgSlug, safeNext } from "@medicron/shared";
 import { authClient } from "@/lib/auth-client";
 import { NETWORK_MESSAGE } from "@/lib/api/errors";
+import { authFailureMessage } from "@/lib/auth-errors";
 import { AuthLink } from "@/components/auth-link";
 import { FormError } from "@/components/form-error";
 import { FormHeader } from "@/components/form-header";
@@ -37,7 +38,7 @@ export default function Cadastrar() {
     try {
       const { error: failure } = await authClient.signUp.email({ name: trimmed, email: email.trim(), password });
       if (failure) {
-        setError(failure.message ?? "Não foi possível criar a conta.");
+        setError(authFailureMessage(failure, failure.message ?? "Não foi possível criar a conta."));
         return;
       }
       // Quem veio por convite entra na conta convidada; os demais ganham uma conta própria.
