@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { parseLocalInput, toLocalInput, formatDateTime, intervalLabel, resolveAppliedTime } from "@/lib/time";
+import { parseLocalInput, toLocalInput, formatDateTime, intervalLabel, resolveAppliedTime } from "../src/time";
 
 test("parseLocalInput interpreta datetime-local em America/Sao_Paulo", () => {
   expect(parseLocalInput("2026-11-04T08:00")).toEqual(new Date("2026-11-04T11:00:00Z"));
@@ -21,12 +21,12 @@ test("intervalLabel descreve minutos em horas/dias", () => {
 });
 
 test("nextQuarterHourInput arredonda para cima ao quarto de hora em Brasília", async () => {
-  const { nextQuarterHourInput } = await import("@/lib/time");
+  const { nextQuarterHourInput } = await import("../src/time");
   expect(nextQuarterHourInput(new Date("2026-11-04T11:07:00Z"))).toBe("2026-11-04T08:15");
   expect(nextQuarterHourInput(new Date("2026-11-04T11:15:00Z"))).toBe("2026-11-04T08:15");
 });
 
-import { relativeLabel, formatLongDate } from "@/lib/time";
+import { relativeLabel, formatLongDate } from "../src/time";
 
 describe("relativeLabel", () => {
   const now = new Date("2026-11-04T12:00:00Z");
@@ -52,7 +52,7 @@ test("formatLongDate escreve a data por extenso em Brasília", () => {
   expect(formatLongDate(new Date("2026-11-04T15:00:00Z"))).toBe("quarta-feira, 4 de novembro");
 });
 
-import { dayKey, dayBounds, addDays, windowEnd, weekKeys, weekdayShort } from "@/lib/time";
+import { dayKey, dayBounds, addDays, windowEnd, weekKeys, weekdayShort } from "../src/time";
 
 describe("dia em Brasília", () => {
   test("dayKey vira o dia às 03:00Z", () => {
@@ -105,5 +105,14 @@ describe("resolveAppliedTime", () => {
     for (const bad of ["99:99", "24:00", "12:60", "9:30", "", "abc"]) {
       expect(resolveAppliedTime(bad, slotToday, now)).toBeNull();
     }
+  });
+});
+
+describe("independe do fuso do aparelho (sempre Brasília)", () => {
+  test("formatTime, dayKey e formatLongDate", async () => {
+    const { formatTime, dayKey, formatLongDate } = await import("../src/time");
+    expect(formatTime(new Date("2026-11-04T11:00:00Z"))).toBe("08:00");
+    expect(dayKey(new Date("2026-11-04T02:30:00Z"))).toBe("2026-11-03");
+    expect(formatLongDate(new Date("2026-11-04T15:00:00Z"))).toBe("quarta-feira, 4 de novembro");
   });
 });
