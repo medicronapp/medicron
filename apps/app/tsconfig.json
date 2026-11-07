@@ -8,8 +8,10 @@
       ]
     },
     "types": [
-      "jest"
-    ]
+      "jest",
+      "node"
+    ],
+    "allowImportingTsExtensions": true
   },
   "include": [
     "**/*.ts",

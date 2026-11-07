@@ -10,7 +10,9 @@
     "android": "expo start --android",
     "test": "jest",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync-tokens": "node scripts/sync-tokens.cli.ts",
+    "check-tokens": "jest tokens"
   },
   "dependencies": {
     "@better-auth/expo": "1.7.18",
