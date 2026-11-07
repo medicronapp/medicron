@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Text as RNText } from "react-native";
 import { Check, LogOut } from "lucide-react-native";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
@@ -31,6 +32,30 @@ describe("Drawer", () => {
     await renderApp(<Drawer open onOpenChange={onOpenChange} title="x"><RNText>c</RNText></Drawer>);
     await act(async () => lastModal.props.onDismiss?.());
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  test("abre depois de montar fechado (sem dismiss() na montagem)", async () => {
+    const { rerender } = await renderApp(<Drawer open={false} onOpenChange={() => {}} title="x"><RNText>c</RNText></Drawer>);
+    await rerender(<Drawer open onOpenChange={() => {}} title="x"><RNText>c</RNText></Drawer>);
+    expect(screen.getByText("c")).toBeTruthy();
+  });
+
+  test("reabre depois de dispensado pelo próprio sheet (arrastar ou tocar fora)", async () => {
+    function Harness() {
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <RNText onPress={() => setOpen(true)}>abrir</RNText>
+          <Drawer open={open} onOpenChange={setOpen} title="x"><RNText>c</RNText></Drawer>
+        </>
+      );
+    }
+    await renderApp(<Harness />);
+    expect(screen.getByText("c")).toBeTruthy();
+    await act(async () => lastModal.userDismiss());
+    expect(screen.queryByText("c")).toBeNull();
+    await fireEvent.press(screen.getByText("abrir"));
+    expect(screen.getByText("c")).toBeTruthy();
   });
 
   test("fechar por fora (open=false) some com o conteúdo", async () => {

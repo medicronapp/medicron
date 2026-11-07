@@ -27,9 +27,17 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
+  // `dismiss()` só enquanto apresentado: chamá-lo na montagem ou depois de o sheet já ter sido dispensado
+  // deixa o modal do gorhom sem conseguir abrir de novo.
+  const presented = useRef(false);
   useEffect(() => {
-    if (open) ref.current?.present();
-    else ref.current?.dismiss();
+    if (open) {
+      presented.current = true;
+      ref.current?.present();
+    } else if (presented.current) {
+      presented.current = false;
+      ref.current?.dismiss();
+    }
   }, [open]);
 
   const backdrop = useCallback(
@@ -41,7 +49,10 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
     <BottomSheetModal
       ref={ref}
       enableDynamicSizing
-      onDismiss={() => onOpenChange(false)}
+      onDismiss={() => {
+        presented.current = false; // já foi dispensado pelo gorhom: não chamar dismiss() de novo
+        onOpenChange(false);
+      }}
       backdropComponent={backdrop}
       backgroundComponent={Background}
       handleIndicatorStyle={{ backgroundColor: colors.muted, opacity: 0.4 }}
