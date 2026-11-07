@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, TriangleAlert } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { safeNext } from "@/lib/redirect";
+import { safeNext } from "@medicron/shared";
 import { FormField } from "@/components/form-field";
 import { PasswordInput } from "@/components/password-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";

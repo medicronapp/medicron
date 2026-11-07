@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { safeNext } from "@/lib/redirect";
+import { safeNext } from "../src/redirect";
 
 test("aceita caminhos internos", () => {
   expect(safeNext("/convite/abc")).toBe("/convite/abc");

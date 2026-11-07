@@ -1,10 +1,16 @@
 /** @type {import('jest').Config} */
+const preset = require("jest-expo/jest-preset");
+const babelTransform = preset.transform["\\.[jt]sx?$"];
+
 module.exports = {
   preset: "jest-expo",
+  // O better-auth publica ESM em .mjs: passa pelo mesmo Babel dos .js/.ts.
+  transform: { "\\.mjs$": babelTransform },
+  moduleFileExtensions: ["ios.js", "native.js", "js", "mjs", "ts", "tsx", "json", "jsx", "node"],
   setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
   // Pacotes que só publicam ESM precisam passar pelo Babel (a lista é a do jest-expo mais os nossos).
   transformIgnorePatterns: [
-    "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|sonner-native))",
+    "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|sonner-native|better-auth|@better-auth|better-call|@better-fetch|nanostores))",
     "/node_modules/react-native-reanimated/plugin/",
     "/node_modules/@react-native/babel-preset/",
   ],
