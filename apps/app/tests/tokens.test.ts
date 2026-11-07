@@ -31,7 +31,7 @@ describe("buildTokens", () => {
 
   test("hex das cores usadas por ícones e SVG, nos dois temas", () => {
     expect(Object.keys(colors.light).sort()).toEqual(
-      ["brandInk", "destructiveInk", "foreground", "heroAccent", "infoInk", "muted", "primary", "primaryForeground", "successInk", "warningInk"],
+      ["brandInk", "destructive", "destructiveInk", "foreground", "heroAccent", "infoInk", "muted", "primary", "primaryForeground", "successInk", "warningInk"],
     );
     for (const v of [...Object.values(colors.light), ...Object.values(colors.dark)]) expect(v).toMatch(/^#[0-9a-f]{6}$/);
     expect(colors.light.primary).not.toBe(colors.dark.primary);

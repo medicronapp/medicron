@@ -10,6 +10,7 @@ const ICON_TOKENS: Record<string, string> = {
   muted: "muted-foreground",
   primary: "primary",
   primaryForeground: "primary-foreground",
+  destructive: "destructive",
   brandInk: "brand-ink",
   successInk: "success-ink",
   warningInk: "warning-ink",
