@@ -8,6 +8,14 @@ import { ApiError } from "./errors";
 export const json = (body: unknown, status = 200) => Response.json(body, { status });
 export const noContent = () => new Response(null, { status: 204 });
 
+/** Regras de data final dos serviços de rotina viram 422 (hoje são `Error` genéricos com esta mensagem). */
+export function endDateError(err: unknown): never {
+  if (err instanceof Error && err.message.startsWith("A data final")) {
+    throw new ApiError(422, "end_before_next_dose", err.message);
+  }
+  throw err;
+}
+
 export const minAppVersion = () => process.env.MIN_APP_VERSION ?? "0.0.0";
 
 type Ctx<P> = { params: Promise<P> };
