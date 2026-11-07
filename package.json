@@ -8,12 +8,16 @@
   "scripts": {
     "dev": "npm run dev -w apps/api",
     "build": "npm run build -w apps/api",
-    "lint": "npm run lint -w apps/api",
+    "lint": "npm run lint --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
     "db:generate": "npm run db:generate -w apps/api",
-    "db:migrate": "npm run db:migrate -w apps/api"
+    "db:migrate": "npm run db:migrate -w apps/api",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "engines": {
     "node": ">=22"
+  },
+  "overrides": {
+    "lightningcss": "1.30.1"
   }
 }

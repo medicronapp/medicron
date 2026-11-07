@@ -45,3 +45,7 @@ next-env.d.ts
 .env
 
 .claude/settings.local.json
+
+# Expo
+.expo/
+apps/app/dist/

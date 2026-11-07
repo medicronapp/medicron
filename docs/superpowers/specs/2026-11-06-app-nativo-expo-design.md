@@ -70,7 +70,7 @@ Hoje o Medicron é um app web (Next.js) que só recebe lembretes se a pessoa "ad
 
 0. **(Concluída em 2026-11-07)** **Reestruturar em monorepo** sem mudar comportamento (mover o Next para `apps/api`, criar `packages/shared`) e **ligar `medicron.com.br` ao projeto atual**, com o redirecionamento do domínio antigo. Fora isso, produção intacta.
 1. **(Concluída em 2026-11-07)** **Camada de API:** endpoints REST + zod + testes, plugin do Expo e origens confiáveis no `better-auth`, reescrita `/api/*` no mesmo domínio. O Next atual passa a usar os mesmos serviços sem mudar de aparência.
-2. **Base do app Expo:** tokens, tema claro/escuro, fontes, kit de UI (os 20 componentes), navegação (abas, cabeçalho, pilhas), cliente da API, telas de login.
+2. **(Concluída em 2026-11-07, falta a aprovação visual completa do usuário)** **Base do app Expo:** tokens, tema claro/escuro, fontes, kit de UI (os 20 componentes), navegação (abas, cabeçalho, pilhas), cliente da API, telas de login.
 3. **Paridade por tela**, na ordem: Hoje (e o tour), Pacientes e Rotinas, Itens, Conta e convites. Cada tela é aceita com comparação lado a lado com o app de hoje, em claro e escuro.
 4. **Push:** tabela `push_devices`, registro do token no app, sender do Expo, links ao tocar na notificação (rota de destino no payload), manter o Web Push.
 5. **Lojas:** projeto Firebase e chaves de push (FCM e APNs), registro do `app.medicron` nas duas lojas, ícones e tela de abertura, política de privacidade em `medicron.com.br`, builds no EAS, teste interno (TestFlight e faixa interna do Google Play), teste fechado de 12 testadores por 14 dias se a conta do Google exigir, e revisão das lojas.
