@@ -43,3 +43,5 @@ next-env.d.ts
 .superpowers
 .vercel
 .env
+
+.claude/settings.local.json
