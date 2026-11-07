@@ -6,12 +6,15 @@ import type { VercelConfig } from "@vercel/config/v1";
 export const config: VercelConfig = {
   framework: "nextjs",
   redirects: [
-    // O domínio de produção é medicron.com.br; só o host exato antigo redireciona (previews seguem funcionando).
+    // O domínio de produção é medicron.com.br. Só o host exato antigo redireciona (previews seguem funcionando).
+    // Temporário (307): o navegador não guarda para sempre e dá para desfazer se o domínio novo falhar.
+    // /api/cron fica de fora: o agendador dos lembretes ainda chama o host antigo e perderia o Authorization
+    // no redirecionamento; ele passa a usar o domínio novo e esta exceção sai depois.
     {
-      source: "/:path*",
+      source: "/:path((?!api/cron/).*)",
       has: [{ type: "host", value: "medicron.vercel.app" }],
-      destination: "https://medicron.com.br/:path*",
-      permanent: true,
+      destination: "https://medicron.com.br/:path",
+      permanent: false,
     },
   ],
 };
