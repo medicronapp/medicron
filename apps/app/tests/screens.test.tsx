@@ -5,6 +5,9 @@ import { queryClient } from "@/lib/api/query";
 const mockRequest = jest.fn();
 jest.mock("@/lib/api", () => ({ apiClient: { request: (...a: unknown[]) => mockRequest(...a) } }));
 
+const mockStatus = { value: "signedIn" };
+jest.mock("@/lib/session", () => ({ useAppSession: () => ({ status: mockStatus.value }) }));
+
 import Hoje from "@/app/(app)/index";
 import Pacientes from "@/app/(app)/pacientes";
 import Itens from "@/app/(app)/itens";
@@ -13,6 +16,7 @@ import Conta from "@/app/(app)/conta";
 beforeEach(() => {
   jest.clearAllMocks();
   queryClient.clear();
+  mockStatus.value = "signedIn";
 });
 afterAll(() => queryClient.clear());
 
@@ -27,4 +31,10 @@ test("Conta mostra nome e e-mail vindos da API", async () => {
   expect(await screen.findByText("maria@x.com")).toBeOnTheScreen();
   expect(screen.getByText("Maria Silva")).toBeOnTheScreen();
   expect(mockRequest).toHaveBeenCalledWith("GET", "/me");
+});
+
+test("Conta deslogada não pede /me (evita 401 a cada abertura)", async () => {
+  mockStatus.value = "signedOut";
+  await renderApp(<Conta />);
+  expect(mockRequest).not.toHaveBeenCalled();
 });

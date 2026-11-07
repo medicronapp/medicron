@@ -1,5 +1,6 @@
 import { screen, fireEvent, waitFor } from "@testing-library/react-native";
 import { renderApp } from "./helpers";
+import { queryClient } from "@/lib/api/query";
 
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 const mockParams: { value: Record<string, string> } = { value: {} };
@@ -195,6 +196,15 @@ describe("nova conta", () => {
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/"));
     expect(mockAuth.organization.setActive).toHaveBeenCalledWith({ organizationId: "org1" });
     expect((mockAuth.organization.create.mock.calls[0][0] as { slug: string }).slug).toMatch(/^sitio-/);
+  });
+
+  test("depois de ativar a conta nova, invalida os dados (o cabeçalho não pode mostrar a anterior)", async () => {
+    const invalidate = jest.spyOn(queryClient, "invalidateQueries");
+    await renderApp(<NovaConta />);
+    await type("Nome da conta", "Sítio");
+    await fireEvent.press(screen.getByRole("button", { name: "Criar conta" }));
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/"));
+    expect(invalidate).toHaveBeenCalled();
   });
 
   test("falha mostra o erro e destrava", async () => {

@@ -10,8 +10,12 @@ jest.mock("expo-router", () => ({
   usePathname: () => mockNav.pathname,
   useRouter: () => mockRouter,
   Slot: () => null,
-  Stack: () => null,
+  Stack: () => {
+    const { View } = require("react-native");
+    return <View testID="stack" />;
+  },
 }));
+jest.mock("@/components/ui/toast", () => ({ toast: { error: jest.fn() }, Toaster: () => null }));
 // O gesture-handler real agenda, após o teste, uma ligação com o runtime de UI que só existe no aparelho.
 jest.mock("react-native-gesture-handler", () => ({
   GestureHandlerRootView: ({ children }: { children?: unknown }) => children,
@@ -142,12 +146,60 @@ describe("layout do grupo (app)", () => {
   });
 });
 
+describe("troca de conta", () => {
+  test("setActive com erro avisa com toast e não invalida os dados", async () => {
+    mockSetActive.mockResolvedValueOnce({ error: { message: "x" } } as never);
+    const invalidate = jest.spyOn(queryClient, "invalidateQueries");
+    await renderApp(<AppHeader />);
+    await fireEvent.press(screen.getByRole("button", { name: "Conta ativa: Casa da Vovó" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Sítio" }));
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { toast } = require("@/components/ui/toast");
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Não foi possível trocar de conta."));
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+  test("deslogado, o cabeçalho não pede /me", async () => {
+    mockSession.value = { status: "signedOut", orgCount: 0, activeOrgId: null, signOut: jest.fn() };
+    await renderApp(<AppHeader />);
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+});
+
+describe("layout do grupo: espaço da barra de abas", () => {
+  test("no celular o conteúdo tem folga embaixo para não ficar sob as abas", async () => {
+    await renderApp(<AppLayout />);
+    const style = [screen.getByTestId("content").props.style].flat(Infinity).filter(Boolean).reduce((a: object, b: object) => ({ ...a, ...b }), {});
+    expect((style as { paddingBottom?: number }).paddingBottom).toBeGreaterThanOrEqual(96);
+  });
+});
+
 describe("layout raiz", () => {
   test("sem sessão em rota protegida redireciona para /entrar com o destino", async () => {
     mockSession.value = { status: "signedOut", orgCount: 0, activeOrgId: null, signOut: jest.fn() };
     mockNav.pathname = "/pacientes";
     await renderApp(<RootLayout />);
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/entrar?next=%2Fpacientes"));
+  });
+  test("não mostra a casca enquanto a sessão carrega nem enquanto o redirecionamento está pendente", async () => {
+    mockSession.value = { status: "loading", orgCount: 0, activeOrgId: null, signOut: jest.fn() };
+    await renderApp(<RootLayout />);
+    expect(screen.queryByTestId("stack")).toBeNull();
+    mockSession.value = { status: "signedOut", orgCount: 0, activeOrgId: null, signOut: jest.fn() };
+    mockNav.pathname = "/";
+    await renderApp(<RootLayout />);
+    expect(screen.queryByTestId("stack")).toBeNull();
+  });
+  test("logado na rota certa mostra a casca", async () => {
+    await renderApp(<RootLayout />);
+    expect(screen.getByTestId("stack")).toBeOnTheScreen();
+  });
+  test("erro ao carregar as contas mostra tela de erro e tenta de novo ao tocar", async () => {
+    const retry = jest.fn();
+    mockSession.value = { status: "error", orgCount: 0, activeOrgId: null, signOut: jest.fn(), retry } as never;
+    await renderApp(<RootLayout />);
+    expect(screen.getByText("Não foi possível carregar suas contas")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("button", { name: "Tentar de novo" }));
+    expect(retry).toHaveBeenCalledTimes(1);
   });
   test("enquanto a sessão carrega não redireciona", async () => {
     mockSession.value = { status: "loading", orgCount: 0, activeOrgId: null, signOut: jest.fn() };

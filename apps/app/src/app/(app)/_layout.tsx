@@ -15,7 +15,7 @@ export default function AppLayout() {
       {wide ? <SidebarNav /> : null}
       <View className="flex-1">
         <AppHeader showBrand={!wide} />
-        <View className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6">
+        <View testID="content" className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6" style={{ paddingBottom: wide ? 40 : 112 }}>
           <Slot />
         </View>
         {wide ? null : <TabBar />}

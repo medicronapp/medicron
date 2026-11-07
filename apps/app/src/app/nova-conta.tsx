@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { orgSlug } from "@medicron/shared";
 import { authClient } from "@/lib/auth-client";
+import { queryClient } from "@/lib/api/query";
 import { NETWORK_MESSAGE } from "@/lib/api/errors";
 import { AuthShell } from "@/components/auth-shell";
 import { FormError } from "@/components/form-error";
@@ -29,6 +30,7 @@ export default function NovaConta() {
         return;
       }
       await authClient.organization.setActive({ organizationId: data.id });
+      await queryClient.invalidateQueries(); // o cabeçalho e as telas passam a ser da conta nova
       router.replace("/");
     } catch {
       setError(NETWORK_MESSAGE);

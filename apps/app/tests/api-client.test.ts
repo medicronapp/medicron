@@ -127,3 +127,18 @@ describe("fetchMe e appVersion", () => {
     expect(appVersion()).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
+
+describe("credenciais do navegador", () => {
+  test("credentials 'include' (web, mesma origem) é repassado ao fetch e dispensa o cookie manual", async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(reply(200, { ok: true }));
+    const client = createApiClient({ baseUrl: "https://x", getCookie: async () => "", appVersion: "1.0.0", credentials: "include", fetch: fetchImpl as unknown as typeof fetch });
+    await client.request("GET", "/me");
+    expect(fetchImpl.mock.calls[0][1].credentials).toBe("include");
+    expect(fetchImpl.mock.calls[0][1].headers.Cookie).toBeUndefined();
+  });
+  test("padrão continua 'omit' (nativo manda o Cookie à mão)", async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(reply(200, {}));
+    await setup(fetchImpl).request("GET", "/me");
+    expect(fetchImpl.mock.calls[0][1].credentials).toBe("omit");
+  });
+});

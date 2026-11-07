@@ -20,9 +20,9 @@ import { toast } from "@/components/ui/toast";
 /** Cabeçalho fixo: marca (só no celular), seletor de conta e menu do usuário. */
 export function AppHeader({ showBrand = true }: { showBrand?: boolean }) {
   const router = useRouter();
-  const { activeOrgId, signOut } = useAppSession();
+  const { activeOrgId, signOut, status } = useAppSession();
   const { data: orgs } = authClient.useListOrganizations();
-  const me = useQuery({ queryKey: ["me"], queryFn: () => fetchMe(apiClient) });
+  const me = useQuery({ queryKey: ["me"], queryFn: () => fetchMe(apiClient), enabled: status === "signedIn" });
   const [orgsOpen, setOrgsOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
 
@@ -32,7 +32,8 @@ export function AppHeader({ showBrand = true }: { showBrand?: boolean }) {
 
   async function switchOrg(id: string) {
     try {
-      await authClient.organization.setActive({ organizationId: id });
+      const { error } = await authClient.organization.setActive({ organizationId: id });
+      if (error) throw error;
       await queryClient.invalidateQueries(); // como o router.refresh() do site: tudo é da conta nova
     } catch {
       toast.error("Não foi possível trocar de conta.");

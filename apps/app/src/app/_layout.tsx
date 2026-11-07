@@ -1,5 +1,6 @@
 import "../global.css";
 import { useEffect } from "react";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -16,6 +17,7 @@ import { queryClient } from "@/lib/api/query";
 import { decideRoute } from "@/lib/route-guard";
 import { useAppSession } from "@/lib/session";
 import { Toaster } from "@/components/ui/toast";
+import { SessionError } from "@/components/session-error";
 import { UpdateRequired } from "@/components/update-required";
 
 SplashScreen.preventAutoHideAsync();
@@ -27,18 +29,19 @@ function Gate() {
   const router = useRouter();
   const me = useQuery({ queryKey: ["me"], queryFn: () => fetchMe(apiClient), enabled: session.status === "signedIn" });
 
+  const decision =
+    session.status === "loading" || session.status === "error"
+      ? { to: null }
+      : decideRoute({ hasSession: session.status === "signedIn", orgCount: session.orgCount, activeOrgId: session.activeOrgId, pathname });
+
   useEffect(() => {
-    if (session.status === "loading") return;
-    const { to } = decideRoute({
-      hasSession: session.status === "signedIn",
-      orgCount: session.orgCount,
-      activeOrgId: session.activeOrgId,
-      pathname,
-    });
-    if (to) router.replace(to as never);
-  }, [session.status, session.orgCount, session.activeOrgId, pathname, router]);
+    if (decision.to) router.replace(decision.to as never);
+  }, [decision.to, router]);
 
   if (me.error instanceof AppOutdatedError) return <UpdateRequired minVersion={me.error.minAppVersion} />;
+  if (session.status === "error") return <SessionError onRetry={session.retry} />;
+  // Sem casca enquanto a sessão carrega ou o redirecionamento está pendente (evita o flash de telas logadas).
+  if (session.status === "loading" || decision.to) return <View className="flex-1 bg-background" />;
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 

@@ -6,13 +6,15 @@ export type ApiClientOptions = {
   /** Cookie de sessão do `better-auth` (no celular não há cookie de navegador: vai no cabeçalho). */
   getCookie: () => Promise<string>;
   appVersion: string;
+  /** Nativo: "omit" (o Cookie vai à mão). Web na mesma origem: "include" (o navegador manda o cookie). */
+  credentials?: "omit" | "include";
   fetch?: typeof fetch;
 };
 
 export type ApiClient = ReturnType<typeof createApiClient>;
 
 /** Cliente fino da API `/api/v1`: injeta cookie e versão do app e converte erros em classes tipadas. */
-export function createApiClient({ baseUrl, getCookie, appVersion, fetch: fetchImpl = fetch }: ApiClientOptions) {
+export function createApiClient({ baseUrl, getCookie, appVersion, credentials = "omit", fetch: fetchImpl = fetch }: ApiClientOptions) {
   async function request<T>(method: "GET" | "POST" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
     const cookie = await getCookie();
     const headers: Record<string, string> = { "x-app-version": appVersion };
@@ -24,7 +26,7 @@ export function createApiClient({ baseUrl, getCookie, appVersion, fetch: fetchIm
       res = await fetchImpl(`${baseUrl}${API_PREFIX}${path}`, {
         method,
         headers,
-        credentials: "omit", // 'include' sobrescreve o Cookie que enviamos à mão
+        credentials, // 'include' sobrescreve o Cookie enviado à mão: só na web, onde não há cookie manual
         body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch {
