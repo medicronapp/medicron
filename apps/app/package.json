@@ -20,6 +20,7 @@
     "@expo-google-fonts/geist": "^0.4.2",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@medicron/shared": "*",
+    "@tanstack/react-query": "^5.107.1",
     "better-auth": "1.7.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
