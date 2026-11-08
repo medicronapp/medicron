@@ -81,14 +81,24 @@ describe("invalidação do cache", () => {
     await waitFor(() => expect(keys(spy)).toContain("patients"));
   });
 
-  test.each([
-    ["arquivar paciente", () => useArchivePatient(), "a"],
-    ["encerrar rotina", () => useDeactivatePlan(), "p"],
-  ])("%s invalida pacientes, rotinas e Hoje", async (_n, hook, arg) => {
+  test("arquivar paciente invalida a lista e a Hoje e remove o detalhe e as rotinas dele do cache (sem rebuscar um 404)", async () => {
+    mockRequest.mockResolvedValue(undefined);
+    queryClient.setQueryData(["patient", "a"], { id: "a" });
+    queryClient.setQueryData(["plans", "a"], []);
+    const spy = jest.spyOn(queryClient, "invalidateQueries");
+    const { result } = await renderHook(() => useArchivePatient(), { wrapper });
+    await act(async () => { await result.current.mutateAsync("a"); });
+    await waitFor(() => expect(keys(spy)).toEqual(expect.arrayContaining(["patients", "home"])));
+    expect(keys(spy)).not.toContain("patient");
+    expect(queryClient.getQueryData(["patient", "a"])).toBeUndefined();
+    expect(queryClient.getQueryData(["plans", "a"])).toBeUndefined();
+  });
+
+  test("encerrar rotina invalida rotinas, pacientes e Hoje", async () => {
     mockRequest.mockResolvedValue(undefined);
     const spy = jest.spyOn(queryClient, "invalidateQueries");
-    const { result } = await renderHook(hook as () => { mutateAsync: (a: string) => Promise<unknown> }, { wrapper });
-    await act(async () => { await result.current.mutateAsync(arg); });
+    const { result } = await renderHook(() => useDeactivatePlan(), { wrapper });
+    await act(async () => { await result.current.mutateAsync("p"); });
     await waitFor(() => expect(keys(spy)).toEqual(expect.arrayContaining(["patients", "patient", "plans", "home"])));
   });
 

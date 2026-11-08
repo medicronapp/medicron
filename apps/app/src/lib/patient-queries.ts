@@ -38,8 +38,16 @@ export function useUpdatePatient() {
   });
 }
 export function useArchivePatient() {
-  const invalidate = useInvalidate();
-  return useMutation({ mutationFn: (id: string) => archivePatient(apiClient, id), onSuccess: () => invalidate("patients", "patient", "plans", "home") });
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => archivePatient(apiClient, id),
+    onSuccess: (_res, id) => {
+      // O detalhe e as rotinas do paciente arquivado saem do cache (rebuscar daria 404 enquanto a tela ainda está montada).
+      qc.removeQueries({ queryKey: ["patient", id] });
+      qc.removeQueries({ queryKey: ["plans", id] });
+      return Promise.all([qc.invalidateQueries({ queryKey: ["patients"] }), qc.invalidateQueries({ queryKey: ["home"] })]);
+    },
+  });
 }
 export function useCreatePlan() {
   const invalidate = useInvalidate();
