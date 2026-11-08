@@ -29,3 +29,6 @@ export class UnauthorizedError extends ApiClientError {
     this.name = "UnauthorizedError";
   }
 }
+
+/** Texto para mostrar ao usuário a partir de qualquer erro (mensagens da API já vêm em português). */
+export const errorMessage = (err: unknown): string => (err instanceof Error && err.message ? err.message : "Algo deu errado. Tente de novo.");
