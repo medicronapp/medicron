@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView, type BottomSheetBackdropProps, type BottomSheetBackgroundProps } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/theme/colors";
+import { InSheetContext } from "./sheet-context";
 import { Text } from "./text";
 
 type Props = {
@@ -49,6 +50,9 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
     <BottomSheetModal
       ref={ref}
       enableDynamicSizing
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustResize"
       onDismiss={() => {
         presented.current = false; // já foi dispensado pelo gorhom: não chamar dismiss() de novo
         onOpenChange(false);
@@ -58,6 +62,7 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
       handleIndicatorStyle={{ backgroundColor: colors.muted, opacity: 0.4 }}
     >
       <BottomSheetView>
+        <InSheetContext.Provider value>
         <View className="gap-4 px-4 pt-2" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
           {title || description ? (
             <View className="gap-1">
@@ -68,6 +73,7 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
           {children}
           {footer}
         </View>
+        </InSheetContext.Provider>
       </BottomSheetView>
     </BottomSheetModal>
   );
