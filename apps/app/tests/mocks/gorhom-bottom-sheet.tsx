@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useState, type ReactNode } from "react";
-import { TextInput, View } from "react-native";
+import { ScrollView, TextInput, View } from "react-native";
 
 /** Props da última `BottomSheetModal` montada: os testes chamam `onDismiss` para simular o arrastar para baixo. */
 export const lastModal: { props: { onDismiss?: () => void }; userDismiss: () => void } = { props: {}, userDismiss: () => {} };
@@ -38,3 +38,4 @@ export const BottomSheetModalProvider = ({ children }: { children?: ReactNode })
 export const BottomSheetView = ({ children }: { children?: ReactNode }) => <View>{children}</View>;
 export const BottomSheetBackdrop = () => null;
 export const BottomSheetTextInput = TextInput;
+export const BottomSheetScrollView = ScrollView;
