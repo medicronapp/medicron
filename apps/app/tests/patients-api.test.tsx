@@ -73,12 +73,12 @@ describe("invalidação do cache", () => {
   const wrapper = ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   const keys = (spy: jest.SpyInstance) => spy.mock.calls.map((c) => (c[0] as { queryKey: unknown[] }).queryKey[0]);
 
-  test("criar paciente invalida a lista de pacientes", async () => {
+  test("criar paciente invalida a lista de pacientes e a Hoje (o vazio e o checklist dependem dele)", async () => {
     mockRequest.mockResolvedValue({ patient: { id: "a" } });
     const spy = jest.spyOn(queryClient, "invalidateQueries");
     const { result } = await renderHook(() => useCreatePatient(), { wrapper });
     await act(async () => { await result.current.mutateAsync({ name: "Izzy", species: "cat" }); });
-    await waitFor(() => expect(keys(spy)).toContain("patients"));
+    await waitFor(() => expect(keys(spy)).toEqual(expect.arrayContaining(["patients", "home"])));
   });
 
   test("arquivar paciente invalida a lista e a Hoje e remove o detalhe e as rotinas dele do cache (sem rebuscar um 404)", async () => {

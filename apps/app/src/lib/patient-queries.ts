@@ -12,7 +12,7 @@ export const usePatients = () =>
   useQuery({ queryKey: ["patients"], queryFn: () => fetchPatients(apiClient), enabled: useSignedIn() });
 
 export const usePatient = (id: string) =>
-  useQuery({ queryKey: ["patient", id], queryFn: () => fetchPatient(apiClient, id), enabled: useSignedIn(), retry: false });
+  useQuery({ queryKey: ["patient", id], queryFn: () => fetchPatient(apiClient, id), enabled: useSignedIn() });
 
 export const usePlans = (patientId: string) =>
   useQuery({ queryKey: ["plans", patientId], queryFn: () => fetchPlans(apiClient, patientId), enabled: useSignedIn() });
@@ -28,7 +28,7 @@ function useInvalidate() {
 
 export function useCreatePatient() {
   const invalidate = useInvalidate();
-  return useMutation({ mutationFn: (body: PatientBody) => createPatient(apiClient, body), onSuccess: () => invalidate("patients") });
+  return useMutation({ mutationFn: (body: PatientBody) => createPatient(apiClient, body), onSuccess: () => invalidate("patients", "home") });
 }
 export function useUpdatePatient() {
   const invalidate = useInvalidate();

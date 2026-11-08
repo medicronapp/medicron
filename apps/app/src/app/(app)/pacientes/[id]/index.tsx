@@ -97,7 +97,9 @@ export default function Paciente() {
         </View>
       ) : plans.isPending ? (
         <Skeleton className="h-20 w-full rounded-2xl" />
-      ) : !plans.data || plans.data.length === 0 ? (
+      ) : plans.isError || !plans.data ? (
+        <ErrorView onRetry={() => void plans.refetch()} />
+      ) : plans.data.length === 0 ? (
         <EmptyState icon={CalendarClock} title="Sem rotina ainda" description="Associe uma medicação ou procedimento e defina a frequência." action={add} />
       ) : (
         <View className="gap-3">

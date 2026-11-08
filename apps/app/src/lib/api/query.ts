@@ -13,3 +13,12 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+/**
+ * Troca de conta: tudo que é da conta anterior sai do cache (só "me", o usuário, fica), em vez de só ficar "velho":
+ * senão uma tela ainda não visitada mostraria por um instante os dados da conta anterior.
+ */
+export function resetAccountData() {
+  queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "me" });
+  return queryClient.invalidateQueries();
+}

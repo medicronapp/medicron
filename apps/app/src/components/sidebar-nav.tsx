@@ -12,7 +12,7 @@ export function SidebarNav() {
   const router = useRouter();
   return (
     <View testID="sidebar-nav" className="w-64 gap-6 border-r border-border bg-sidebar p-4">
-      <Pressable accessibilityRole="link" accessibilityLabel="Medicron" onPress={() => router.push("/")} className="flex-row items-center gap-2.5 px-2 py-1">
+      <Pressable accessibilityRole="link" accessibilityLabel="Medicron" onPress={() => router.navigate("/")} className="flex-row items-center gap-2.5 px-2 py-1">
         <BrandMark />
         <Text className="text-lg font-semibold tracking-tight">Medicron</Text>
       </Pressable>
@@ -25,7 +25,7 @@ export function SidebarNav() {
               accessibilityRole="button"
               accessibilityLabel={label}
               accessibilityState={{ selected: active }}
-              onPress={() => router.push(href as never)}
+              onPress={() => router.navigate(href as never)}
               className={cn("h-11 flex-row items-center gap-3 rounded-xl px-3", active ? "bg-brand-soft" : "active:bg-muted")}
             >
               <Icon icon={icon} color={active ? "brandInk" : "muted"} size={20} />

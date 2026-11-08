@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, screen, waitFor } from "@testing-library/react-native";
 import type { PatientDto, PlanDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 import { ApiClientError } from "@/lib/api/errors";
@@ -111,6 +111,15 @@ describe("aba Rotina", () => {
     expect(screen.getByText("Associe uma medicação ou procedimento e defina a frequência.")).toBeOnTheScreen();
     await fireEvent.press(screen.getAllByRole("button", { name: "Adicionar" })[0]);
     expect(mockRouter.push).toHaveBeenCalledWith("/pacientes/a/rotina/nova");
+  });
+
+  test("falha ao carregar as rotinas mostra erro com 'Tentar de novo', e não o vazio que convida a criar outra", async () => {
+    ready(patient(), []);
+    mockPlans.value = { data: undefined, isPending: false, isError: true, isRefetching: false, refetch: jest.fn() };
+    await renderApp(<Detalhe />);
+    expect(screen.queryByText("Sem rotina ainda")).toBeNull();
+    await fireEvent.press(screen.getByRole("button", { name: "Tentar de novo" }));
+    expect(mockPlans.value.refetch).toHaveBeenCalledTimes(1);
   });
 
   test("lista a rotina com dose, frequência e a próxima dose", async () => {
@@ -231,5 +240,4 @@ describe("aba Dados", () => {
     expect(mockArchive).toHaveBeenCalledTimes(1);
     expect(mockArchive).toHaveBeenCalledWith("a");
   });
-  void act;
 });

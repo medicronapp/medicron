@@ -14,7 +14,6 @@ import { PageHeader } from "@/components/page-header";
 import { PatientCard } from "@/components/patient-card";
 import { ConfirmSheet } from "@/components/confirm-sheet";
 import { PatientForm } from "@/components/patient-form";
-import { lastModal } from "./mocks/gorhom-bottom-sheet";
 
 const patient = (o: Partial<PatientDto> = {}): PatientDto => ({
   id: "a", name: "Izzy", species: "cat", birthDate: "2026-05-01", weightKg: "4.20", notes: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
@@ -50,6 +49,14 @@ describe("PatientCard", () => {
   test("sem nascimento nem peso mostra só a espécie", async () => {
     await renderApp(<PatientCard patient={patient({ birthDate: null, weightKg: null, species: "dog" })} onPress={() => {}} />);
     expect(screen.getByText("Cachorro")).toBeOnTheScreen();
+  });
+});
+
+describe("espécie desconhecida (API mais nova que o app)", () => {
+  test("o cartão não quebra e cai em 'Outro'", async () => {
+    await renderApp(<PatientCard patient={patient({ species: "hamster" as never })} onPress={() => {}} />);
+    expect(screen.getByText("Izzy")).toBeOnTheScreen();
+    expect(screen.getByText(/^Outro/)).toBeOnTheScreen();
   });
 });
 
@@ -89,7 +96,6 @@ describe("ConfirmSheet", () => {
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
     expect(screen.getByRole("button", { name: "Arquivar" })).toBeEnabled();
   });
-  void lastModal;
 });
 
 describe("PatientForm", () => {

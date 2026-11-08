@@ -6,7 +6,7 @@ import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react-native";
 import { authClient } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api";
 import { fetchMe } from "@/lib/api/me";
-import { queryClient } from "@/lib/api/query";
+import { resetAccountData } from "@/lib/api/query";
 import { useAppSession } from "@/lib/session";
 import { initials } from "@/lib/initials";
 import { BrandMark } from "@/components/brand-mark";
@@ -34,7 +34,7 @@ export function AppHeader({ showBrand = true }: { showBrand?: boolean }) {
     try {
       const { error } = await authClient.organization.setActive({ organizationId: id });
       if (error) throw error;
-      await queryClient.invalidateQueries(); // como o router.refresh() do site: tudo é da conta nova
+      await resetAccountData(); // como o router.refresh() do site: tudo é da conta nova
     } catch {
       toast.error("Não foi possível trocar de conta.");
     }
