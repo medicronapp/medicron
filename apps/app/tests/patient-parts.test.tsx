@@ -100,7 +100,7 @@ describe("PatientForm", () => {
   };
 
   test("nome e tipo: envia só o que foi preenchido", async () => {
-    const onSubmit = jest.fn(async () => {});
+    const onSubmit = jest.fn(async (_b: unknown) => {});
     await renderApp(<PatientForm onSubmit={onSubmit} />);
     await type("Nome", "  Izzy ");
     await pickSpecies("Gato");
@@ -109,7 +109,7 @@ describe("PatientForm", () => {
   });
 
   test("peso com vírgula vira número, nascimento e observações vão no corpo", async () => {
-    const onSubmit = jest.fn(async () => {});
+    const onSubmit = jest.fn(async (_b: unknown) => {});
     await renderApp(<PatientForm onSubmit={onSubmit} />);
     await type("Nome", "Izzy");
     await pickSpecies("Gato");
