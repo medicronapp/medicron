@@ -1,7 +1,8 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
 import { View } from "react-native";
 import type { ItemDto, PlanCreateBody } from "@medicron/shared";
 import { INTERVAL_PRESETS, parseLocalInput } from "@medicron/shared";
+import { FormSection } from "@/components/form-section";
 import { Button } from "@/components/ui/button";
 import { DateTimeField } from "@/components/ui/datetime-field";
 import { FormField } from "@/components/ui/form-field";
@@ -13,15 +14,6 @@ import { Text } from "@/components/ui/text";
 const CUSTOM = "0";
 const MIN_MINUTES = 5;
 const MAX_MINUTES = 60 * 24 * 365;
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <View className="gap-4 rounded-2xl border border-border bg-card p-4">
-      <Text className="px-1 text-sm font-semibold text-muted-foreground">{title}</Text>
-      {children}
-    </View>
-  );
-}
 
 type Props = { items: ItemDto[]; defaultAnchor: string; onSubmit: (body: PlanCreateBody) => Promise<void> };
 type Errors = { item?: string; interval?: string };
@@ -77,15 +69,15 @@ export function PlanForm({ items, defaultAnchor, onSubmit }: Props) {
 
   return (
     <View className="gap-4">
-      <Section title="O quê">
+      <FormSection title="O quê">
         <FormField label="Medicação ou procedimento" error={errors.item}>
           <SelectField value={itemId} onChange={setItemId} options={options} placeholder="Selecione…" />
         </FormField>
         <FormField label="Dose / instrução" hint="Opcional. Se vazio, usa a dose padrão do item.">
           <Input value={dose} onChangeText={setDose} maxLength={120} autoComplete="off" />
         </FormField>
-      </Section>
-      <Section title="Quando">
+      </FormSection>
+      <FormSection title="Quando">
         <FormField label="Frequência">
           <SelectField value={interval} onChange={setInterval} options={intervalOptions} />
         </FormField>
@@ -102,12 +94,12 @@ export function PlanForm({ items, defaultAnchor, onSubmit }: Props) {
           </View>
           <Switch value={reschedule} onValueChange={setReschedule} accessibilityLabel="Reprogramar horários" />
         </View>
-      </Section>
-      <Section title="Até quando">
+      </FormSection>
+      <FormSection title="Até quando">
         <FormField label="Data final" hint="Opcional. Deixe vazio para um uso contínuo.">
           <DateTimeField value={endAt} onChange={setEndAt} clearable />
         </FormField>
-      </Section>
+      </FormSection>
       <Button size="lg" loading={pending} onPress={() => void submit()} accessibilityLabel="Salvar rotina">Salvar rotina</Button>
     </View>
   );

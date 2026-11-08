@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import type { PatientBody, PatientDto } from "@medicron/shared";
 import { SPECIES } from "@medicron/shared";
+import { FormSection } from "@/components/form-section";
 import { weightLabel } from "@/components/patient-card";
 import { speciesGlyph } from "@/components/species-icon";
 import { Button } from "@/components/ui/button";
@@ -41,27 +42,31 @@ export function PatientForm({ patient, onSubmit, submitting }: Props) {
 
   return (
     <View className="gap-4">
-      <FormField label="Nome" error={errors.name}>
-        <Input value={name} onChangeText={setName} maxLength={60} autoCapitalize="words" returnKeyType="next" />
-      </FormField>
-      <FormField label="Tipo" error={errors.species}>
-        <SelectField layout="cards" value={species} onChange={setSpecies} placeholder="Selecione…" options={SPECIES.map((s) => ({ ...s, icon: speciesGlyph(s.value) }))} />
-      </FormField>
-      <View className="gap-4 md:flex-row">
-        <View className="flex-1">
-          <FormField label="Nascimento" hint="Opcional">
-            <DateField value={birthDate} onChange={setBirthDate} clearable />
-          </FormField>
+      <FormSection title="Quem é">
+        <FormField label="Nome" error={errors.name}>
+          <Input value={name} onChangeText={setName} maxLength={60} autoCapitalize="words" returnKeyType="next" />
+        </FormField>
+        <FormField label="Tipo" error={errors.species}>
+          <SelectField layout="cards" value={species} onChange={setSpecies} placeholder="Selecione…" options={SPECIES.map((s) => ({ ...s, icon: speciesGlyph(s.value) }))} />
+        </FormField>
+      </FormSection>
+      <FormSection title="Detalhes">
+        <View className="gap-4 md:flex-row">
+          <View className="flex-1">
+            <FormField label="Nascimento" hint="Opcional">
+              <DateField value={birthDate} onChange={setBirthDate} clearable />
+            </FormField>
+          </View>
+          <View className="flex-1">
+            <FormField label="Peso (kg)" hint="Opcional" error={errors.weight}>
+              <Input value={weight} onChangeText={setWeight} keyboardType="decimal-pad" placeholder="4,2" />
+            </FormField>
+          </View>
         </View>
-        <View className="flex-1">
-          <FormField label="Peso (kg)" hint="Opcional" error={errors.weight}>
-            <Input value={weight} onChangeText={setWeight} keyboardType="decimal-pad" placeholder="4,2" />
-          </FormField>
-        </View>
-      </View>
-      <FormField label="Observações" hint="Opcional: alergias, condições, responsável…">
-        <Textarea value={notes} onChangeText={setNotes} maxLength={1000} />
-      </FormField>
+        <FormField label="Observações" hint="Opcional: alergias, condições, responsável…">
+          <Textarea value={notes} onChangeText={setNotes} maxLength={1000} />
+        </FormField>
+      </FormSection>
       <Button size="lg" disabled={submitting} loading={submitting} onPress={() => void submit()} accessibilityLabel="Salvar">Salvar</Button>
     </View>
   );

@@ -149,6 +149,12 @@ describe("PatientForm", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  test("campos agrupados em seções em cartão, como na nova rotina", async () => {
+    await renderApp(<PatientForm onSubmit={async () => {}} />);
+    expect(screen.getByText("Quem é")).toBeOnTheScreen();
+    expect(screen.getByText("Detalhes")).toBeOnTheScreen();
+  });
+
   test("dicas do site", async () => {
     await renderApp(<PatientForm onSubmit={async () => {}} />);
     expect(screen.getAllByText("Opcional").length).toBeGreaterThanOrEqual(2);
