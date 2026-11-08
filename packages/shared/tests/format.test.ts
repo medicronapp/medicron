@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { initials } from "@/lib/format";
+import { initials } from "../src/format";
 
 test("initials usa até duas letras maiúsculas", () => {
   expect(initials("Ana Paula")).toBe("AP");
@@ -9,7 +9,7 @@ test("initials usa até duas letras maiúsculas", () => {
   expect(initials("")).toBe("?");
 });
 
-import { ageLabel, patientTone } from "@/lib/format";
+import { ageLabel, patientTone } from "../src/format";
 
 test("ageLabel descreve idade em meses e anos", () => {
   const now = new Date("2026-11-04T12:00:00Z");
@@ -26,4 +26,8 @@ test("patientTone é estável e fica entre 0 e 5", () => {
     expect(t).toBeGreaterThanOrEqual(0);
     expect(t).toBeLessThanOrEqual(5);
   }
+});
+
+test("nascimento no futuro não quebra a idade", () => {
+  expect(ageLabel("2026-11-30", new Date("2026-11-08T12:00:00Z"))).toBe("menos de 1 mês");
 });
