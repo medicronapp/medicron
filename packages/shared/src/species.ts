@@ -1,9 +1,11 @@
-export type Species = "cat" | "dog" | "human" | "other";
+export type Species = "cat" | "dog" | "human" | "bird" | "rabbit" | "other";
 
 export const SPECIES: { value: Species; label: string }[] = [
   { value: "cat", label: "Gato" },
   { value: "dog", label: "Cachorro" },
   { value: "human", label: "Pessoa" },
+  { value: "bird", label: "Pássaro" },
+  { value: "rabbit", label: "Coelho" },
   { value: "other", label: "Outro" },
 ];
 

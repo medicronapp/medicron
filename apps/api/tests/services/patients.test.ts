@@ -58,6 +58,8 @@ describe("patients", () => {
     expect((await createPatient(db, "o1", { name: "A" })).species).toBe("other");
     expect((await createPatient(db, "o1", { name: "B", species: "dog" })).species).toBe("dog");
     expect((await createPatient(db, "o1", { name: "C", species: "human" })).species).toBe("human");
+    expect((await createPatient(db, "o1", { name: "E", species: "bird" })).species).toBe("bird");
+    expect((await createPatient(db, "o1", { name: "F", species: "rabbit" })).species).toBe("rabbit");
     await expect(createPatient(db, "o1", { name: "D", species: "dragon" as never })).rejects.toThrow();
   });
 

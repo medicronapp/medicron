@@ -103,7 +103,9 @@ describe("PatientForm", () => {
     await renderApp(<PatientForm onSubmit={async () => {}} />);
     await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
     expect(await screen.findByTestId("cards-grid")).toBeOnTheScreen();
-    for (const l of ["Gato", "Cachorro", "Pessoa", "Outro"]) expect(screen.getByRole("button", { name: l })).toBeOnTheScreen();
+    for (const l of ["Gato", "Cachorro", "Pessoa", "Pássaro", "Coelho", "Outro"]) expect(screen.getByRole("button", { name: l })).toBeOnTheScreen();
+    expect(screen.getAllByTestId("cards-row")).toHaveLength(2); // 6 tipos: 3 + 3, sem cartão sozinho
+    expect(screen.queryByTestId("cards-filler")).toBeNull();
   });
 
   test("nome e tipo: envia só o que foi preenchido", async () => {

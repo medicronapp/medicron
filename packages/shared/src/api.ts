@@ -4,7 +4,7 @@ export const API_PREFIX = "/api/v1" as const;
 
 // ---------- Corpos de requisição (datas em texto ISO 8601) ----------
 
-const species = z.enum(["cat", "dog", "human", "other"]);
+const species = z.enum(["cat", "dog", "human", "bird", "rabbit", "other"]);
 const iso = z.string().datetime();
 
 export const patientBody = z.object({
@@ -56,7 +56,7 @@ export type DoseBody = z.infer<typeof doseBody>;
 export type ErrorDto = { error: string; message?: string; issues?: unknown[]; minAppVersion?: string };
 
 export type PatientDto = {
-  id: string; name: string; species: "cat" | "dog" | "human" | "other";
+  id: string; name: string; species: z.infer<typeof species>;
   birthDate: string | null; weightKg: string | null; notes: string | null; createdAt: string;
 };
 export type ItemDto = {
