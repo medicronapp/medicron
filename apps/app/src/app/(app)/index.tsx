@@ -1,9 +1,12 @@
+import { useEffect } from "react";
 import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ErrorView } from "@/components/error-view";
 import { HomeView } from "@/components/home/home-view";
 import { Screen } from "@/components/screen";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/toast";
+import { NETWORK_MESSAGE } from "@/lib/api/errors";
 import { useHome } from "@/lib/home-queries";
 
 export default function Hoje() {
@@ -11,6 +14,12 @@ export default function Hoje() {
   const params = useLocalSearchParams<{ dia?: string }>();
   const dia = typeof params.dia === "string" ? params.dia : undefined;
   const query = useHome(dia);
+  const staleError = query.isError && !!query.data;
+
+  // Falha ao atualizar com dados já na tela: mantém a tela e avisa (não troca tudo por uma tela de erro).
+  useEffect(() => {
+    if (staleError) toast.error(NETWORK_MESSAGE);
+  }, [staleError, query.errorUpdatedAt]);
 
   if (query.isPending) {
     return (
@@ -25,7 +34,8 @@ export default function Hoje() {
       </Screen>
     );
   }
-  if (query.isError || !query.data) {
+  if (!query.data) {
+    if (!query.isError) return null;
     return (
       <Screen>
         <ErrorView onRetry={() => void query.refetch()} />

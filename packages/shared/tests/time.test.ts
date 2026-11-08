@@ -116,3 +116,22 @@ describe("independe do fuso do aparelho (sempre Brasília)", () => {
     expect(formatLongDate(new Date("2026-11-04T15:00:00Z"))).toBe("quarta-feira, 4 de novembro");
   });
 });
+
+import { clampAppliedAt } from "../src/time";
+
+describe("clampAppliedAt (relógio do aparelho adiantado)", () => {
+  const now = new Date("2026-11-07T15:00:00.000Z");
+  test("até 2 min à frente vira 'agora' do servidor", () => {
+    expect(clampAppliedAt(new Date("2026-11-07T15:01:30.000Z"), now)).toEqual(now);
+    expect(clampAppliedAt(new Date("2026-11-07T15:02:00.000Z"), now)).toEqual(now);
+  });
+  test("mais de 2 min à frente continua no futuro (o serviço rejeita)", () => {
+    const far = new Date("2026-11-07T15:02:01.000Z");
+    expect(clampAppliedAt(far, now)).toEqual(far);
+  });
+  test("passado e agora não mudam", () => {
+    const past = new Date("2026-11-07T14:00:00.000Z");
+    expect(clampAppliedAt(past, now)).toEqual(past);
+    expect(clampAppliedAt(now, now)).toEqual(now);
+  });
+});

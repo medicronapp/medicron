@@ -75,6 +75,15 @@ export function resolveAppliedTime(hhmm: string, scheduledFor: Date, now: Date):
   return slotIsOlderDay || yesterday.getTime() >= scheduledFor.getTime() - 3600_000 ? yesterday : null;
 }
 
+/**
+ * Relógio do aparelho adiantado: uma hora de aplicação até 2 min à frente do servidor vira o "agora" do servidor
+ * (a mesma tolerância de `resolveAppliedTime`, aplicada ao instante que o app já calculou).
+ */
+export function clampAppliedAt(appliedAt: Date, now: Date): Date {
+  const ahead = appliedAt.getTime() - now.getTime();
+  return ahead > 0 && ahead <= CLOCK_SKEW_MS ? new Date(now.getTime()) : appliedAt;
+}
+
 /** "YYYY-MM-DD" do instante em Brasília. */
 export function dayKey(date: Date): string {
   return new Date(date.getTime() - BRT_MS).toISOString().slice(0, 10);

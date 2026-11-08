@@ -18,6 +18,7 @@ jest.mock("@/lib/home-queries", () => ({
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
 jest.mock("@/lib/clock", () => ({ now: () => new Date("2026-11-07T15:00:00.000Z") }));
 
+import { toast as mockToast } from "@/components/ui/toast";
 import Hoje from "@/app/(app)/index";
 
 const NOW = "2026-11-07T15:00:00.000Z";
@@ -146,6 +147,15 @@ describe("dia selecionado (?dia=)", () => {
     expect(mockUseHome).toHaveBeenCalledWith("2026-02-31");
     expect(screen.queryByRole("link", { name: "Voltar para hoje" })).toBeNull();
   });
+});
+
+test("falha ao atualizar com dados já na tela: mantém a tela e avisa por toast (sem trocar tudo por 'Algo deu errado')", async () => {
+  ready(home());
+  mockQuery.value = { ...mockQuery.value, isError: true };
+  await renderApp(<Hoje />);
+  expect(screen.getByRole("header", { name: "Hoje" })).toBeOnTheScreen();
+  expect(screen.queryByText("Algo deu errado")).toBeNull();
+  expect(mockToast.error).toHaveBeenCalledWith("Sem conexão. Verifique a internet e tente de novo.");
 });
 
 test("puxar para atualizar refaz a consulta", async () => {
