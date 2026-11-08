@@ -7,6 +7,9 @@ import { Icon } from "./icon";
 import { Text } from "./text";
 
 export type SelectOption = { value: string; label: string; group?: string; icon?: LucideIcon };
+const COLUMNS = 3;
+const chunk = <T,>(items: T[], size: number): T[][] => Array.from({ length: Math.ceil(items.length / size) }, (_, i) => items.slice(i * size, i * size + size));
+
 type Props = {
   value: string; onChange: (value: string) => void; options: SelectOption[]; placeholder?: string;
   accessibilityLabel?: string; invalid?: boolean;
@@ -38,20 +41,26 @@ export function SelectField({ value, onChange, options, placeholder, accessibili
       </Pressable>
       <Drawer open={open} onOpenChange={setOpen} title={accessibilityLabel} scrollable={layout === "list"}>
         {layout === "cards" ? (
-          <View testID="cards-grid" style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-            {options.map((o) => {
-              const on = o.value === value;
-              return (
-                <Pressable
-                  key={o.value} accessibilityRole="button" accessibilityLabel={o.label} accessibilityState={{ selected: on }}
-                  onPress={() => pick(o.value)} style={{ width: "31.5%" }}
-                  className={cn("min-h-24 items-center justify-center gap-2 rounded-2xl border p-3", on ? "border-primary bg-brand-soft" : "border-border bg-card active:bg-muted")}
-                >
-                  {o.icon ? <Icon icon={o.icon} color={on ? "brandInk" : "foreground"} size={28} /> : null}
-                  <Text numberOfLines={1} className={cn("text-sm font-medium", on && "text-brand-ink")}>{o.label}</Text>
-                </Pressable>
-              );
-            })}
+          <View testID="cards-grid" style={{ gap: 12 }}>
+            {chunk(options, COLUMNS).map((row, ri) => (
+              <View key={ri} testID="cards-row" style={{ flexDirection: "row", gap: 12 }}>
+                {row.map((o) => {
+                  const on = o.value === value;
+                  return (
+                    <Pressable
+                      key={o.value} accessibilityRole="button" accessibilityLabel={o.label} accessibilityState={{ selected: on }}
+                      onPress={() => pick(o.value)} style={{ flex: 1 }}
+                      className={cn("min-h-24 items-center justify-center gap-2 rounded-2xl border p-3", on ? "border-primary bg-brand-soft" : "border-border bg-card active:bg-muted")}
+                    >
+                      {o.icon ? <Icon icon={o.icon} color={on ? "brandInk" : "foreground"} size={28} /> : null}
+                      <Text numberOfLines={1} className={cn("text-sm font-medium", on && "text-brand-ink")}>{o.label}</Text>
+                    </Pressable>
+                  );
+                })}
+                {/* Linha incompleta: espaços vazios mantêm cada cartão do mesmo tamanho dos de cima. */}
+                {Array.from({ length: COLUMNS - row.length }, (_, k) => <View key={`f${k}`} testID="cards-filler" style={{ flex: 1 }} />)}
+              </View>
+            ))}
           </View>
         ) : (
           <View className="gap-1">

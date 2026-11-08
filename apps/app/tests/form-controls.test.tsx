@@ -121,15 +121,21 @@ describe("SelectField em cards", () => {
     expect(await screen.findByRole("button", { name: "Gato", selected: true })).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Cachorro", selected: false })).toBeOnTheScreen();
   });
-  test("grade de 3 colunas: cada cartão ocupa cerca de um terço da largura", async () => {
+  test("grade de 3 colunas ocupa toda a largura: cada cartão divide o espaço por igual e a última linha mantém o tamanho", async () => {
     await renderApp(<SelectField layout="cards" value="" onChange={() => {}} options={options} accessibilityLabel="Tipo" />);
     await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
-    const grid = await screen.findByTestId("cards-grid");
-    const gridStyle = [grid.props.style].flat(Infinity).filter(Boolean).reduce((a: object, b: object) => ({ ...a, ...b }), {}) as { flexWrap?: string };
-    expect(gridStyle.flexWrap).toBe("wrap");
-    const card = screen.getByRole("button", { name: "Gato" });
-    const cardStyle = [card.props.style].flat(Infinity).filter(Boolean).reduce((a: object, b: object) => ({ ...a, ...b }), {}) as { width?: string };
-    expect(cardStyle.width).toBe("31.5%");
+    type S = { flex?: number; width?: unknown; flexDirection?: string };
+    const flat = (n: { props: { style?: unknown } }) => [n.props.style].flat(Infinity).filter(Boolean).reduce<S>((a, b) => ({ ...a, ...(b as S) }), {});
+    const rows = await screen.findAllByTestId("cards-row");
+    expect(rows).toHaveLength(2); // 4 opções em 3 colunas: 3 + 1
+    for (const r of rows) expect(flat(r).flexDirection).toBe("row");
+    for (const l of ["Gato", "Cachorro", "Pessoa", "Outro"]) {
+      const st = flat(screen.getByRole("button", { name: l }));
+      expect(st.flex).toBe(1);
+      expect(st.width).toBeUndefined(); // sem largura fixa em %: não sobra espaço à direita
+    }
+    // a linha incompleta é preenchida com espaços vazios de mesmo tamanho (2 vazios após "Outro")
+    expect(screen.getAllByTestId("cards-filler")).toHaveLength(2);
   });
 });
 
