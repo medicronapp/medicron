@@ -3,6 +3,7 @@ import { View } from "react-native";
 import type { PatientBody, PatientDto } from "@medicron/shared";
 import { SPECIES } from "@medicron/shared";
 import { weightLabel } from "@/components/patient-card";
+import { speciesGlyph } from "@/components/species-icon";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/ui/date-field";
 import { FormField } from "@/components/ui/form-field";
@@ -44,7 +45,7 @@ export function PatientForm({ patient, onSubmit, submitting }: Props) {
         <Input value={name} onChangeText={setName} maxLength={60} autoCapitalize="words" returnKeyType="next" />
       </FormField>
       <FormField label="Tipo" error={errors.species}>
-        <SelectField value={species} onChange={setSpecies} placeholder="Selecione…" options={SPECIES} />
+        <SelectField layout="cards" value={species} onChange={setSpecies} placeholder="Selecione…" options={SPECIES.map((s) => ({ ...s, icon: speciesGlyph(s.value) }))} />
       </FormField>
       <View className="gap-4 md:flex-row">
         <View className="flex-1">

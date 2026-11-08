@@ -24,6 +24,7 @@ import { SelectField } from "@/components/ui/select-field";
 import { DateField } from "@/components/ui/date-field";
 import { DateTimeField } from "@/components/ui/datetime-field";
 import { Segmented } from "@/components/ui/segmented";
+import { Cat, Dog } from "lucide-react-native";
 
 beforeEach(() => { mockPick.y = 2026; mockPick.mo = 11; mockPick.d = 20; mockPick.h = 7; mockPick.mi = 45; });
 
@@ -82,6 +83,53 @@ describe("SelectField", () => {
     await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
     await fireEvent.press(await screen.findByRole("button", { name: "Gato" }));
     expect(onChange).toHaveBeenCalledWith("cat");
+  });
+});
+
+describe("SelectField: lista longa rola dentro do sheet", () => {
+  const many = Array.from({ length: 40 }, (_, i) => ({ value: `v${i}`, label: `Item ${i}` }));
+  test("as opções ficam numa área rolável e a última é alcançável", async () => {
+    const onChange = jest.fn();
+    await renderApp(<SelectField value="" onChange={onChange} options={many} accessibilityLabel="Medicação" />);
+    await fireEvent.press(screen.getByRole("button", { name: "Medicação" }));
+    const scroll = await screen.findByTestId("sheet-scroll");
+    expect(scroll).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("button", { name: "Item 39" }));
+    expect(onChange).toHaveBeenCalledWith("v39");
+  });
+});
+
+describe("SelectField em cards", () => {
+  const options = [
+    { value: "cat", label: "Gato", icon: Cat },
+    { value: "dog", label: "Cachorro", icon: Dog },
+    { value: "human", label: "Pessoa" },
+    { value: "other", label: "Outro" },
+  ];
+  test("mostra um cartão por opção (ícone em cima, nome embaixo) e escolher chama onChange e fecha", async () => {
+    const onChange = jest.fn();
+    await renderApp(<SelectField layout="cards" value="" onChange={onChange} options={options} placeholder="Selecione…" accessibilityLabel="Tipo" />);
+    await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
+    for (const l of ["Gato", "Cachorro", "Pessoa", "Outro"]) expect(await screen.findByRole("button", { name: l })).toBeOnTheScreen();
+    expect(screen.getByTestId("cards-grid")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("button", { name: "Cachorro" }));
+    expect(onChange).toHaveBeenCalledWith("dog");
+  });
+  test("o selecionado vem marcado", async () => {
+    await renderApp(<SelectField layout="cards" value="cat" onChange={() => {}} options={options} accessibilityLabel="Tipo" />);
+    await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
+    expect(await screen.findByRole("button", { name: "Gato", selected: true })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Cachorro", selected: false })).toBeOnTheScreen();
+  });
+  test("grade de 3 colunas: cada cartão ocupa cerca de um terço da largura", async () => {
+    await renderApp(<SelectField layout="cards" value="" onChange={() => {}} options={options} accessibilityLabel="Tipo" />);
+    await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
+    const grid = await screen.findByTestId("cards-grid");
+    const gridStyle = [grid.props.style].flat(Infinity).filter(Boolean).reduce((a: object, b: object) => ({ ...a, ...b }), {}) as { flexWrap?: string };
+    expect(gridStyle.flexWrap).toBe("wrap");
+    const card = screen.getByRole("button", { name: "Gato" });
+    const cardStyle = [card.props.style].flat(Infinity).filter(Boolean).reduce((a: object, b: object) => ({ ...a, ...b }), {}) as { width?: string };
+    expect(cardStyle.width).toBe("31.5%");
   });
 });
 

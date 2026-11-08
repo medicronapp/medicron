@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, type ComponentRef, type ReactNode } from "react";
-import { View } from "react-native";
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView, type BottomSheetBackdropProps, type BottomSheetBackgroundProps } from "@gorhom/bottom-sheet";
+import { useWindowDimensions, View } from "react-native";
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, BottomSheetView, type BottomSheetBackdropProps, type BottomSheetBackgroundProps } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/theme/colors";
 import { InSheetContext } from "./sheet-context";
@@ -13,6 +13,8 @@ type Props = {
   description?: string;
   children?: ReactNode;
   footer?: ReactNode;
+  /** Conteúdo longo: o sheet cresce até ~70 % da tela e passa a rolar por dentro. */
+  scrollable?: boolean;
 };
 
 const Background = ({ style }: BottomSheetBackgroundProps) => (
@@ -23,10 +25,12 @@ const Background = ({ style }: BottomSheetBackgroundProps) => (
  * Sheet na parte de baixo (equivalente nativo do Drawer do site): fundo escurecido, arrastar para baixo
  * ou tocar fora fecha e chama `onOpenChange(false)`. Exige `BottomSheetModalProvider` no layout raiz.
  */
-export function Drawer({ open, onOpenChange, title, description, children, footer }: Props) {
+export function Drawer({ open, onOpenChange, title, description, children, footer, scrollable }: Props) {
   const ref = useRef<ComponentRef<typeof BottomSheetModal>>(null);
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const Body = scrollable ? BottomSheetScrollView : BottomSheetView;
 
   // `dismiss()` só enquanto apresentado: chamá-lo na montagem ou depois de o sheet já ter sido dispensado
   // deixa o modal do gorhom sem conseguir abrir de novo.
@@ -50,6 +54,7 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
     <BottomSheetModal
       ref={ref}
       enableDynamicSizing
+      maxDynamicContentSize={scrollable ? Math.round(height * 0.7) : undefined}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
@@ -61,7 +66,7 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
       backgroundComponent={Background}
       handleIndicatorStyle={{ backgroundColor: colors.muted, opacity: 0.4 }}
     >
-      <BottomSheetView>
+      <Body {...(scrollable ? { testID: "sheet-scroll" } : {})}>
         <InSheetContext.Provider value>
         <View className="gap-4 px-4 pt-2" style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
           {title || description ? (
@@ -74,7 +79,7 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
           {footer}
         </View>
         </InSheetContext.Provider>
-      </BottomSheetView>
+      </Body>
     </BottomSheetModal>
   );
 }

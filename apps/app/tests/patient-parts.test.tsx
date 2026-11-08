@@ -99,6 +99,13 @@ describe("PatientForm", () => {
     await fireEvent.press(await screen.findByRole("button", { name }));
   };
 
+  test("o tipo é escolhido em cartões com ícone", async () => {
+    await renderApp(<PatientForm onSubmit={async () => {}} />);
+    await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
+    expect(await screen.findByTestId("cards-grid")).toBeOnTheScreen();
+    for (const l of ["Gato", "Cachorro", "Pessoa", "Outro"]) expect(screen.getByRole("button", { name: l })).toBeOnTheScreen();
+  });
+
   test("nome e tipo: envia só o que foi preenchido", async () => {
     const onSubmit = jest.fn(async (_b: unknown) => {});
     await renderApp(<PatientForm onSubmit={onSubmit} />);

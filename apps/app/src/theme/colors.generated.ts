@@ -1,5 +1,6 @@
 // Gerado por scripts/sync-tokens.ts a partir do globals.css do site. Não edite à mão.
 export const LIGHT = {
+  "background": "#fbfaf7",
   "brandInk": "#00423f",
   "destructive": "#d01d21",
   "destructiveInk": "#94020d",
@@ -19,6 +20,7 @@ export const LIGHT = {
 } as const;
 
 export const DARK = {
+  "background": "#0b1314",
   "brandInk": "#a1e7e2",
   "destructive": "#ff6367",
   "destructiveInk": "#ffb7b3",

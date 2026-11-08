@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { useColors } from "@/theme/colors";
 import type { SelectOption } from "./select-field";
 
-type Props = { value: string; onChange: (v: string) => void; options: SelectOption[]; placeholder?: string; accessibilityLabel?: string; invalid?: boolean };
+type Props = { value: string; onChange: (v: string) => void; options: SelectOption[]; placeholder?: string; accessibilityLabel?: string; invalid?: boolean; layout?: "list" | "cards" };
 
 /** No navegador, o `<select>` do próprio navegador (igual ao do site). */
 export function SelectField({ value, onChange, options, placeholder, accessibilityLabel, invalid }: Props) {
