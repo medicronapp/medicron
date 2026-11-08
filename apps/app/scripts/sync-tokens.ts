@@ -6,6 +6,7 @@ export type Colors = { light: Palette; dark: Palette };
 
 /** Cores usadas por ícones e SVG (que não herdam className): chave do app → token do site. */
 const ICON_TOKENS: Record<string, string> = {
+  background: "background",
   foreground: "foreground",
   muted: "muted-foreground",
   primary: "primary",

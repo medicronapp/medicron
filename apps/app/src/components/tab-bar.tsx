@@ -27,7 +27,7 @@ export function TabBar() {
               accessibilityRole="button"
               accessibilityLabel={label}
               accessibilityState={{ selected: active }}
-              onPress={() => router.push(href as never)}
+              onPress={() => router.navigate(href as never)}
               className={cn("min-h-12 flex-1 items-center justify-center gap-0.5 rounded-xl", active ? "bg-brand-soft" : "active:bg-muted")}
             >
               <Icon icon={icon} color={active ? "brandInk" : "muted"} size={20} strokeWidth={active ? 2.4 : 2} />

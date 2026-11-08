@@ -7,7 +7,7 @@ export const patientInput = z.object({
   name: z.string().trim().min(1, "Informe o nome").max(60),
   birthDate: z.string().date().optional(),
   weightKg: z.number().positive().max(500).optional(),
-  species: z.enum(["cat", "dog", "human", "other"]).default("other"),
+  species: z.enum(["cat", "dog", "human", "bird", "rabbit", "other"]).default("other"),
   notes: z.string().trim().max(1000).optional(),
 });
 export type PatientInput = z.input<typeof patientInput>;

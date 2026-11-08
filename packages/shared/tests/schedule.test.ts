@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { nextSlotAfter, firstDueAt, isPlanLive, INTERVAL_PRESETS } from "@/lib/schedule";
+import { nextSlotAfter, firstDueAt, isPlanLive, INTERVAL_PRESETS } from "../src/schedule";
 
 const d = (s: string) => new Date(s);
 const anchor = d("2026-11-04T08:00:00Z");
@@ -49,7 +49,7 @@ test("presets cobrem 4h a 7 dias", () => {
   expect(INTERVAL_PRESETS.map((p) => p.minutes)).toEqual([240, 360, 480, 720, 1440, 2880, 4320, 10080]);
 });
 
-import { latestSlotAtOrBefore } from "@/lib/schedule";
+import { latestSlotAtOrBefore } from "../src/schedule";
 
 describe("latestSlotAtOrBefore", () => {
   test("devolve o slot em curso, inclusive quando at é exatamente um slot", () => {
@@ -61,7 +61,7 @@ describe("latestSlotAtOrBefore", () => {
   });
 });
 
-import { slotsBetween } from "@/lib/schedule";
+import { slotsBetween } from "../src/schedule";
 
 describe("slotsBetween", () => {
   const z = (s: string) => new Date(`2026-11-04T${s}:00Z`);

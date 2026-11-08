@@ -4,7 +4,7 @@ import { isActive, NAV_ITEMS } from "@/lib/nav-items";
 import { AppOutdatedError } from "@/lib/api/errors";
 import { queryClient } from "@/lib/api/query";
 
-const mockRouter = { push: jest.fn(), replace: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn() };
 const mockNav = { pathname: "/" };
 jest.mock("expo-router", () => ({
   usePathname: () => mockNav.pathname,
@@ -85,7 +85,9 @@ describe("TabBar", () => {
     expect(screen.getByRole("button", { name: "Pacientes" })).toBeSelected();
     expect(screen.getByRole("button", { name: "Hoje" })).not.toBeSelected();
     await fireEvent.press(screen.getByRole("button", { name: "Itens" }));
-    expect(mockRouter.push).toHaveBeenCalledWith("/itens");
+    // navigate (e não push): tocar na aba volta à rota que já está na pilha, em vez de empilhar telas duplicadas.
+    expect(mockRouter.navigate).toHaveBeenCalledWith("/itens");
+    expect(mockRouter.push).not.toHaveBeenCalledWith("/itens");
   });
 });
 
@@ -157,6 +159,16 @@ describe("troca de conta", () => {
     const { toast } = require("@/components/ui/toast");
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Não foi possível trocar de conta."));
     expect(invalidate).not.toHaveBeenCalled();
+  });
+  test("trocar de conta remove do cache os dados da conta anterior (não só marca como velhos)", async () => {
+    queryClient.setQueryData(["patients"], [{ id: "da-conta-antiga" }]);
+    queryClient.setQueryData(["home", "today"], { velho: true });
+    await renderApp(<AppHeader />);
+    await fireEvent.press(screen.getByRole("button", { name: "Conta ativa: Casa da Vovó" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Sítio" }));
+    await waitFor(() => expect(mockSetActive).toHaveBeenCalled());
+    await waitFor(() => expect(queryClient.getQueryData(["patients"])).toBeUndefined());
+    expect(queryClient.getQueryData(["home", "today"])).toBeUndefined();
   });
   test("deslogado, o cabeçalho não pede /me", async () => {
     mockSession.value = { status: "signedOut", orgCount: 0, activeOrgId: null, signOut: jest.fn() };

@@ -207,6 +207,15 @@ describe("nova conta", () => {
     expect(invalidate).toHaveBeenCalled();
   });
 
+  test("a conta nova começa sem dados da anterior no cache", async () => {
+    queryClient.setQueryData(["patients"], [{ id: "da-conta-antiga" }]);
+    await renderApp(<NovaConta />);
+    await type("Nome da conta", "Sítio");
+    await fireEvent.press(screen.getByRole("button", { name: "Criar conta" }));
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/"));
+    expect(queryClient.getQueryData(["patients"])).toBeUndefined();
+  });
+
   test("falha mostra o erro e destrava", async () => {
     mockAuth.organization.create.mockResolvedValue({ data: null, error: { message: "x" } });
     await renderApp(<NovaConta />);

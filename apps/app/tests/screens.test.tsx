@@ -8,7 +8,6 @@ jest.mock("@/lib/api", () => ({ apiClient: { request: (...a: unknown[]) => mockR
 const mockStatus = { value: "signedIn" };
 jest.mock("@/lib/session", () => ({ useAppSession: () => ({ status: mockStatus.value }) }));
 
-import Pacientes from "@/app/(app)/pacientes";
 import Itens from "@/app/(app)/itens";
 import Conta from "@/app/(app)/conta";
 
@@ -19,7 +18,7 @@ beforeEach(() => {
 });
 afterAll(() => queryClient.clear());
 
-test.each([["Pacientes", Pacientes], ["Itens", Itens]])("%s é provisória: 'Em construção'", async (_n, Screen) => {
+test.each([["Itens", Itens]])("%s é provisória: 'Em construção'", async (_n, Screen) => {
   await renderApp(<Screen />);
   expect(screen.getByText("Em construção")).toBeOnTheScreen();
 });

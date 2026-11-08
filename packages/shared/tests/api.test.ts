@@ -8,6 +8,9 @@ describe("schemas de corpo da API", () => {
   test("paciente", () => {
     expect(patientBody.parse({ name: "Izzy", species: "cat" }).name).toBe("Izzy");
     expect(patientBody.safeParse({ name: "", species: "cat" }).success).toBe(false);
+    expect(patientBody.safeParse({ name: "Piu", species: "bird" }).success).toBe(true);
+    expect(patientBody.safeParse({ name: "Bidu", species: "rabbit" }).success).toBe(true);
+    expect(patientBody.safeParse({ name: "X", species: "dragon" }).success).toBe(false);
     expect(patientBody.safeParse({ name: "X", species: "dragon" }).success).toBe(false);
     expect(patientBody.safeParse({ name: "X", species: "cat", weightKg: 501 }).success).toBe(false);
   });
