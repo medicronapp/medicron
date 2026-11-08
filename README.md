@@ -30,6 +30,10 @@ npm run build-assets   # regenera ícones e tela de abertura
 - Na **web em desenvolvimento** o login contra `medicron.com.br` é bloqueado por CORS (esperado; em produção o app fica na mesma origem da API). Teste no iOS ou Android.
 - As versões do NativeWind, `react-native-css` e `lightningcss` são fixadas de propósito (override na raiz). Se o bundle falhar com "failed to deserialize", confira `npm ls lightningcss`.
 
+### Estado do app
+
+Prontos: login, casca de navegação e a tela **Hoje** (sequência, atenção, linha do dia, registrar dose, primeiros passos e boas-vindas). Pacientes, Itens e Conta ainda são telas provisórias ("Em construção"). O aviso de notificações da Hoje e o push nativo entram no Plano 4.
+
 ## Documentos
 
 Design: `docs/superpowers/specs/2026-11-06-app-nativo-expo-design.md`. Planos: `docs/superpowers/plans/`.

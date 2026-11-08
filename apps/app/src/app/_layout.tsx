@@ -13,6 +13,7 @@ import { GEIST_FONTS } from "@/theme/fonts";
 import { apiClient } from "@/lib/api";
 import { AppOutdatedError } from "@/lib/api/errors";
 import { fetchMe } from "@/lib/api/me";
+import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
 import { decideRoute } from "@/lib/route-guard";
 import { useAppSession } from "@/lib/session";
@@ -21,6 +22,7 @@ import { SessionError } from "@/components/session-error";
 import { UpdateRequired } from "@/components/update-required";
 
 SplashScreen.preventAutoHideAsync();
+bindFocusToAppState();
 
 /** Aplica a guarda de rotas e troca tudo pela tela de atualização quando a API recusa esta versão. */
 function Gate() {

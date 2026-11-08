@@ -1,6 +1,57 @@
-import { Home } from "lucide-react-native";
-import { EmptyState } from "@/components/empty-state";
+import { useEffect } from "react";
+import { View } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ErrorView } from "@/components/error-view";
+import { HomeView } from "@/components/home/home-view";
+import { Screen } from "@/components/screen";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/toast";
+import { NETWORK_MESSAGE } from "@/lib/api/errors";
+import { useHome } from "@/lib/home-queries";
 
 export default function Hoje() {
-  return <EmptyState icon={Home} title="Em construção" description="Os cuidados de hoje chegam em breve." />;
+  const router = useRouter();
+  const params = useLocalSearchParams<{ dia?: string }>();
+  const dia = typeof params.dia === "string" ? params.dia : undefined;
+  const query = useHome(dia);
+  const staleError = query.isError && !!query.data;
+
+  // Falha ao atualizar com dados já na tela: mantém a tela e avisa (não troca tudo por uma tela de erro).
+  useEffect(() => {
+    if (staleError) toast.error(NETWORK_MESSAGE);
+  }, [staleError, query.errorUpdatedAt]);
+
+  if (query.isPending) {
+    return (
+      <Screen>
+        <View accessibilityLabel="Carregando" aria-busy className="gap-4">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+        </View>
+      </Screen>
+    );
+  }
+  if (!query.data) {
+    if (!query.isError) return null;
+    return (
+      <Screen>
+        <ErrorView onRetry={() => void query.refetch()} />
+      </Screen>
+    );
+  }
+
+  const { home, hasPatients, onboarding } = query.data;
+  return (
+    <Screen testID="home-scroll" refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
+      <HomeView
+        home={home} hasPatients={hasPatients} onboarding={onboarding}
+        onSelectDay={(key, isToday) => router.setParams({ dia: isToday ? undefined : key })}
+        onBackToToday={() => router.setParams({ dia: undefined })}
+        onNavigate={(href) => router.push(href as never)}
+      />
+    </Screen>
+  );
 }

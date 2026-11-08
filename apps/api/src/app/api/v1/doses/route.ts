@@ -1,4 +1,4 @@
-import { doseBody } from "@medicron/shared";
+import { clampAppliedAt, doseBody } from "@medicron/shared";
 import { getDb } from "@/lib/db";
 import { getApiContext } from "@/lib/api/context";
 import { json, readJson, route } from "@/lib/api/route";
@@ -10,13 +10,16 @@ export const dynamic = "force-dynamic";
 export const POST = route(async (req) => {
   const { orgId, userId } = await getApiContext();
   const body = await readJson(req, doseBody);
+  const now = new Date();
   const res = await resolveSlot(getDb(), orgId, userId, {
     planId: body.planId,
     scheduledFor: new Date(body.scheduledFor),
     outcome: body.outcome,
     value: body.value,
     note: body.note,
-    appliedAt: body.appliedAt ? new Date(body.appliedAt) : undefined,
+    now,
+    // O app calcula a hora com o relógio do aparelho; se ele estiver adiantado por pouco, vale o "agora" do servidor.
+    appliedAt: body.appliedAt ? clampAppliedAt(new Date(body.appliedAt), now) : undefined,
   });
   return json(res.recorded ? { recorded: true } : { recorded: false, reason: "already" });
 });

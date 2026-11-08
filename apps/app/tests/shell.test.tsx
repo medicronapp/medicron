@@ -165,11 +165,34 @@ describe("troca de conta", () => {
   });
 });
 
-describe("layout do grupo: espaço da barra de abas", () => {
-  test("no celular o conteúdo tem folga embaixo para não ficar sob as abas", async () => {
+const flat = (style: unknown) => [style].flat(Infinity).filter(Boolean).reduce<Record<string, number | string | undefined>>((a, b) => ({ ...a, ...(b as object) }), {});
+
+describe("layout do grupo: o conteúdo rola até encostar no cabeçalho e nas abas", () => {
+  test("a área de conteúdo não tem padding: não sobra faixa entre o conteúdo e o cabeçalho/abas", async () => {
     await renderApp(<AppLayout />);
-    const style = [screen.getByTestId("content").props.style].flat(Infinity).filter(Boolean).reduce((a: object, b: object) => ({ ...a, ...b }), {});
-    expect((style as { paddingBottom?: number }).paddingBottom).toBeGreaterThanOrEqual(96);
+    const style = flat(screen.getByTestId("content").props.style);
+    expect(style.paddingTop ?? 0).toBe(0);
+    expect(style.paddingBottom ?? 0).toBe(0);
+  });
+});
+
+describe("Screen (corpo rolável)", () => {
+  const { Screen } = require("@/components/screen");
+  const { Text: RNText } = require("react-native");
+
+  test("no celular a folga fica dentro da rolagem (topo 24, base cobre a barra de abas)", async () => {
+    await renderApp(<Screen testID="sc"><RNText>x</RNText></Screen>);
+    const style = flat(screen.getByTestId("sc").props.contentContainerStyle);
+    expect(style.paddingTop).toBe(24);
+    expect(Number(style.paddingBottom)).toBeGreaterThanOrEqual(96);
+  });
+
+  test("em tela larga (sem barra de abas) a folga de baixo é menor", async () => {
+    mockWide.value = true;
+    await renderApp(<Screen testID="sc"><RNText>x</RNText></Screen>);
+    const style = flat(screen.getByTestId("sc").props.contentContainerStyle);
+    expect(style.paddingTop).toBe(24);
+    expect(Number(style.paddingBottom)).toBeLessThan(96);
   });
 });
 

@@ -17,6 +17,11 @@ const ICON_TOKENS: Record<string, string> = {
   destructiveInk: "destructive-ink",
   infoInk: "info-ink",
   heroAccent: "hero-accent",
+  heroFrom: "hero-from",
+  heroTo: "hero-to",
+  heroCore: "hero-core",
+  successForeground: "success-foreground",
+  warningForeground: "warning-foreground",
 };
 
 const OKLCH = /^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\)$/;

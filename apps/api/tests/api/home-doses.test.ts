@@ -81,6 +81,13 @@ describe("POST /doses", () => {
     expect(r.body.error).toBe("invalid_applied_at");
   });
 
+  test("hora da aplicação 1 min à frente (relógio do aparelho adiantado) é aceita como agora", async () => {
+    const { plan, scheduledFor } = await duePlan("o1", true);
+    const r = await call(dose, "/x", { method: "POST", json: { planId: plan.id, scheduledFor, outcome: "done", appliedAt: new Date(Date.now() + 60_000).toISOString() } });
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ recorded: true });
+  });
+
   test("rotina de outra organização: 404; corpo inválido: 400", async () => {
     const { plan, scheduledFor } = await duePlan("o2");
     expect((await call(dose, "/x", { method: "POST", json: { planId: plan.id, scheduledFor, outcome: "done" } })).status).toBe(404);
