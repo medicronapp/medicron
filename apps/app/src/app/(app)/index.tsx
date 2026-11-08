@@ -14,16 +14,24 @@ export default function Hoje() {
 
   if (query.isPending) {
     return (
-      <View accessibilityLabel="Carregando" aria-busy className="gap-4">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-4 w-64" />
-        <Skeleton className="h-28 w-full rounded-2xl" />
-        <Skeleton className="h-28 w-full rounded-2xl" />
-        <Skeleton className="h-28 w-full rounded-2xl" />
-      </View>
+      <Screen>
+        <View accessibilityLabel="Carregando" aria-busy className="gap-4">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+        </View>
+      </Screen>
     );
   }
-  if (query.isError || !query.data) return <ErrorView onRetry={() => void query.refetch()} />;
+  if (query.isError || !query.data) {
+    return (
+      <Screen>
+        <ErrorView onRetry={() => void query.refetch()} />
+      </Screen>
+    );
+  }
 
   const { home, hasPatients, onboarding } = query.data;
   return (
