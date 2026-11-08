@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PatientBody, PlanCreateBody, PlanPatchBody } from "@medicron/shared";
 import { apiClient } from "@/lib/api";
-import { fetchItems } from "@/lib/api/items";
 import { archivePatient, createPatient, fetchPatient, fetchPatients, updatePatient } from "@/lib/api/patients";
 import { createPlan, deactivatePlan, fetchPlans, updatePlan } from "@/lib/api/plans";
 import { useAppSession } from "@/lib/session";
@@ -17,8 +16,8 @@ export const usePatient = (id: string) =>
 export const usePlans = (patientId: string) =>
   useQuery({ queryKey: ["plans", patientId], queryFn: () => fetchPlans(apiClient, patientId), enabled: useSignedIn() });
 
-export const useItems = () =>
-  useQuery({ queryKey: ["items"], queryFn: () => fetchItems(apiClient), enabled: useSignedIn() });
+// Os itens têm o seu próprio módulo (`item-queries`); a Nova rotina continua importando `useItems` daqui.
+export { useItems } from "@/lib/item-queries";
 
 /** Invalida o que mostra pacientes ou rotinas: listas, detalhes, rotinas e a Hoje (que lista os cuidados). */
 function useInvalidate() {
