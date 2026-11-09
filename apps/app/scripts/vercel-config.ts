@@ -22,6 +22,9 @@ export function buildVercelConfig(apiOrigin: string) {
       { source: "/((?!.*\\.[a-zA-Z0-9]+$).*)", destination: "/index.html" },
     ] as Rewrite[],
     headers: [
+      // O projeto novo guarda na CDN as respostas das reescritas externas que permitirem cache. A API é por usuário:
+      // nada dela pode ser compartilhado entre contas, mesmo que uma rota ganhe `s-maxage` no futuro.
+      { source: "/api/:path*", headers: [{ key: "x-vercel-enable-rewrite-caching", value: "0" }] },
       {
         source: "/sw.js",
         headers: [

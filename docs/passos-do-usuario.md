@@ -31,7 +31,7 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 ## F. Virada da web (Plano 6; passo a passo em `docs/virada-da-web.md`)
 
 16. `cd apps/app && vercel env add EXPO_PUBLIC_VAPID_PUBLIC_KEY production` (mesmo valor da `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e republicar `medicron-web` (comando no guia).
-17. **Trocar o domínio**: tirar `medicron.com.br` do projeto `medicron` e pôr em `medicron-web` (Vercel → Domains); com uma aba já logada aberta, recarregar e ver que a sessão continua.
+17. **Ensaio do login** (passo 3 do guia: `EXTRA_TRUSTED_ORIGINS` com `https://medicron-web.vercel.app`) e **trocar o domínio**: tirar `medicron.com.br` **e `www.medicron.com.br`** do projeto `medicron` e pôr em `medicron-web` (Vercel → Domains); com uma aba já logada aberta, recarregar e ver que a sessão continua.
 18. Uma semana estável depois: publicar a API (`vercel --prod --yes` na raiz) com o código sem as telas do Next. **Não antes da troca.**
 
 ## D. Teste de ponta a ponta (você, no simulador/aparelho)

@@ -62,3 +62,8 @@ test("o service worker não fica em cache e vale para o site todo", () => {
     { key: "Service-Worker-Allowed", value: "/" },
   ]));
 });
+
+test("as respostas da API nunca são guardadas na CDN do site estático (dados de contas diferentes)", () => {
+  const h = cfg.headers.find((x) => x.source === "/api/:path*")!;
+  expect(h.headers).toEqual(expect.arrayContaining([{ key: "x-vercel-enable-rewrite-caching", value: "0" }]));
+});
