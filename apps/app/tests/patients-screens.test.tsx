@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import type { PatientDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 
-const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), back: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), dismissTo: jest.fn(), back: jest.fn() };
 jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({}), Stack: () => null }));
 jest.mock("@/lib/clock", () => ({ now: () => new Date("2026-11-08T15:00:00.000Z") }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
@@ -90,7 +90,7 @@ describe("novo paciente", () => {
     await renderApp(<Novo />);
     expect(screen.getByRole("header", { name: "Novo paciente" })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/pacientes");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/pacientes");
   });
 
   test("salvar cria, avisa e abre o detalhe", async () => {

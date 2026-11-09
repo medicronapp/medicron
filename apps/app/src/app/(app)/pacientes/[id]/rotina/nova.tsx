@@ -22,7 +22,7 @@ export default function NovaRotina() {
   const patient = usePatient(id);
   const items = useItems();
   const create = useCreatePlan();
-  const toPatient = () => router.navigate(`/pacientes/${id}` as never);
+  const toPatient = () => router.dismissTo(`/pacientes/${id}` as never);
 
   if (patient.isPending || items.isPending) {
     return (
@@ -42,7 +42,7 @@ export default function NovaRotina() {
         {notFound ? (
           <EmptyState
             icon={UserX} title="Paciente não encontrado" description="Ele pode ter sido arquivado."
-            action={<Button size="lg" onPress={() => router.navigate("/pacientes")} accessibilityLabel="Ver pacientes">Ver pacientes</Button>}
+            action={<Button size="lg" onPress={() => router.dismissTo("/pacientes")} accessibilityLabel="Ver pacientes">Ver pacientes</Button>}
           />
         ) : (
           <ErrorView onRetry={() => void patient.refetch()} />

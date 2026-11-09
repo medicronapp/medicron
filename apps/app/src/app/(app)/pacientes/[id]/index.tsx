@@ -30,7 +30,7 @@ export default function Paciente() {
   const archive = useArchivePatient();
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
-  const back = () => router.navigate("/pacientes");
+  const back = () => router.dismissTo("/pacientes");
 
   if (patient.isPending) {
     return (

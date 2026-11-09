@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PatientBody, PlanCreateBody, PlanPatchBody } from "@medicron/shared";
 import { apiClient } from "@/lib/api";
-import { fetchItems } from "@/lib/api/items";
 import { archivePatient, createPatient, fetchPatient, fetchPatients, updatePatient } from "@/lib/api/patients";
 import { createPlan, deactivatePlan, fetchPlans, updatePlan } from "@/lib/api/plans";
 import { useAppSession } from "@/lib/session";
@@ -17,8 +16,8 @@ export const usePatient = (id: string) =>
 export const usePlans = (patientId: string) =>
   useQuery({ queryKey: ["plans", patientId], queryFn: () => fetchPlans(apiClient, patientId), enabled: useSignedIn() });
 
-export const useItems = () =>
-  useQuery({ queryKey: ["items"], queryFn: () => fetchItems(apiClient), enabled: useSignedIn() });
+// Os itens têm o seu próprio módulo (`item-queries`); a Nova rotina continua importando `useItems` daqui.
+export { useItems } from "@/lib/item-queries";
 
 /** Invalida o que mostra pacientes ou rotinas: listas, detalhes, rotinas e a Hoje (que lista os cuidados). */
 function useInvalidate() {
@@ -42,9 +41,10 @@ export function useArchivePatient() {
   return useMutation({
     mutationFn: (id: string) => archivePatient(apiClient, id),
     onSuccess: (_res, id) => {
-      // O detalhe e as rotinas do paciente arquivado saem do cache (rebuscar daria 404 enquanto a tela ainda está montada).
-      qc.removeQueries({ queryKey: ["patient", id] });
-      qc.removeQueries({ queryKey: ["plans", id] });
+      // O detalhe e as rotinas do paciente arquivado ficam como velhos, sem rebuscar: com a tela ainda montada, remover
+      // recriaria uma consulta vazia (esqueleto) e rebuscar daria 404. Reaberta, a tela busca e cai no "não encontrado".
+      qc.invalidateQueries({ queryKey: ["patient", id], refetchType: "none" });
+      qc.invalidateQueries({ queryKey: ["plans", id], refetchType: "none" });
       return Promise.all([qc.invalidateQueries({ queryKey: ["patients"] }), qc.invalidateQueries({ queryKey: ["home"] })]);
     },
   });

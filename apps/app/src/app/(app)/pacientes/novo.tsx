@@ -28,7 +28,7 @@ export default function NovoPaciente() {
 
   return (
     <Screen>
-      <PageHeader title="Novo paciente" onBack={() => router.navigate("/pacientes")} />
+      <PageHeader title="Novo paciente" onBack={() => router.dismissTo("/pacientes")} />
       <PatientForm onSubmit={submit} submitting={submitting} />
     </Screen>
   );

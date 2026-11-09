@@ -5,7 +5,7 @@ import { queryClient } from "@/lib/api/query";
 import { fetchPatients, fetchPatient, createPatient, updatePatient, archivePatient } from "@/lib/api/patients";
 import { fetchPlans, createPlan, updatePlan, deactivatePlan } from "@/lib/api/plans";
 import { fetchItems } from "@/lib/api/items";
-import { useCreatePatient, useArchivePatient, useUpdatePlan, useDeactivatePlan, useCreatePlan } from "@/lib/patient-queries";
+import { usePatient, useCreatePatient, useArchivePatient, useUpdatePlan, useDeactivatePlan, useCreatePlan } from "@/lib/patient-queries";
 
 const mockRequest = jest.fn();
 jest.mock("@/lib/api", () => ({ apiClient: { request: (...a: unknown[]) => mockRequest(...a) } }));
@@ -81,7 +81,7 @@ describe("invalidação do cache", () => {
     await waitFor(() => expect(keys(spy)).toEqual(expect.arrayContaining(["patients", "home"])));
   });
 
-  test("arquivar paciente invalida a lista e a Hoje e remove o detalhe e as rotinas dele do cache (sem rebuscar um 404)", async () => {
+  test("arquivar paciente invalida a lista e a Hoje e marca o detalhe e as rotinas dele como velhos (sem rebuscar um 404)", async () => {
     mockRequest.mockResolvedValue(undefined);
     queryClient.setQueryData(["patient", "a"], { id: "a" });
     queryClient.setQueryData(["plans", "a"], []);
@@ -89,9 +89,24 @@ describe("invalidação do cache", () => {
     const { result } = await renderHook(() => useArchivePatient(), { wrapper });
     await act(async () => { await result.current.mutateAsync("a"); });
     await waitFor(() => expect(keys(spy)).toEqual(expect.arrayContaining(["patients", "home"])));
-    expect(keys(spy)).not.toContain("patient");
-    expect(queryClient.getQueryData(["patient", "a"])).toBeUndefined();
-    expect(queryClient.getQueryData(["plans", "a"])).toBeUndefined();
+    expect(queryClient.getQueryState(["patient", "a"])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(["plans", "a"])?.isInvalidated).toBe(true);
+  });
+
+  test("arquivar com a tela do paciente ainda montada: não volta a 'carregando' e não rebusca o paciente (nada de GET 404)", async () => {
+    mockRequest.mockImplementation(async (method: string, path: string) => {
+      if (method === "GET" && path === "/patients/a") return { patient: { id: "a" } };
+      return undefined;
+    });
+    const { result } = await renderHook(() => ({ detail: usePatient("a"), archive: useArchivePatient() }), { wrapper });
+    await waitFor(() => expect(result.current.detail.data?.id).toBe("a"));
+    mockRequest.mockClear();
+    const pending: boolean[] = [];
+    await act(async () => { await result.current.archive.mutateAsync("a"); pending.push(result.current.detail.isPending); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    pending.push(result.current.detail.isPending);
+    expect(pending).toEqual([false, false]);
+    expect(mockRequest.mock.calls.filter(([m, p]) => m === "GET" && p === "/patients/a")).toHaveLength(0);
   });
 
   test("encerrar rotina invalida rotinas, pacientes e Hoje", async () => {
