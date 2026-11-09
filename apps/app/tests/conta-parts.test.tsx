@@ -3,7 +3,7 @@ import { renderApp } from "./helpers";
 
 jest.mock("expo-clipboard", () => ({ setStringAsync: jest.fn(async () => true) }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
-jest.mock("@/lib/api-url", () => ({ API_URL: "https://medicron.com.br" }));
+jest.mock("@/lib/api-url", () => ({ API_URL: "https://medicron.com.br", inviteBase: () => "https://medicron.com.br" }));
 const mockInvite = jest.fn();
 const mockCancel = jest.fn();
 jest.mock("@/lib/org", () => ({

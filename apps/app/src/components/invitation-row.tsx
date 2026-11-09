@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Copy, Mail } from "lucide-react-native";
 import { inviteLink } from "@medicron/shared";
-import { API_URL } from "@/lib/api-url";
+import { inviteBase } from "@/lib/api-url";
 import { cancelInvitation } from "@/lib/org";
 import { copyToClipboard } from "@/components/copy-link";
 import { ConfirmSheet } from "@/components/confirm-sheet";
@@ -23,7 +23,7 @@ export function InvitationRow({ id, email }: { id: string; email: string }) {
         <Badge variant="outline">Pendente</Badge>
       </View>
       <View className="flex-row gap-2">
-        <Button variant="secondary" className="flex-1" accessibilityLabel="Copiar link" onPress={() => void copyToClipboard(inviteLink(id, API_URL))}>
+        <Button variant="secondary" className="flex-1" accessibilityLabel="Copiar link" onPress={() => void copyToClipboard(inviteLink(id, inviteBase()))}>
           <Icon icon={Copy} color="foreground" size={16} />
           <Text className={buttonLabel("secondary", "default")}>Copiar link</Text>
         </Button>

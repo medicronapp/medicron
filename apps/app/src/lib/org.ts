@@ -5,7 +5,7 @@ export type InvitationInfo = { status: string; organizationName: string; inviter
 
 const messageOf = (error: unknown): string | undefined => (error as { message?: string } | null)?.message || undefined;
 
-/** Convida por e-mail e devolve o id do convite (o link é `inviteLink(id, API_URL)`). */
+/** Convida por e-mail e devolve o id do convite (o link é `inviteLink(id, inviteBase())`). */
 export async function inviteMember(email: string, role: "admin" | "member"): Promise<{ id: string }> {
   const { data, error } = await authClient.organization.inviteMember({ email, role });
   if (error || !data) throw new Error(messageOf(error) ?? "Não foi possível criar o convite.");

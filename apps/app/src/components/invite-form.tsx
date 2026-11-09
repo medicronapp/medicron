@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import { inviteLink } from "@medicron/shared";
-import { API_URL } from "@/lib/api-url";
+import { inviteBase } from "@/lib/api-url";
 import { errorMessage } from "@/lib/api/errors";
 import { inviteMember } from "@/lib/org";
 import { CopyLink } from "@/components/copy-link";
@@ -35,7 +35,7 @@ export function InviteForm() {
     setBusy(true);
     try {
       const { id } = await inviteMember(trimmed, role);
-      setLink(inviteLink(id, API_URL));
+      setLink(inviteLink(id, inviteBase()));
       setEmail("");
     } catch (err) {
       toast.error(errorMessage(err));
