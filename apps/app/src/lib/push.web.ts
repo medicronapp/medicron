@@ -55,26 +55,21 @@ export async function enablePush(): Promise<"enabled" | "denied" | "no-project">
   return "enabled";
 }
 
-/** Remove a inscrição (servidor e navegador). Nunca lança. */
-async function removeSubscription(): Promise<void> {
-  try {
-    const sub = await currentSubscription();
-    if (!sub) return;
-    await unsubscribeWebPush(sub.endpoint);
-    await sub.unsubscribe();
-  } catch {
-    // offline ou sessão já expirada: o servidor limpa a inscrição quando o serviço de push disser que morreu
-  }
+/** Remove a inscrição do servidor e depois do navegador. Lança se o servidor não confirmou (a local fica, para o estado não mentir). */
+export async function disablePush(): Promise<void> {
+  const sub = await currentSubscription();
+  if (!sub) return;
+  await unsubscribeWebPush(sub.endpoint);
+  await sub.unsubscribe();
 }
-
-export const disablePush = removeSubscription;
 
 /** Ao sair da conta: com limite de tempo; sair nunca pode travar nem falhar por isso. */
 export async function unregisterThisDevice(): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const limit = new Promise<void>((resolve) => { timer = setTimeout(resolve, UNREGISTER_TIMEOUT_MS); });
   try {
-    await Promise.race([removeSubscription(), limit]);
+    // offline ou sessão já expirada: o servidor limpa a inscrição quando o serviço de push disser que morreu
+    await Promise.race([disablePush().catch(() => {}), limit]);
   } finally {
     clearTimeout(timer);
   }

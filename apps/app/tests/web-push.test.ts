@@ -106,3 +106,16 @@ test("disablePush faz o mesmo que sair da conta", async () => {
   await disablePush();
   expect(s.unsubscribe).toHaveBeenCalled();
 });
+
+test("disablePush offline: lança e NÃO desinscreve localmente (o servidor ainda tem a inscrição)", async () => {
+  sub = makeSub(); const s = sub;
+  mockFetch.mockRejectedValue(new Error("offline"));
+  await expect(disablePush()).rejects.toThrow();
+  expect(s.unsubscribe).not.toHaveBeenCalled();
+});
+test("disablePush com o servidor recusando (não ok) também lança", async () => {
+  sub = makeSub(); const s = sub;
+  mockFetch.mockResolvedValue({ ok: false });
+  await expect(disablePush()).rejects.toThrow();
+  expect(s.unsubscribe).not.toHaveBeenCalled();
+});

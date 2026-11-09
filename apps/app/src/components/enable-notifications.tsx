@@ -31,7 +31,7 @@ export function EnableNotifications({ compact = false }: { compact?: boolean }) 
       } else if (result === "denied") {
         setState("denied");
       } else {
-        toast.error("Notificações indisponíveis nesta versão do app.");
+        toast.error(Platform.OS === "web" ? "Notificações indisponíveis neste site." : "Notificações indisponíveis nesta versão do app.");
       }
     } catch {
       toast.error("Não foi possível ativar as notificações.");
@@ -48,6 +48,8 @@ export function EnableNotifications({ compact = false }: { compact?: boolean }) 
     try {
       await disablePush();
       setState("default");
+    } catch {
+      toast.error("Não foi possível desativar agora. Tente de novo.");
     } finally {
       working.current = false;
       setBusy(false);

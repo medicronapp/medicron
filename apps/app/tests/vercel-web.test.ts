@@ -5,6 +5,7 @@ import { buildVercelConfig } from "../scripts/vercel-config";
 const API = "https://medicron.vercel.app";
 const cfg = buildVercelConfig(API);
 
+// Limitação: não é o path-to-regexp da Vercel. Só cobre `:nome*`, grupos `(...)` e literais; ao usar `:param` simples ou `has`, valide no preview.
 // Casamento mínimo dos `source` do vercel.json: `:nome*` = qualquer sufixo; um grupo `(...)` é regex; o resto é literal.
 const toRegExp = (source: string) =>
   source.startsWith("/(")

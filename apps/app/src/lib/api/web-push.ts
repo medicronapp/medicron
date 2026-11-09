@@ -10,5 +10,6 @@ export async function subscribeWebPush(sub: unknown): Promise<void> {
 }
 
 export async function unsubscribeWebPush(endpoint: string): Promise<void> {
-  await fetch(URL_SUBSCRIBE(), { method: "DELETE", headers: JSON_HEADERS, credentials: "include", body: JSON.stringify({ endpoint }) });
+  const res = await fetch(URL_SUBSCRIBE(), { method: "DELETE", headers: JSON_HEADERS, credentials: "include", body: JSON.stringify({ endpoint }) });
+  if (!res.ok) throw new Error("unsubscribe failed");
 }

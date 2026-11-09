@@ -29,7 +29,7 @@ export function DeleteAccount() {
     try {
       const { error: failure } = await authClient.deleteUser({ password });
       if (failure) {
-        setError(failure.status === 400 ? "Senha incorreta." : "Não foi possível excluir a conta. Tente de novo.");
+        setError(failure.code === "INVALID_PASSWORD" ? "Senha incorreta." : "Não foi possível excluir a conta. Tente de novo.");
         return;
       }
       // A conta já foi excluída (o servidor também apagou os aparelhos de push): limpa o que sobrou aqui.
