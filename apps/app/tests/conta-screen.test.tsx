@@ -94,12 +94,12 @@ test("tem o cartão de Aparência e o de notificações", async () => {
   expect(await screen.findByText("Receba avisos no celular")).toBeOnTheScreen();
 });
 
-test("na web o cartão de Aparência não aparece (o tema escuro de lá é do navegador)", async () => {
+test("na web o cartão de Aparência também aparece (Padrão, Claro e Escuro valem lá)", async () => {
   ready(org(), "owner");
   const original = Platform.OS;
   Platform.OS = "web";
   await renderApp(<Conta />);
-  expect(screen.queryByText("Aparência")).toBeNull();
+  expect(screen.getByText("Aparência")).toBeOnTheScreen();
   Platform.OS = original;
 });
 

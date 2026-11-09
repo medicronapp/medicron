@@ -28,3 +28,12 @@ test("o HTML da web (modelo do Expo em single) liga o manifest, o ícone da tela
   expect(html).not.toContain("httpEquiv");
   expect(html).toContain('<div id="root">');
 });
+
+test("o HTML aplica o tema guardado antes da primeira pintura (script síncrono no head, com try/catch)", () => {
+  const html = fs.readFileSync(path.join(pub, "index.html"), "utf8");
+  const head = html.slice(html.indexOf("<head>"), html.indexOf("</head>"));
+  expect(head).toContain('localStorage.getItem("medicron.theme")');
+  expect(head).toContain('setAttribute("data-theme"');
+  expect(head).toMatch(/try\s*{[\s\S]*}\s*catch/);
+  expect(head.indexOf("<script>")).toBeLessThan(head.indexOf('<style id="expo-reset"'));
+});

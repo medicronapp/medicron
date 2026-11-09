@@ -53,7 +53,7 @@ describe("AppearanceCard", () => {
     expect(screen.getByLabelText("Tema do aplicativo")).toBeOnTheScreen();
     await waitFor(() => expect(screen.getByRole("radio", { name: "Claro" })).toBeSelected());
     expect(screen.getByRole("radio", { name: "Escuro" })).not.toBeSelected();
-    expect(screen.getByRole("radio", { name: "Sistema" })).not.toBeSelected();
+    expect(screen.getByRole("radio", { name: "Padrão" })).not.toBeSelected();
     await fireEvent.press(screen.getByRole("radio", { name: "Escuro" }));
     expect(spy).toHaveBeenLastCalledWith("dark");
     expect(SecureStore.setItemAsync).toHaveBeenCalledWith(expect.any(String), "dark");
@@ -61,16 +61,16 @@ describe("AppearanceCard", () => {
     spy.mockRestore();
   });
 
-  test("sem preferência guardada, 'Sistema' vem marcado", async () => {
+  test("sem preferência guardada, 'Padrão' vem marcado", async () => {
     await renderApp(<AppearanceCard />);
-    await waitFor(() => expect(screen.getByRole("radio", { name: "Sistema" })).toBeSelected());
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Padrão" })).toBeSelected());
   });
 
-  test("na web o cartão não aparece (o escuro da web é do navegador)", async () => {
+  test("na web o cartão também aparece (a escolha vale lá também)", async () => {
     const original = Platform.OS;
     Platform.OS = "web";
     await renderApp(<AppearanceCard />);
-    expect(screen.queryByLabelText("Tema do aplicativo")).toBeNull();
+    expect(screen.getByLabelText("Tema do aplicativo")).toBeOnTheScreen();
     Platform.OS = original;
   });
 });
