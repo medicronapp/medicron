@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import appJson from "../app.json";
 import eas from "../eas.json";
 
@@ -39,5 +41,23 @@ describe("eas.json", () => {
   });
   test("preview gera APK/instalável interno", () => {
     expect(eas.build.preview.distribution).toBe("internal");
+  });
+});
+
+describe("widget do iOS (expo-widgets)", () => {
+  const plugin = (expo.plugins as unknown[]).find((p) => Array.isArray(p) && p[0] === "expo-widgets") as [string, Record<string, any>] | undefined;
+
+  test("um widget Medicron com médio e tela de bloqueio, só no iOS", () => {
+    expect(plugin).toBeDefined();
+    const widgets = plugin![1].widgets as { name: string; ios: { supportedFamilies: string[]; initialLayout: string } }[];
+    expect(widgets).toHaveLength(1);
+    expect(widgets[0].name).toBe("MedicronWidget");
+    expect(widgets[0].ios.supportedFamilies).toEqual(["systemMedium", "accessoryRectangular", "accessoryInline"]);
+    expect(plugin![1].enableAndroid).toBeUndefined();
+  });
+
+  test("o arquivo do layout inicial existe", () => {
+    const file = (plugin![1].widgets[0].ios.initialLayout as string).replace(/^\.\//, "");
+    expect(fs.existsSync(path.join(__dirname, "..", file))).toBe(true);
   });
 });

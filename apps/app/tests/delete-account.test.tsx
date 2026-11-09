@@ -8,6 +8,9 @@ jest.mock("@/lib/auth-client", () => ({ authClient: { deleteUser: (a: unknown) =
 const mockUnregister = jest.fn(async () => {});
 jest.mock("@/lib/push", () => ({ unregisterThisDevice: () => mockUnregister() }));
 
+const mockClearWidget = jest.fn();
+jest.mock("@/lib/widget-sync", () => ({ clearWidget: () => mockClearWidget() }));
+
 import { DeleteAccount } from "@/components/delete-account";
 
 const DESCRIPTION = "Apaga o seu acesso e os seus dados. Se você for a única pessoa de uma conta, os pacientes, itens e rotinas dela também serão apagados. Isso não pode ser desfeito.";
@@ -119,4 +122,13 @@ test("outro 400 (que não é senha errada) mostra a mensagem genérica, não 'Se
   await confirm();
   expect(await screen.findByText("Não foi possível excluir a conta. Tente de novo.")).toBeOnTheScreen();
   expect(screen.queryByText("Senha incorreta.")).toBeNull();
+});
+
+test("excluir a conta limpa o widget da tela inicial", async () => {
+  mockClearWidget.mockClear();
+  await renderApp(<DeleteAccount />);
+  await open();
+  await typePassword("segredo123");
+  await confirm();
+  await waitFor(() => expect(mockClearWidget).toHaveBeenCalledTimes(1));
 });

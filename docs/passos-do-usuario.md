@@ -38,3 +38,12 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 16. Variável `EXPO_PUBLIC_VAPID_PUBLIC_KEY` definida e `medicron-web` republicado.
 17. Domínio `medicron.com.br` (e `www`) movido para `medicron-web`; web testada e funcionando.
 18. **Pendente, em uma semana estável:** publicar a API de `main` (sem as telas do Next): `vercel --prod --yes` na raiz. Antes disso, nenhum deploy da API a partir de `main` (ver `docs/virada-da-web.md`, "Regra de publicação da API").
+
+## G. Widget do iOS e Liquid Glass (Planos 9 e visual) — precisa de um build novo
+
+19. **Novo build e envio** (em `apps/app`): `npx eas-cli build --platform ios --profile production` e depois `npx eas-cli submit --platform ios`. O widget é uma extensão nativa: só aparece num build novo.
+20. **Credenciais da extensão:** na primeira vez o EAS vai criar sozinho o App ID `app.medicron.ExpoWidgetsTarget` e o App Group `group.app.medicron` (peça para ele criar). Se acusar erro de App Group, crie em developer.apple.com → Identifiers → App Groups (`group.app.medicron`) e habilite App Groups nos dois App IDs (`app.medicron` e `app.medicron.ExpoWidgetsTarget`).
+21. **No iPhone:** segure a tela inicial → "+" → Medicron → widget médio. Na tela de bloqueio: personalizar → adicionar widgets → Medicron (retangular ou em linha).
+22. **O que esperar:** o widget mostra as próximas 3 doses e as 2 pendentes mais recentes. O app o atualiza ao abrir e ao registrar uma dose; entre aberturas, o horário avança sozinho (a dose entra em "agora" 15 min antes e vira atrasada 15 min depois). Se alguém marcar uma dose em outro aparelho, o widget só sabe quando você abrir o app. Sair da conta ou excluí-la esvazia o widget.
+23. **Liquid Glass:** a barra inferior vira um painel de vidro flutuante no iOS 26 (ou superior). Em iOS antigo, com "Reduzir transparência" ligado, no Android e na web continua a barra de sempre. Confira também em modo claro e escuro.
+

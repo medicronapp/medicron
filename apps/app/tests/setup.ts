@@ -8,3 +8,14 @@ afterAll(() => {
   queryClient.clear();
   queryClient.getMutationCache().clear();
 });
+
+// Liquid Glass é um módulo nativo do iOS 26: nos testes ele fica indisponível (barra de sempre); o teste do vidro o liga.
+jest.mock("expo-glass-effect", () => {
+  const { View } = require("react-native");
+  const React = require("react");
+  return {
+    isLiquidGlassAvailable: () => false,
+    GlassView: (props: Record<string, unknown>) => React.createElement(View, props),
+    GlassContainer: (props: Record<string, unknown>) => React.createElement(View, props),
+  };
+});

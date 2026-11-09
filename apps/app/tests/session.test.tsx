@@ -6,6 +6,8 @@ import { queryClient } from "@/lib/api/query";
 const mockOrder: string[] = [];
 jest.mock("@/lib/push", () => ({ unregisterThisDevice: jest.fn(async () => { mockOrder.push("unregister"); }) }));
 
+jest.mock("@/lib/widget-sync", () => ({ clearWidget: jest.fn(() => { mockOrder.push("clearWidget"); }) }));
+
 const mock = {
   session: { data: null as unknown, isPending: false },
   orgs: { data: null as unknown, isPending: false, error: null as unknown, refetch: jest.fn() },
@@ -102,11 +104,20 @@ test("sair desregistra o aparelho ANTES do logout (precisa da sessão) e o logou
   mock.orgs = { data: [{ id: "o1" }], isPending: false, error: null, refetch: jest.fn() };
   await render(<Probe />);
   await fireEvent.press(screen.getByTestId("out"));
-  expect(mockOrder).toEqual(["unregister", "signOut"]);
+  expect(mockOrder).toEqual(["unregister", "signOut", "clearWidget"]);
 
   mockOrder.length = 0;
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("@/lib/push").unregisterThisDevice.mockRejectedValueOnce(new Error("rede"));
   await fireEvent.press(screen.getByTestId("out"));
-  expect(mockOrder).toEqual(["signOut"]);
+  expect(mockOrder).toEqual(["signOut", "clearWidget"]);
+});
+
+test("sair limpa o widget da tela inicial (nenhum dado de quem saiu fica visível)", async () => {
+  mock.session = { data: { session: { activeOrganizationId: "o1" } }, isPending: false };
+  mock.orgs = { data: [{ id: "o1" }], isPending: false, error: null, refetch: jest.fn() };
+  mockOrder.length = 0;
+  await render(<Probe />);
+  await fireEvent.press(screen.getByTestId("out"));
+  expect(mockOrder).toContain("clearWidget");
 });
