@@ -22,6 +22,10 @@ jest.mock("@/components/ui/toast", () => ({ toast: { error: jest.fn() }, Toaster
 jest.mock("react-native-gesture-handler", () => ({
   GestureHandlerRootView: ({ children }: { children?: unknown }) => children,
 }));
+// Push e notificações têm testes próprios; o layout raiz aqui só precisa que elas não façam nada.
+jest.mock("@/lib/notification-handler", () => ({ setupNotificationHandler: jest.fn() }));
+jest.mock("@/lib/notification-routing", () => ({ useNotificationRouting: jest.fn() }));
+jest.mock("@/lib/push-sync", () => ({ usePushSync: jest.fn() }));
 const mockOrder: string[] = [];
 jest.mock("@/lib/theme-pref", () => ({
   loadThemePref: jest.fn(async () => "dark"),

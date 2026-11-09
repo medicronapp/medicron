@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db";
-import { carePlans, items, patients, pushSubscriptions, userOnboarding } from "@/lib/db/schema";
+import { carePlans, items, patients, pushDevices, pushSubscriptions, userOnboarding } from "@/lib/db/schema";
 
 export type ChecklistSteps = { patient: boolean; item: boolean; plan: boolean; push: boolean };
 export type Onboarding = { showWelcome: boolean; checklist: { show: boolean; steps: ChecklistSteps } };
@@ -17,8 +17,11 @@ export async function getOnboarding(db: Db, userId: string, orgId: string): Prom
       .where(and(eq(items.organizationId, orgId), isNull(items.archivedAt)))),
     exists(db.select({ n: sql<number>`count(*)::int` }).from(carePlans)
       .where(and(eq(carePlans.organizationId, orgId), eq(carePlans.active, true)))),
-    exists(db.select({ n: sql<number>`count(*)::int` }).from(pushSubscriptions)
-      .where(eq(pushSubscriptions.userId, userId))),
+    // Notificações ativas: Web Push no navegador ou aparelho nativo.
+    Promise.all([
+      exists(db.select({ n: sql<number>`count(*)::int` }).from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId))),
+      exists(db.select({ n: sql<number>`count(*)::int` }).from(pushDevices).where(eq(pushDevices.userId, userId))),
+    ]).then(([web, native]) => web || native),
   ]);
   return {
     showWelcome: !row?.welcomeSeenAt,

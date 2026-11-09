@@ -3,6 +3,7 @@ import { HeartPulse } from "lucide-react-native";
 import type { HomeDto, OnboardingDto } from "@medicron/shared";
 import { dayKey, formatLongDate } from "@medicron/shared";
 import { EmptyState } from "@/components/empty-state";
+import { EnableNotifications } from "@/components/enable-notifications";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { AttentionList } from "./attention-list";
@@ -16,11 +17,12 @@ type Props = {
   onSelectDay: (key: string, isToday: boolean) => void; onBackToToday: () => void; onNavigate: (href: string) => void;
 };
 
-/** Composição da Hoje: título → boas-vindas → primeiros passos → sequência → atenção → linha do dia. */
+/** Composição da Hoje: aviso de notificações → título → boas-vindas → primeiros passos → sequência → atenção → linha do dia. */
 export function HomeView({ home, hasPatients, onboarding, onSelectDay, onBackToToday, onNavigate }: Props) {
   const riskCount = home.attention.filter((e) => home.streak.pendingKeys.includes(dayKey(new Date(e.scheduledFor)))).length;
   return (
     <View className="gap-6">
+      <EnableNotifications compact />
       <PageHeader title="Hoje" description={formatLongDate(new Date(home.now))} />
       {onboarding.showWelcome ? <WelcomeSheet /> : null}
       {onboarding.checklist.show ? <FirstStepsCard steps={onboarding.checklist.steps} onNavigate={onNavigate} /> : null}

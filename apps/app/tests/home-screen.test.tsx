@@ -16,6 +16,7 @@ jest.mock("@/lib/home-queries", () => ({
   useDismissChecklist: () => ({ mutate: jest.fn() }),
 }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
+jest.mock("@/lib/push", () => ({ getPushState: jest.fn(async () => "default"), enablePush: jest.fn(), disablePush: jest.fn() }));
 jest.mock("@/lib/clock", () => ({ now: () => new Date("2026-11-07T15:00:00.000Z") }));
 
 import { toast as mockToast } from "@/components/ui/toast";
@@ -89,7 +90,17 @@ describe("com pacientes", () => {
     expect(order).toEqual(["sábado, 7 de novembro", "2 dias seguidos em dia", "Precisa de atenção · 1", "Linha do dia"]);
   });
 
-  test("aviso de risco usa as entradas de atenção de dias pendentes", async () => {
+  test("o convite para ativar notificações (compacto) aparece acima do título", async () => {
+  ready(home());
+  await renderApp(<Hoje />);
+  expect(await screen.findByText("Receba avisos no celular")).toBeOnTheScreen();
+  const order = screen
+    .getAllByText(/Receba avisos no celular|sábado, 7/)
+    .map((el) => [el.props.children].flat().join(""));
+  expect(order[0]).toBe("Receba avisos no celular");
+});
+
+test("aviso de risco usa as entradas de atenção de dias pendentes", async () => {
     ready(home());
     await renderApp(<Hoje />);
     expect(screen.getByText("Ontem tem 1 dose sem registro: resolva até hoje 23:59 para manter a sequência")).toBeOnTheScreen();

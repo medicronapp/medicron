@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { queryClient } from "@/lib/api/query";
+import { unregisterThisDevice } from "@/lib/push";
 
 type Common = { signOut: () => Promise<void> };
 export type AppSession =
@@ -22,6 +23,7 @@ export function useAppSession(): AppSession {
   }, [userId, session.isPending]);
 
   async function signOut() {
+    await unregisterThisDevice().catch(() => {}); // antes do logout (precisa da sessão); se falhar, sair segue
     await authClient.signOut();
     queryClient.clear(); // nada de dados do usuário anterior para o próximo
   }

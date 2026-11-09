@@ -57,6 +57,13 @@
       "when": 1794156224124,
       "tag": "0007_species_bird_rabbit",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794186350781,
+      "tag": "0008_push_devices",
+      "breakpoints": true
     }
   ]
 }

@@ -3,11 +3,14 @@ import { render, screen, fireEvent } from "@testing-library/react-native";
 import { useAppSession } from "@/lib/session";
 import { queryClient } from "@/lib/api/query";
 
+const mockOrder: string[] = [];
+jest.mock("@/lib/push", () => ({ unregisterThisDevice: jest.fn(async () => { mockOrder.push("unregister"); }) }));
+
 const mock = {
   session: { data: null as unknown, isPending: false },
   orgs: { data: null as unknown, isPending: false, error: null as unknown, refetch: jest.fn() },
   notify: jest.fn(),
-  signOut: jest.fn(async () => ({})),
+  signOut: jest.fn(async () => { mockOrder.push("signOut"); return {}; }),
 };
 jest.mock("@/lib/auth-client", () => ({
   authClient: {
@@ -91,4 +94,19 @@ test("erro ao carregar a lista de contas não fica em 'carregando': vira erro co
   mock.orgs = { data: null, isPending: false, error: { status: 500 }, refetch: jest.fn() };
   await render(<Probe />);
   expect(state()).toBe("error|0|null");
+});
+
+test("sair desregistra o aparelho ANTES do logout (precisa da sessão) e o logout segue se o desregistro falhar", async () => {
+  mockOrder.length = 0;
+  mock.session = { data: { user: { id: "u1" }, session: { activeOrganizationId: "o1" } }, isPending: false };
+  mock.orgs = { data: [{ id: "o1" }], isPending: false, error: null, refetch: jest.fn() };
+  await render(<Probe />);
+  await fireEvent.press(screen.getByTestId("out"));
+  expect(mockOrder).toEqual(["unregister", "signOut"]);
+
+  mockOrder.length = 0;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require("@/lib/push").unregisterThisDevice.mockRejectedValueOnce(new Error("rede"));
+  await fireEvent.press(screen.getByTestId("out"));
+  expect(mockOrder).toEqual(["signOut"]);
 });

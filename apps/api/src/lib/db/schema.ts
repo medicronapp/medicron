@@ -100,6 +100,15 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   createdAt: createdAt(),
 });
 
+/** Aparelhos com o app nativo: o token do Expo Push Service de cada instalação (plataforma `ios` ou `android`). */
+export const pushDevices = pgTable("push_devices", {
+  id: id(),
+  userId: text("user_id").notNull(),
+  token: text("token").notNull().unique(),
+  platform: text("platform", { enum: ["ios", "android"] }).notNull(),
+  createdAt: createdAt(),
+});
+
 /** Marcas de onboarding por usuário: ausência de linha ou de data = ainda não viu. */
 export const userOnboarding = pgTable("user_onboarding", {
   userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
@@ -113,4 +122,5 @@ export type CarePlan = typeof carePlans.$inferSelect;
 export type CareSlot = typeof careSlots.$inferSelect;
 export type DoseLog = typeof doseLogs.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export type PushDeviceRow = typeof pushDevices.$inferSelect;
 export * from "./auth-schema";

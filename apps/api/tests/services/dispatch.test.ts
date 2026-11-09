@@ -193,3 +193,120 @@ describe("vários aparelhos do mesmo usuário", () => {
     expect(left).toEqual(["https://p/1-tablet", "https://p/2"]);
   });
 });
+
+// ---------- canal nativo (Expo) ----------
+import { pushDevices } from "@/lib/db/schema";
+import { saveDevice } from "@/lib/services/push";
+import type { DeviceSender } from "@/lib/services/dispatch";
+
+describe("dispatchDue com aparelhos nativos", () => {
+  type Call = { tokens: string[]; payload: { title: string; body: string; tag: string; url: string } };
+  const recorder = (impl?: (tokens: string[]) => { sent: number; gone: string[] }) => {
+    const calls: Call[] = [];
+    const sendDevices: DeviceSender = async (devices, payload) => {
+      const tokens = devices.map((x) => x.token);
+      calls.push({ tokens, payload });
+      return impl ? impl(tokens) : { sent: tokens.length, gone: [] };
+    };
+    return { calls, sendDevices };
+  };
+  const now = d("2026-11-04T08:00:30Z");
+
+  test("envia o mesmo lembrete (título, corpo, tag e url) aos aparelhos da organização, além do Web Push", async () => {
+    const { db, send, plan } = await setup();
+    await saveDevice(db, "u1", { token: "ExponentPushToken[a]", platform: "ios" });
+    await saveDevice(db, "u2", { token: "ExponentPushToken[b]", platform: "android" });
+    const { calls, sendDevices } = recorder();
+    const r = await dispatchDue(db, now, send, sendDevices);
+    expect(r).toEqual({ plans: 1, sent: 4, removed: 0 }); // 2 Web Push + 2 aparelhos
+    expect(calls).toHaveLength(1);
+    expect(calls[0].tokens.sort()).toEqual(["ExponentPushToken[a]", "ExponentPushToken[b]"]);
+    expect(calls[0].payload).toEqual({ title: "Hora do cuidado", body: "Mimi — Amoxicilina (1 comprimido)", tag: `${plan.id}-${plan.nextDueAt.getTime()}`, url: "/" });
+  });
+
+  test("o horário é reivindicado uma vez: a segunda passada não reenvia a nenhum canal", async () => {
+    const { db, send } = await setup();
+    await saveDevice(db, "u1", { token: "ExponentPushToken[a]", platform: "ios" });
+    const { calls, sendDevices } = recorder();
+    await dispatchDue(db, now, send, sendDevices);
+    const again = await dispatchDue(db, now, send, sendDevices);
+    expect(again.sent).toBe(0);
+    expect(calls).toHaveLength(1);
+  });
+
+  test("quem só tem aparelho nativo (sem Web Push) também recebe", async () => {
+    const { db, send } = await setup();
+    await db.delete(pushSubscriptions);
+    await saveDevice(db, "u1", { token: "ExponentPushToken[a]", platform: "ios" });
+    const { calls, sendDevices } = recorder();
+    expect(await dispatchDue(db, now, send, sendDevices)).toEqual({ plans: 1, sent: 1, removed: 0 });
+    expect(calls[0].tokens).toEqual(["ExponentPushToken[a]"]);
+  });
+
+  test("aparelho de quem não é membro da organização não recebe", async () => {
+    const { db, send } = await setup();
+    await db.insert(user).values({ id: "u3", name: "Caio", email: "c@x.com" });
+    await saveDevice(db, "u3", { token: "ExponentPushToken[fora]", platform: "ios" });
+    const { calls, sendDevices } = recorder();
+    await dispatchDue(db, now, send, sendDevices);
+    expect(calls).toHaveLength(0);
+  });
+
+  test("tokens mortos (gone) são apagados do banco e contam em removed", async () => {
+    const { db, send } = await setup();
+    await saveDevice(db, "u1", { token: "ExponentPushToken[morto]", platform: "ios" });
+    await saveDevice(db, "u2", { token: "ExponentPushToken[vivo]", platform: "ios" });
+    const { sendDevices } = recorder((tokens) => ({ sent: tokens.length - 1, gone: ["ExponentPushToken[morto]"] }));
+    const r = await dispatchDue(db, now, send, sendDevices);
+    expect(r.removed).toBe(1);
+    expect((await db.select().from(pushDevices)).map((x) => x.token)).toEqual(["ExponentPushToken[vivo]"]);
+  });
+
+  test("falha em TODOS os canais devolve o horário para nova tentativa", async () => {
+    const { db } = await setup();
+    await saveDevice(db, "u1", { token: "ExponentPushToken[a]", platform: "ios" });
+    const failWeb: PushSender = async () => { throw new Error("fora do ar"); };
+    const failDevices: DeviceSender = async () => { throw new Error("expo fora do ar"); };
+    expect((await dispatchDue(db, now, failWeb, failDevices)).sent).toBe(0);
+    const { calls, sendDevices } = recorder();
+    const retry = await dispatchDue(db, now, async () => ({ ok: true }), sendDevices);
+    expect(retry.sent).toBeGreaterThan(0); // o horário voltou e foi enviado
+    expect(calls).toHaveLength(1);
+  });
+
+  test("falha só no Expo, com Web Push entregue, NÃO devolve o horário (não duplica)", async () => {
+    const { db, send, sent } = await setup();
+    await saveDevice(db, "u1", { token: "ExponentPushToken[a]", platform: "ios" });
+    const failDevices: DeviceSender = async () => { throw new Error("expo fora do ar"); };
+    const r = await dispatchDue(db, now, send, failDevices);
+    expect(r.sent).toBe(2);
+    sent.length = 0;
+    const { sendDevices } = recorder();
+    expect((await dispatchDue(db, now, send, sendDevices)).sent).toBe(0);
+    expect(sent).toHaveLength(0);
+  });
+
+  test("falha só no Web Push, com aparelho entregue, NÃO devolve o horário", async () => {
+    const { db } = await setup();
+    await saveDevice(db, "u1", { token: "ExponentPushToken[a]", platform: "ios" });
+    const failWeb: PushSender = async () => { throw new Error("web fora do ar"); };
+    const { calls, sendDevices } = recorder();
+    const r = await dispatchDue(db, now, failWeb, sendDevices);
+    expect(r.sent).toBe(1);
+    expect((await dispatchDue(db, now, failWeb, sendDevices)).sent).toBe(0);
+    expect(calls).toHaveLength(1);
+  });
+
+  test("erro de banco no canal nativo (ex.: tabela ausente) não derruba o Web Push de nenhum plano", async () => {
+    const { db, send, sent } = await setup();
+    const { sql } = await import("drizzle-orm");
+    await db.execute(sql`drop table push_devices`);
+    const { sendDevices, calls } = recorder();
+    const r = await dispatchDue(db, now, send, sendDevices);
+    expect(r.sent).toBe(2); // o Web Push chegou aos dois membros
+    expect(sent).toHaveLength(2);
+    expect(calls).toHaveLength(0);
+    // e o horário continua reivindicado: não duplica na passada seguinte
+    expect((await dispatchDue(db, now, send, sendDevices)).sent).toBe(0);
+  });
+});
