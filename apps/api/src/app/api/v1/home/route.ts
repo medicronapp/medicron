@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { HomeDto, OnboardingDto } from "@medicron/shared";
-import { serializeHome } from "@/components/home/serialize";
+import { serializeHome } from "@/lib/home-serialize";
 import { getDb } from "@/lib/db";
 import { getApiContext } from "@/lib/api/context";
 import { json, route } from "@/lib/api/route";
