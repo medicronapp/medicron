@@ -2,6 +2,7 @@ import { Platform, View } from "react-native";
 import { useMe } from "@/lib/me-query";
 import { useActiveOrganization } from "@/lib/org";
 import { AppearanceCard } from "@/components/appearance-card";
+import { DeleteAccount } from "@/components/delete-account";
 import { EnableNotifications } from "@/components/enable-notifications";
 import { ErrorView } from "@/components/error-view";
 import { InvitationRow } from "@/components/invitation-row";
@@ -91,6 +92,8 @@ export default function Conta() {
           </CardContent>
         </Card>
       ) : null}
+
+      <DeleteAccount />
     </Screen>
   );
 }
