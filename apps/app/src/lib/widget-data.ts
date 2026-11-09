@@ -1,7 +1,10 @@
 import { formatTime, parseLocalInput, toLocalInput, type EntryDto, type HomeDto } from "@medicron/shared";
 
-/** Linha do widget: horário "08:00" (ou "ontem 20:00"), remédio, paciente e dose. `late` = atrasada (não só "agora"). */
-export type WidgetItem = { time: string; item: string; patient: string; dose: string | null; late: boolean };
+/**
+ * Linha do widget: horário "08:00" (ou "ontem 20:00"), remédio e paciente. `late` = atrasada (não só "agora").
+ * Só valores simples, NUNCA `null`: o módulo nativo grava as props no UserDefaults do App Group, que rejeita `null`.
+ */
+export type WidgetItem = { time: string; item: string; patient: string; late: boolean };
 
 /** Tudo que o widget mostra: o widget não tem rede nem lógica, o app entrega pronto. */
 export type WidgetProps = {
@@ -26,11 +29,11 @@ export function signedOutProps(): WidgetProps {
   return { status: "signedOut", upcoming: [], pending: [], upcomingCount: 0, pendingCount: 0, updatedAt: "" };
 }
 
-type Slot = { at: number; date: Date; item: string; patient: string; dose: string | null };
+type Slot = { at: number; date: Date; item: string; patient: string };
 
 function toSlot(e: EntryDto): Slot {
   const date = new Date(e.scheduledFor);
-  return { at: date.getTime(), date, item: cut(e.itemName, MAX_ITEM), patient: cut(e.patientName, MAX_PATIENT), dose: e.dose };
+  return { at: date.getTime(), date, item: cut(e.itemName, MAX_ITEM), patient: cut(e.patientName, MAX_PATIENT) };
 }
 
 /**
@@ -57,7 +60,7 @@ export function buildWidgetTimeline(now: Date, home: HomeDto | null): { date: Da
     const time = formatTime(s.date);
     return toLocalInput(s.date).slice(0, 10) < todayKey ? `ontem ${time}` : time;
   };
-  const item = (s: Slot, late: boolean): WidgetItem => ({ time: label(s), item: s.item, patient: s.patient, dose: s.dose, late });
+  const item = (s: Slot, late: boolean): WidgetItem => ({ time: label(s), item: s.item, patient: s.patient, late });
 
   const propsAt = (t: number): WidgetProps => {
     const upcoming: Slot[] = [];
