@@ -107,6 +107,15 @@ ${theme.join("\n")}
   --color-brand-40: var(--brand-40);
   --color-dot-off: var(--dot-off);
 }
+
+/* Tema fixo escolhido pela pessoa na web (data-theme no <html>): vence o @media por ser mais específico. */
+:root[data-theme="light"] {
+${lines(themeVars(light), "  ")}
+}
+
+:root[data-theme="dark"] {
+${lines(themeVars(dark), "  ")}
+}
 `;
 
   const palette = (entries: [string, string][]): Palette => {

@@ -21,10 +21,35 @@ test("o HTML da web (modelo do Expo em single) liga o manifest, o ícone da tela
   const html = fs.readFileSync(path.join(pub, "index.html"), "utf8");
   expect(html).toContain('rel="manifest" href="/manifest.webmanifest"');
   expect(html).toContain('rel="apple-touch-icon" href="/icons/apple-touch-icon.png"');
-  expect(html).toContain('name="theme-color" content="#0d9488"');
+  expect(html).toContain('<meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)"');
+  expect(html).toContain('<meta name="theme-color" content="#0b1314" media="(prefers-color-scheme: dark)"');
   expect(html).toContain('lang="pt-BR"');
   expect(html).toContain("%WEB_TITLE%");
   expect(html).toContain('http-equiv="X-UA-Compatible"');
   expect(html).not.toContain("httpEquiv");
   expect(html).toContain('<div id="root">');
+});
+
+test("o HTML aplica o tema guardado antes da primeira pintura (script síncrono no head, com try/catch)", () => {
+  const html = fs.readFileSync(path.join(pub, "index.html"), "utf8");
+  const head = html.slice(html.indexOf("<head>"), html.indexOf("</head>"));
+  expect(head).toContain('localStorage.getItem("medicron.theme")');
+  expect(head).toContain('setAttribute("data-theme"');
+  expect(head).toMatch(/try\s*{[\s\S]*}\s*catch/);
+  expect(head.indexOf("<script>")).toBeLessThan(head.indexOf('<style id="expo-reset"'));
+});
+
+test("barra de status do iPhone: app instalável, estilo padrão e fundo do app atrás da área segura", () => {
+  const html = fs.readFileSync(path.join(pub, "index.html"), "utf8");
+  expect(html).toContain('name="apple-mobile-web-app-capable" content="yes"');
+  expect(html).toContain('name="apple-mobile-web-app-status-bar-style" content="default"');
+  expect(html).toMatch(/html,\s*body\s*{[^}]*background-color:\s*var\(--background\)/);
+});
+
+test("o script do head escolhe o estilo da barra pelo esquema resolvido (escuro = translúcida)", () => {
+  const html = fs.readFileSync(path.join(pub, "index.html"), "utf8");
+  const head = html.slice(html.indexOf("<head>"), html.indexOf("</head>"));
+  expect(head).toContain("black-translucent");
+  expect(head).toContain("prefers-color-scheme: dark");
+  expect(head).toContain("apple-mobile-web-app-status-bar-style");
 });

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MailX, TriangleAlert, UsersRound } from "lucide-react-native";
 import { acceptInvitation, getInvitation } from "@/lib/org";
 import { useAppSession } from "@/lib/session";
@@ -18,6 +19,7 @@ const ACCEPT_ERROR = "Não foi possível aceitar o convite (talvez você já sej
 /** Cartão central do convite (igual ao do site). Abre por `medicron://convite/<id>` e pelo caminho `/convite/<id>`. */
 export default function Convite() {
   const router = useRouter();
+  const insets = useSafeAreaInsets(); // fora da casca do app: o topo precisa respeitar a barra de status
   const { id } = useLocalSearchParams<{ id: string }>();
   const invitationId = String(id);
   const session = useAppSession();
@@ -55,7 +57,7 @@ export default function Convite() {
 
   if (invitation.isError && !accepted) {
     return (
-      <ScrollView className="flex-1 bg-background" contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 16 }}>
+      <ScrollView testID="convite-scroll" className="flex-1 bg-background" contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 16, paddingTop: insets.top + 16 }}>
         <View className="mx-auto w-full max-w-sm">
           <ErrorView onRetry={() => void invitation.refetch()} />
         </View>
@@ -64,7 +66,7 @@ export default function Convite() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 16 }}>
+    <ScrollView testID="convite-scroll" className="flex-1 bg-background" contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 16, paddingTop: insets.top + 16 }}>
       <View className="mx-auto w-full max-w-sm items-center gap-6 rounded-2xl border border-border bg-card p-6">
         <BrandMark className="size-12 rounded-2xl" size={24} />
         {accepted ? (

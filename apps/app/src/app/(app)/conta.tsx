@@ -1,4 +1,4 @@
-import { Platform, View } from "react-native";
+import { View } from "react-native";
 import { useMe } from "@/lib/me-query";
 import { useActiveOrganization } from "@/lib/org";
 import { AppearanceCard } from "@/components/appearance-card";
@@ -82,16 +82,14 @@ export default function Conta() {
         </Card>
       ) : null}
 
-      {Platform.OS !== "web" ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Aparência</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AppearanceCard />
-          </CardContent>
-        </Card>
-      ) : null}
+      <Card>
+        <CardHeader>
+          <CardTitle>Aparência</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AppearanceCard />
+        </CardContent>
+      </Card>
 
       <DeleteAccount />
     </Screen>

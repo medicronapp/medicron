@@ -7,13 +7,32 @@
     <title>%WEB_TITLE%</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <meta name="theme-color" content="#0d9488" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1314" media="(prefers-color-scheme: dark)" />
+    <script>
+      // Aplica o tema escolhido antes da primeira pintura (sem piscar o tema errado) e escolhe o estilo da barra de
+      // status do iPhone (escuro = translúcida, com o fundo do app atrás). Mesma chave do app: medicron.theme.
+      try {
+        var t = localStorage.getItem("medicron.theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+        var dark = t === "dark" || (t !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", dark ? "black-translucent" : "default");
+        var color = dark ? "#0b1314" : "#fbfaf7";
+        if (t === "light" || t === "dark") {
+          var metas = document.querySelectorAll('meta[name="theme-color"]');
+          for (var i = 0; i < metas.length; i++) metas[i].setAttribute("content", color);
+        }
+      } catch (e) {}
+    </script>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
       /* These styles make the body full-height */
       html,
       body {
         height: 100%;
+        background-color: var(--background);
       }
       /* These styles disable body scrolling if you are using <ScrollView> */
       body {

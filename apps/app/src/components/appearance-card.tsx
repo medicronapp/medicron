@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Monitor, Moon, Sun } from "lucide-react-native";
 import { cn } from "@/lib/cn";
 import { applyThemePref, loadThemePref, saveThemePref, type ThemePref } from "@/lib/theme-pref";
@@ -9,10 +9,10 @@ import { Text } from "@/components/ui/text";
 const OPTIONS = [
   { value: "light", label: "Claro", icon: Sun },
   { value: "dark", label: "Escuro", icon: Moon },
-  { value: "system", label: "Sistema", icon: Monitor },
+  { value: "system", label: "Padrão", icon: Monitor },
 ] as const;
 
-/** Escolha do tema (Claro, Escuro, Sistema). Na web não aparece: lá o escuro é do navegador. */
+/** Escolha do tema: Claro e Escuro fixos, ou Padrão (segue o aparelho/navegador). */
 export function AppearanceCard() {
   const [pref, setPref] = useState<ThemePref | null>(null);
 
@@ -21,8 +21,6 @@ export function AppearanceCard() {
     void loadThemePref().then((p) => { if (alive) setPref(p); });
     return () => { alive = false; };
   }, []);
-
-  if (Platform.OS === "web") return null;
 
   function choose(next: ThemePref) {
     setPref(next);
