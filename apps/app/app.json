@@ -71,6 +71,12 @@
         }
       ]
     ],
-    "icon": "./assets/icon.png"
+    "icon": "./assets/icon.png",
+    "owner": "thiagog3",
+    "extra": {
+      "eas": {
+        "projectId": "c22d57cb-58cd-4940-9d3d-a84861152340"
+      }
+    }
   }
 }
