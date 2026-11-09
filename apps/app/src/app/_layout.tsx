@@ -13,6 +13,8 @@ import { GEIST_FONTS } from "@/theme/fonts";
 import { AppOutdatedError } from "@/lib/api/errors";
 import { useMe } from "@/lib/me-query";
 import { applyThemePref, loadThemePref } from "@/lib/theme-pref";
+import { setupNotificationHandler } from "@/lib/notification-handler";
+import { useNotificationRouting } from "@/lib/notification-routing";
 import { usePushSync } from "@/lib/push-sync";
 import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
@@ -24,6 +26,7 @@ import { UpdateRequired } from "@/components/update-required";
 
 SplashScreen.preventAutoHideAsync();
 bindFocusToAppState();
+setupNotificationHandler();
 
 /** Aplica a guarda de rotas e troca tudo pela tela de atualização quando a API recusa esta versão. */
 function Gate() {
@@ -35,6 +38,7 @@ function Gate() {
   const router = useRouter();
   const me = useMe();
   usePushSync();
+  useNotificationRouting();
 
   const decision =
     session.status === "loading" || session.status === "error"
