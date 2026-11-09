@@ -17,15 +17,14 @@ export async function cancelInvitation(id: string): Promise<void> {
   if (error) throw new Error("Não foi possível cancelar o convite.");
 }
 
-/** Dados do convite, ou `null` quando ele não existe, não é do usuário ou a consulta falha. */
+/**
+ * Dados do convite, ou `null` quando a API diz que ele não existe ou não é do usuário. Falha de rede **não** é `null`:
+ * a exceção sobe para a tela mostrar "Tentar de novo" (sem rede o convite não está "indisponível").
+ */
 export async function getInvitation(id: string): Promise<InvitationInfo | null> {
-  try {
-    const { data, error } = await authClient.organization.getInvitation({ query: { id } });
-    if (error || !data) return null;
-    return { status: data.status, organizationName: data.organizationName, inviterEmail: data.inviterEmail };
-  } catch {
-    return null;
-  }
+  const { data, error } = await authClient.organization.getInvitation({ query: { id } });
+  if (error || !data) return null;
+  return { status: data.status, organizationName: data.organizationName, inviterEmail: data.inviterEmail };
 }
 
 /**

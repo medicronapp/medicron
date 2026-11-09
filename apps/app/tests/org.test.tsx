@@ -70,13 +70,15 @@ describe("getInvitation", () => {
     expect(await getInvitation("inv1")).toEqual({ status: "pending", organizationName: "Casa", inviterEmail: "d@x.com" });
     expect(mockOrg.getInvitation).toHaveBeenCalledWith({ query: { id: "inv1" } });
   });
-  test("erro, ausência de dados ou exceção viram null", async () => {
+  test("erro da API ou ausência de dados viram null (convite não existe ou não é seu)", async () => {
     mockOrg.getInvitation.mockResolvedValueOnce({ data: null, error: { status: 404 } });
     expect(await getInvitation("x")).toBeNull();
     mockOrg.getInvitation.mockResolvedValueOnce({ data: null, error: null });
     expect(await getInvitation("x")).toBeNull();
-    mockOrg.getInvitation.mockRejectedValueOnce(new Error("rede"));
-    expect(await getInvitation("x")).toBeNull();
+  });
+  test("falha de rede (exceção) NÃO vira null: sobe para a tela mostrar 'Tentar de novo'", async () => {
+    mockOrg.getInvitation.mockRejectedValueOnce(new TypeError("Network request failed"));
+    await expect(getInvitation("x")).rejects.toThrow("Network request failed");
   });
 });
 

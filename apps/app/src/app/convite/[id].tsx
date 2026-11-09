@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { MailX, TriangleAlert, UsersRound } from "lucide-react-native";
 import { acceptInvitation, getInvitation } from "@/lib/org";
 import { useAppSession } from "@/lib/session";
 import { BrandMark } from "@/components/brand-mark";
+import { ErrorView } from "@/components/error-view";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -20,8 +21,9 @@ export default function Convite() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const invitationId = String(id);
   const session = useAppSession();
-  const invitation = useQuery({ queryKey: ["invitation", invitationId], queryFn: () => getInvitation(invitationId), retry: false });
   const [accepted, setAccepted] = useState(false);
+  // Depois de aceitar a consulta não roda mais: o servidor passa a dizer que o convite "não existe" (já foi usado).
+  const invitation = useQuery({ queryKey: ["invitation", invitationId], queryFn: () => getInvitation(invitationId), retry: false, enabled: !accepted });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const accepting = useRef(false); // dois toques seguidos aceitam uma vez só
@@ -51,11 +53,26 @@ export default function Convite() {
   const data = invitation.data;
   const invalid = !invitation.isPending && (!data || data.status !== "pending");
 
+  if (invitation.isError && !accepted) {
+    return (
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 16 }}>
+        <View className="mx-auto w-full max-w-sm">
+          <ErrorView onRetry={() => void invitation.refetch()} />
+        </View>
+      </ScrollView>
+    );
+  }
+
   return (
     <ScrollView className="flex-1 bg-background" contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 16 }}>
       <View className="mx-auto w-full max-w-sm items-center gap-6 rounded-2xl border border-border bg-card p-6">
         <BrandMark className="size-12 rounded-2xl" size={24} />
-        {invitation.isPending ? (
+        {accepted ? (
+          <View className="items-center gap-3 py-4">
+            <ActivityIndicator />
+            <Text className="text-center text-sm text-muted-foreground">Entrando…</Text>
+          </View>
+        ) : invitation.isPending ? (
           <View accessibilityLabel="Carregando" aria-busy className="w-full gap-3">
             <Skeleton className="mx-auto h-12 w-12 rounded-full" />
             <Skeleton className="h-6 w-full" />
@@ -72,6 +89,7 @@ export default function Convite() {
                 Este convite expirou, foi cancelado, já foi usado ou é para outro e-mail. Peça um novo link a quem convidou.
               </Text>
             </View>
+            <Button variant="outline" size="lg" className="w-full" onPress={() => router.replace("/")} accessibilityLabel="Ir para o início">Ir para o início</Button>
           </>
         ) : (
           <>

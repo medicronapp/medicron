@@ -6,8 +6,10 @@ import { queryClient } from "@/lib/api/query";
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn() };
 const mockNav = { pathname: "/" };
+const mockSearch: { value: Record<string, string> } = { value: {} };
 jest.mock("expo-router", () => ({
   usePathname: () => mockNav.pathname,
+  useGlobalSearchParams: () => mockSearch.value,
   useRouter: () => mockRouter,
   Slot: () => null,
   Stack: () => {
@@ -60,6 +62,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   queryClient.clear();
   mockNav.pathname = "/";
+  mockSearch.value = {};
   mockWide.value = false;
   mockSession.value = { status: "signedIn", orgCount: 2, activeOrgId: "o1", signOut: jest.fn(async () => {}) };
   mockOrgs.data = [{ id: "o1", name: "Casa da Vovó" }, { id: "o2", name: "Sítio" }];
@@ -219,6 +222,16 @@ describe("layout raiz: tema", () => {
     await renderApp(<RootLayout />);
     await waitFor(() => expect(mockOrder).toContain("hide"));
     expect(mockOrder).toEqual(["apply:dark", "hide"]);
+  });
+});
+
+describe("layout raiz: destino guardado (next)", () => {
+  test("logado numa tela de acesso, o Gate leva ao destino de `next` (usePathname não traz a query)", async () => {
+    mockNav.pathname = "/cadastrar";
+    mockSearch.value = { next: "/convite/abc" };
+    mockSession.value = { status: "signedIn", orgCount: 0, activeOrgId: null, signOut: jest.fn() };
+    await renderApp(<RootLayout />);
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/convite/abc"));
   });
 });
 

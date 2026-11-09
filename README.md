@@ -32,7 +32,7 @@ npm run build-assets   # regenera ícones e tela de abertura
 
 ### Estado do app
 
-Prontos: login, casca de navegação, a tela **Hoje** (sequência, atenção, linha do dia, registrar dose, primeiros passos e boas-vindas) **Pacientes e Rotinas** (lista, novo, detalhe com Dados e Rotina, editar, arquivar, nova rotina) e **Itens** (medicações e procedimentos: lista, novo, editar, arquivar). Conta ainda é uma tela provisória. O aviso de notificações da Hoje e o push nativo entram no Plano 4.
+Prontos: login, casca de navegação, a tela **Hoje** (sequência, atenção, linha do dia, registrar dose, primeiros passos e boas-vindas) **Pacientes e Rotinas** (lista, novo, detalhe com Dados e Rotina, editar, arquivar, nova rotina) e **Itens** (medicações e procedimentos: lista, novo, editar, arquivar). **Conta** (pessoas, convites, aparência) e a tela de **convite**. O push (notificações) entra no Plano 4. O aviso de notificações da Hoje e o push nativo entram no Plano 4.
 
 ## Documentos
 

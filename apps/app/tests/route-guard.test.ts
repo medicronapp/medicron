@@ -42,4 +42,19 @@ describe("decideRoute", () => {
   test("com sessão e contas, o convite fica onde está", () => {
     expect(decideRoute({ ...base, pathname: "/convite/abc" })).toEqual({ to: null });
   });
+
+  test("com sessão numa tela de acesso, vai para o destino guardado em `next` (e não sempre para a raiz)", () => {
+    expect(decideRoute({ ...base, pathname: "/entrar?next=%2Fpacientes" })).toEqual({ to: "/pacientes" });
+    expect(decideRoute({ ...base, pathname: "/cadastrar?next=%2Fconvite%2Fabc" })).toEqual({ to: "/convite/abc" });
+  });
+  test("`next` malicioso ou ausente cai na raiz", () => {
+    expect(decideRoute({ ...base, pathname: "/entrar?next=https%3A%2F%2Fevil.com" })).toEqual({ to: "/" });
+    expect(decideRoute({ ...base, pathname: "/entrar?next=%2F%2Fevil.com" })).toEqual({ to: "/" });
+    expect(decideRoute({ ...base, pathname: "/entrar" })).toEqual({ to: "/" });
+  });
+  test("convidado recém-cadastrado (0 contas) numa tela de acesso com next=/convite/… vai para o convite, não para Nova conta", () => {
+    expect(decideRoute({ ...base, orgCount: 0, activeOrgId: null, pathname: "/cadastrar?next=%2Fconvite%2Fabc" })).toEqual({ to: "/convite/abc" });
+    expect(decideRoute({ ...base, orgCount: 0, activeOrgId: null, pathname: "/cadastrar?next=%2Fpacientes" })).toEqual({ to: "/nova-conta" });
+    expect(decideRoute({ ...base, orgCount: 0, activeOrgId: null, pathname: "/cadastrar" })).toEqual({ to: "/nova-conta" });
+  });
 });

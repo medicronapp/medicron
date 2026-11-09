@@ -5,7 +5,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Stack, usePathname, useRouter } from "expo-router";
+import { Stack, useGlobalSearchParams, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -27,7 +27,10 @@ bindFocusToAppState();
 /** Aplica a guarda de rotas e troca tudo pela tela de atualização quando a API recusa esta versão. */
 function Gate() {
   const session = useAppSession();
-  const pathname = usePathname();
+  const path = usePathname();
+  const { next } = useGlobalSearchParams<{ next?: string }>();
+  // `usePathname` não traz a query: devolve o `next` para a guarda levar ao destino guardado depois do login/cadastro.
+  const pathname = typeof next === "string" && next ? `${path}?next=${encodeURIComponent(next)}` : path;
   const router = useRouter();
   const me = useMe();
 

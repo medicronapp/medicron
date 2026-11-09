@@ -43,6 +43,33 @@ test.each([
   expect(screen.queryByRole("button", { name: "Aceitar convite" })).toBeNull();
 });
 
+test("convite indisponível tem saída: 'Ir para o início' leva à raiz (a guarda decide o resto)", async () => {
+  mockGet.mockResolvedValue(null);
+  await renderApp(<Convite />);
+  await fireEvent.press(await screen.findByRole("button", { name: "Ir para o início" }));
+  expect(mockRouter.replace).toHaveBeenCalledWith("/");
+});
+
+test("falha de rede ao carregar o convite não vira 'indisponível': mostra erro com 'Tentar de novo'", async () => {
+  mockGet.mockRejectedValueOnce(new TypeError("Network request failed"));
+  await renderApp(<Convite />);
+  expect(await screen.findByRole("button", { name: "Tentar de novo" })).toBeOnTheScreen();
+  expect(screen.queryByText("Convite indisponível")).toBeNull();
+  mockGet.mockResolvedValue(valid);
+  await fireEvent.press(screen.getByRole("button", { name: "Tentar de novo" }));
+  expect(await screen.findByRole("header", { name: "Entrar em Casa da Vovó" })).toBeOnTheScreen();
+});
+
+test("depois de aceitar (lista de contas ainda velha) mostra 'Entrando…' e nunca 'Convite indisponível'", async () => {
+  mockGet.mockResolvedValueOnce(valid);
+  mockAccept.mockImplementation(async () => { mockGet.mockResolvedValue(null); return { organizationId: "org9" }; });
+  await renderApp(<Convite />);
+  await fireEvent.press(await screen.findByRole("button", { name: "Aceitar convite" }));
+  await waitFor(() => expect(mockAccept).toHaveBeenCalled());
+  expect(await screen.findByText("Entrando…")).toBeOnTheScreen();
+  expect(screen.queryByText("Convite indisponível")).toBeNull();
+});
+
 test("convite válido: título e texto do site com a conta e quem convidou", async () => {
   mockGet.mockResolvedValue(valid);
   await renderApp(<Convite />);
