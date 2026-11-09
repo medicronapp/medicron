@@ -116,6 +116,12 @@ Estrutura exata de pastas, nomes dos endpoints, biblioteca de formulários, estr
 - **Convites pendentes:** os convites que alguém enviou e que ainda não foram aceitos somem se essa pessoa excluir a conta (`inviterId` com cascade). Aceito: quem foi convidado pede um novo link.
 - **Versão mínima do app:** `MIN_APP_VERSION` malformada cai em `0.0.0` e registra o erro, em vez de bloquear todos os clientes.
 
+## Melhorias do iOS (2026-11-09)
+
+- **Barra inferior com Liquid Glass:** `expo-glass-effect` (`GlassView`) num painel flutuante, só no iOS 26+ e sem "Reduzir transparência"; nos demais casos, a barra de sempre. A alternativa de abas nativas (`NativeTabs`, do tutorial de referência) ficou para depois: dá o vidro do sistema e a minimização ao rolar, mas é API instável e mexe na estrutura das telas logadas.
+- **Widget (Plano 9):** `expo-widgets`, médio e tela de bloqueio (retangular e em linha). O widget roda isolado (sem rede), o app entrega a timeline do dia (próximas 3 e pendentes mais recentes 2). Atualiza ao abrir o app e ao registrar dose; sem push silencioso nem tarefa em segundo plano (decisão do usuário). Limpa ao sair da conta.
+- **Logo na entrada:** ícone + nome "Medicron" também no celular.
+
 ## Riscos principais
 
 1. NativeWind v5 em RC (mitigação: versões fixadas e plano B).
