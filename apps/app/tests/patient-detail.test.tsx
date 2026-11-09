@@ -3,7 +3,7 @@ import type { PatientDto, PlanDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 import { ApiClientError } from "@/lib/api/errors";
 
-const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), back: jest.fn(), setParams: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), dismissTo: jest.fn(), back: jest.fn(), setParams: jest.fn() };
 const mockParams: { value: Record<string, string> } = { value: { id: "a" } };
 jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => mockParams.value, Stack: () => null }));
 jest.mock("@/lib/clock", () => ({ now: () => new Date("2026-11-08T15:00:00.000Z") })); // 12:00 em Brasília
@@ -68,7 +68,7 @@ describe("cabeçalho e abas", () => {
     expect(screen.getByText("Gato")).toBeOnTheScreen();
     expect(screen.getByRole("tab", { name: "Rotina" })).toBeSelected();
     await fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/pacientes");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/pacientes");
   });
 
   test("trocar de aba muda o parâmetro; aba=dados abre Dados", async () => {
@@ -92,7 +92,7 @@ describe("cabeçalho e abas", () => {
     expect(screen.getByText("Paciente não encontrado")).toBeOnTheScreen();
     expect(screen.getByText("Ele pode ter sido arquivado.")).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole("button", { name: "Ver pacientes" }));
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/pacientes");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/pacientes");
   });
 
   test("outro erro mostra a tela de erro com 'Tentar de novo'", async () => {
@@ -223,7 +223,7 @@ describe("aba Dados", () => {
     await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
     await waitFor(() => expect(mockUpdatePatient).toHaveBeenCalledWith({ id: "a", body: { name: "Izzy Maria", species: "cat" } }));
     expect(mockToast.success).toHaveBeenCalledWith("Salvo");
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
   });
 
   test("arquivar pede confirmação, executa uma vez e volta à lista", async () => {
@@ -236,7 +236,7 @@ describe("aba Dados", () => {
     const b = screen.getByRole("button", { name: "Arquivar" });
     await fireEvent.press(b);
     await fireEvent.press(b);
-    await waitFor(() => expect(mockRouter.navigate).toHaveBeenCalledWith("/pacientes"));
+    await waitFor(() => expect(mockRouter.dismissTo).toHaveBeenCalledWith("/pacientes"));
     expect(mockArchive).toHaveBeenCalledTimes(1);
     expect(mockArchive).toHaveBeenCalledWith("a");
   });

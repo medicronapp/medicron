@@ -21,7 +21,7 @@ export default function NovoItem() {
     try {
       const item = await create.mutateAsync(body);
       toast.success("Salvo");
-      router.navigate(`/itens?tipo=${item.kind}` as never);
+      router.dismissTo(`/itens?tipo=${item.kind}` as never);
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -31,7 +31,7 @@ export default function NovoItem() {
 
   return (
     <Screen>
-      <PageHeader title="Novo item" onBack={() => router.navigate(`/itens?tipo=${kind}` as never)} />
+      <PageHeader title="Novo item" onBack={() => router.dismissTo(`/itens?tipo=${kind}` as never)} />
       <ItemForm defaultKind={kind} onSubmit={submit} submitting={submitting} />
     </Screen>
   );

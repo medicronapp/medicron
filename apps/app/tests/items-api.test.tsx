@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ApiClientError } from "@/lib/api/errors";
 import { queryClient } from "@/lib/api/query";
 import { fetchItems, fetchItem, createItem, updateItem, archiveItem } from "@/lib/api/items";
-import { useItems, useCreateItem, useUpdateItem, useArchiveItem } from "@/lib/item-queries";
+import { useItems, useItem, useCreateItem, useUpdateItem, useArchiveItem } from "@/lib/item-queries";
 
 const mockRequest = jest.fn();
 jest.mock("@/lib/api", () => ({ apiClient: { request: (...a: unknown[]) => mockRequest(...a) } }));
@@ -73,14 +73,30 @@ describe("hooks e cache", () => {
     await waitFor(() => expect(keys(spy)).toEqual(expect.arrayContaining(["items", "item"])));
   });
 
-  test("arquivar remove o detalhe do cache e invalida itens, rotinas, pacientes e Hoje (sem rebuscar o detalhe)", async () => {
+  test("arquivar com a tela do item ainda montada: não volta a 'carregando' e não rebusca o item (nada de GET 404)", async () => {
+    mockRequest.mockImplementation(async (method: string, path: string) => {
+      if (method === "GET" && path === "/items/i") return { item: { id: "i", name: "X", kind: "medication" } };
+      return undefined;
+    });
+    const { result } = await renderHook(() => ({ detail: useItem("i"), archive: useArchiveItem() }), { wrapper });
+    await waitFor(() => expect(result.current.detail.data?.id).toBe("i"));
+    mockRequest.mockClear();
+    const pending: boolean[] = [];
+    await act(async () => { await result.current.archive.mutateAsync("i"); pending.push(result.current.detail.isPending); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    pending.push(result.current.detail.isPending);
+    expect(pending).toEqual([false, false]);
+    expect(mockRequest.mock.calls.filter(([m, p]) => m === "GET" && p === "/items/i")).toHaveLength(0);
+  });
+
+  test("arquivar marca o detalhe como velho (sem rebuscar) e invalida itens, rotinas, pacientes e Hoje", async () => {
     mockRequest.mockResolvedValue(undefined);
     queryClient.setQueryData(["item", "i"], { id: "i" });
     const spy = jest.spyOn(queryClient, "invalidateQueries");
     const { result } = await renderHook(() => useArchiveItem(), { wrapper });
     await act(async () => { await result.current.mutateAsync("i"); });
     await waitFor(() => expect(keys(spy)).toEqual(expect.arrayContaining(["items", "plans", "patients", "patient", "home"])));
-    expect(keys(spy)).not.toContain("item");
-    expect(queryClient.getQueryData(["item", "i"])).toBeUndefined();
+    expect(queryClient.getQueryState(["item", "i"])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryData(["item", "i"])).toEqual({ id: "i" }); // continua lá: nada de recriar uma consulta vazia
   });
 });

@@ -42,7 +42,7 @@ export default function Item() {
         {notFound ? (
           <EmptyState
             icon={PackageX} title="Item não encontrado" description="Ele pode ter sido arquivado."
-            action={<Button size="lg" onPress={() => router.navigate("/itens")} accessibilityLabel="Ver itens">Ver itens</Button>}
+            action={<Button size="lg" onPress={() => router.dismissTo("/itens")} accessibilityLabel="Ver itens">Ver itens</Button>}
           />
         ) : (
           <ErrorView onRetry={() => void query.refetch()} />
@@ -52,7 +52,7 @@ export default function Item() {
   }
 
   const item = query.data;
-  const toList = (kind: string) => router.navigate(`/itens?tipo=${kind}` as never);
+  const toList = (kind: string) => router.dismissTo(`/itens?tipo=${kind}` as never);
 
   async function save(body: ItemBody) {
     setSaving(true);

@@ -3,7 +3,7 @@ import type { ItemDto, PatientDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 import { ApiClientError } from "@/lib/api/errors";
 
-const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), back: jest.fn(), setParams: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), dismissTo: jest.fn(), back: jest.fn(), setParams: jest.fn() };
 jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({ id: "a" }), Stack: () => null }));
 jest.mock("@/lib/clock", () => ({ now: () => new Date("2026-11-08T15:07:00.000Z") })); // 12:07 em Brasília
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
@@ -80,7 +80,7 @@ describe("tela", () => {
     ready([item("i1", "Dipirona")]);
     await renderApp(<NovaRotina />);
     await fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/pacientes/a");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/pacientes/a");
   });
 });
 
@@ -112,7 +112,7 @@ describe("formulário", () => {
     // 12:07 em Brasília → próximo quarto de hora 12:15 = 15:15Z
     expect(mockCreate).toHaveBeenCalledWith({ patientId: "a", body: { itemId: "i1", intervalMinutes: 480, anchorAt: "2026-11-08T15:15:00.000Z", reschedule: false } });
     expect(mockToast.success).toHaveBeenCalledWith("Salvo");
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/pacientes/a");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/pacientes/a");
   });
 
   test("dose, frequência, reprogramar e data final vão no corpo (Brasília → UTC)", async () => {
@@ -178,7 +178,7 @@ describe("formulário", () => {
     await fireEvent.changeText(screen.getByLabelText("Dose / instrução"), "3 gotas");
     await save();
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("A data final é anterior à próxima dose"));
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
     expect(screen.getByLabelText("Dose / instrução").props.value).toBe("3 gotas");
     expect(screen.getByRole("button", { name: "Salvar rotina" })).toBeEnabled();
   });
@@ -194,6 +194,6 @@ describe("formulário", () => {
     await fireEvent.press(b);
     expect(mockCreate).toHaveBeenCalledTimes(1);
     finish({});
-    await waitFor(() => expect(mockRouter.navigate).toHaveBeenCalled());
+    await waitFor(() => expect(mockRouter.dismissTo).toHaveBeenCalled());
   });
 });

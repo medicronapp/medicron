@@ -3,7 +3,7 @@ import type { ItemDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 import { ApiClientError } from "@/lib/api/errors";
 
-const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), back: jest.fn(), setParams: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), dismissTo: jest.fn(), back: jest.fn(), setParams: jest.fn() };
 jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({ id: "i1" }), Stack: () => null }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
 
@@ -39,7 +39,7 @@ describe("estados", () => {
     expect(screen.getByText("Item não encontrado")).toBeOnTheScreen();
     expect(screen.getByText("Ele pode ter sido arquivado.")).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole("button", { name: "Ver itens" }));
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/itens");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/itens");
   });
   test("outro erro mostra a tela de erro com 'Tentar de novo'", async () => {
     mockItem.value = { isPending: false, isError: true, error: new ApiClientError(500, "x", "x"), refetch: jest.fn() };
@@ -55,7 +55,7 @@ describe("com o item", () => {
     await renderApp(<Detalhe />);
     expect(screen.getByRole("header", { name: "Temperatura" })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/itens?tipo=procedure");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/itens?tipo=procedure");
   });
 
   test("editar envia o corpo e volta à lista do tipo salvo (trocar de tipo muda de aba)", async () => {
@@ -68,7 +68,7 @@ describe("com o item", () => {
     await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
     await waitFor(() => expect(mockUpdate).toHaveBeenCalledWith({ id: "i1", body: { name: "Dipirona", kind: "procedure" } }));
     expect(mockToast.success).toHaveBeenCalledWith("Salvo");
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/itens?tipo=procedure");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/itens?tipo=procedure");
   });
 
   test("erro do servidor avisa e mantém o formulário", async () => {
@@ -78,7 +78,7 @@ describe("com o item", () => {
     await fireEvent.changeText(screen.getByLabelText("Nome"), "Outro nome");
     await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("Dados inválidos."));
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
     expect(screen.getByLabelText("Nome").props.value).toBe("Outro nome");
   });
 });
@@ -98,7 +98,7 @@ describe("arquivar", () => {
     const b = screen.getByRole("button", { name: "Arquivar" });
     await fireEvent.press(b);
     await fireEvent.press(b);
-    await waitFor(() => expect(mockRouter.navigate).toHaveBeenCalledWith("/itens?tipo=medication"));
+    await waitFor(() => expect(mockRouter.dismissTo).toHaveBeenCalledWith("/itens?tipo=medication"));
     expect(mockArchive).toHaveBeenCalledTimes(1);
     expect(mockArchive).toHaveBeenCalledWith("i1");
   });
@@ -110,7 +110,7 @@ describe("arquivar", () => {
     await openSheet();
     await fireEvent.press(screen.getByRole("button", { name: "Arquivar" }));
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("falhou"));
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
     expect(screen.getByText("Arquivar Dipirona?")).toBeOnTheScreen();
   });
 

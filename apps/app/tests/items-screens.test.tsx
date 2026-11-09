@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import type { ItemDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 
-const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), back: jest.fn(), setParams: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn(), dismissTo: jest.fn(), back: jest.fn(), setParams: jest.fn() };
 const mockParams: { value: Record<string, string> } = { value: {} };
 jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => mockParams.value, Stack: () => null }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
@@ -38,6 +38,20 @@ describe("lista de itens", () => {
     await renderApp(<Lista />);
     await fireEvent.press(screen.getByRole("button", { name: "Tentar de novo" }));
     expect(mockList.value.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("carregando e erro mantêm o título e as abas (dá para trocar de aba e tocar em Novo)", async () => {
+    const { unmount } = await renderApp(<Lista />);
+    expect(screen.getByLabelText("Carregando")).toBeOnTheScreen();
+    expect(screen.getByRole("header", { name: "Itens" })).toBeOnTheScreen();
+    expect(screen.getByRole("tab", { name: "Procedimentos" })).toBeOnTheScreen();
+    await unmount();
+    mockList.value = { isPending: false, isError: true, isRefetching: false, refetch: jest.fn() };
+    await renderApp(<Lista />);
+    expect(screen.getByRole("header", { name: "Itens" })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("tab", { name: "Procedimentos" }));
+    expect(mockRouter.setParams).toHaveBeenCalledWith({ tipo: "procedure" });
+    expect(screen.getByRole("button", { name: "Tentar de novo" })).toBeOnTheScreen();
   });
 
   test("título, descrição e abas (Medicações por padrão; consulta só o tipo da aba)", async () => {
@@ -109,7 +123,7 @@ describe("novo item", () => {
     expect(screen.getByRole("header", { name: "Novo item" })).toBeOnTheScreen();
     expect(screen.getByRole("tab", { name: "Procedimento" })).toBeSelected();
     await fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-    expect(mockRouter.navigate).toHaveBeenCalledWith("/itens?tipo=procedure");
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith("/itens?tipo=procedure");
   });
 
   test("tipo inválido cai em medicação", async () => {
@@ -124,7 +138,7 @@ describe("novo item", () => {
     await fill("Soro");
     await fireEvent.press(screen.getByRole("tab", { name: "Procedimento" }));
     await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
-    await waitFor(() => expect(mockRouter.navigate).toHaveBeenCalledWith("/itens?tipo=procedure"));
+    await waitFor(() => expect(mockRouter.dismissTo).toHaveBeenCalledWith("/itens?tipo=procedure"));
     expect(mockCreate).toHaveBeenCalledWith({ name: "Soro", kind: "procedure" });
     expect(mockToast.success).toHaveBeenCalledWith("Salvo");
   });
@@ -135,7 +149,7 @@ describe("novo item", () => {
     await fill();
     await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("Dados inválidos."));
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
     expect(screen.getByLabelText("Nome").props.value).toBe("Dipirona");
     expect(screen.getByRole("button", { name: "Salvar" })).toBeEnabled();
   });

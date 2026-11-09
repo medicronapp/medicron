@@ -29,12 +29,12 @@ export default function Itens() {
     </>
   );
 
+  // O título e as abas aparecem em todos os estados: dá para trocar de aba e tocar em "Novo" enquanto carrega ou depois de um erro.
   if (query.isPending) {
     return (
       <Screen>
+        {header}
         <View accessibilityLabel="Carregando" aria-busy className="gap-4">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-11 w-full rounded-xl" />
           <Skeleton className="h-16 w-full rounded-2xl" />
           <Skeleton className="h-16 w-full rounded-2xl" />
         </View>
@@ -44,6 +44,7 @@ export default function Itens() {
   if (!query.data) {
     return (
       <Screen>
+        {header}
         <ErrorView onRetry={() => void query.refetch()} />
       </Screen>
     );

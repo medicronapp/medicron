@@ -41,9 +41,10 @@ export function useArchivePatient() {
   return useMutation({
     mutationFn: (id: string) => archivePatient(apiClient, id),
     onSuccess: (_res, id) => {
-      // O detalhe e as rotinas do paciente arquivado saem do cache (rebuscar daria 404 enquanto a tela ainda está montada).
-      qc.removeQueries({ queryKey: ["patient", id] });
-      qc.removeQueries({ queryKey: ["plans", id] });
+      // O detalhe e as rotinas do paciente arquivado ficam como velhos, sem rebuscar: com a tela ainda montada, remover
+      // recriaria uma consulta vazia (esqueleto) e rebuscar daria 404. Reaberta, a tela busca e cai no "não encontrado".
+      qc.invalidateQueries({ queryKey: ["patient", id], refetchType: "none" });
+      qc.invalidateQueries({ queryKey: ["plans", id], refetchType: "none" });
       return Promise.all([qc.invalidateQueries({ queryKey: ["patients"] }), qc.invalidateQueries({ queryKey: ["home"] })]);
     },
   });

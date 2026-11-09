@@ -32,7 +32,9 @@ export function useArchiveItem() {
   return useMutation({
     mutationFn: (id: string) => archiveItem(apiClient, id),
     onSuccess: (_res, id) => {
-      qc.removeQueries({ queryKey: ["item", id] }); // rebuscar daria 404 enquanto a tela ainda está montada
+      // Marca o detalhe como velho, sem rebuscar: com a tela ainda montada, remover recriaria uma consulta vazia (esqueleto)
+      // e rebuscar daria 404. Se a tela for aberta de novo, aí sim busca e cai no "não encontrado".
+      qc.invalidateQueries({ queryKey: ["item", id], refetchType: "none" });
       return Promise.all(["items", "plans", "patients", "patient", "home"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
     },
   });
