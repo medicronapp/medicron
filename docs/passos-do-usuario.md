@@ -20,7 +20,7 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 ## D. Teste de ponta a ponta (você, no simulador/aparelho)
 
 7. Login, trocar de conta, sair; Hoje (registrar dose, tour, dia passado); Pacientes e Rotinas; Itens; Conta (convite com **segunda conta**, copiar link, aparência nos três modos, notificações); fluxo do convidado (link sem sessão → criar conta → aceitar); voltar/gestos sem tela duplicada.
-8. **iPhone (Plano 8):** remova o atalho antigo da tela de início e adicione de novo pelo Safari (o iOS guarda a barra de status na hora da instalação). Com o iPhone em modo escuro e o tema Padrão, a barra de status deve ficar escura. Em Conta → Aparência, teste Claro, Escuro e Padrão e feche e reabra o app: a escolha deve continuar.
+8. **iPhone (Plano 8):** remova o atalho antigo da tela de início e adicione de novo pelo Safari (o iOS guarda a barra de status na hora da instalação). Com o iPhone em modo escuro e o tema Padrão, a barra de status deve ficar escura. Em Conta → Aparência, teste Claro, Escuro e Padrão e feche e reabra o app: a escolha deve continuar. **Limite do iOS:** a barra de status segue o tema que valia quando você instalou o atalho; se trocar o tema do iPhone ou do app depois, remova e adicione o atalho de novo. Se o relógio ficar ilegível (texto branco em fundo claro), me avise: o plano B está na spec.
 
 ## E. Lojas (Plano 5; textos e questionários prontos em `docs/lojas.md`)
 
