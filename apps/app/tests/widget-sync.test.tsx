@@ -64,9 +64,9 @@ test("sem sessão: limpa o widget (nenhum nome de paciente fica na tela inicial)
 
 test("clearWidget manda só o estado sem sessão", () => {
   clearWidget();
-  const [entries] = mockUpdate.mock.calls[0] as [{ props: { status: string; upcoming: unknown[]; pending: unknown[] } }[]];
+  const [entries] = mockUpdate.mock.calls[0] as [{ props: { status: string; upcoming: unknown[]; pendingCount: number } }[]];
   expect(entries).toHaveLength(1);
-  expect(entries[0].props).toMatchObject({ status: "signedOut", upcoming: [], pending: [] });
+  expect(entries[0].props).toMatchObject({ status: "signedOut", upcoming: [], pendingCount: 0 });
 });
 
 test.each(["android", "web"])("%s: não toca no widget (é só do iOS)", async (os) => {

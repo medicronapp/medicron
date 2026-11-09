@@ -1,32 +1,32 @@
 import { formatTime, parseLocalInput, toLocalInput, type EntryDto, type HomeDto } from "@medicron/shared";
 
 /**
- * Linha do widget: horário "08:00" (ou "ontem 20:00"), remédio e paciente. `late` = atrasada (não só "agora").
- * Só valores simples, NUNCA `null`: o módulo nativo grava as props no UserDefaults do App Group, que rejeita `null`.
+ * Próxima dose no widget: `time` "08:00" (texto), `at` o instante exato em ms (o widget deixa o sistema calcular
+ * "em 3 h", que se atualiza sozinho sem gastar o limite de atualizações do iOS).
+ * Só valores simples, NUNCA `null` nem `Date`: o módulo nativo grava as props no UserDefaults do App Group.
  */
-export type WidgetItem = { time: string; item: string; patient: string; late: boolean };
+export type WidgetItem = { time: string; item: string; patient: string; at: number };
 
 /** Tudo que o widget mostra: o widget não tem rede nem lógica, o app entrega pronto. */
 export type WidgetProps = {
   status: "ok" | "empty" | "stale" | "signedOut"; // stale = o dia do dado já passou (pede para abrir o app)
-  upcoming: WidgetItem[];
-  pending: WidgetItem[];
-  upcomingCount: number;
-  pendingCount: number;
-  updatedAt: string;
+  resolved: number; // doses de hoje já feitas (anel do dia)
+  total: number; // doses de hoje
+  upcoming: WidgetItem[]; // as 2 próximas, em ordem
+  pendingCount: number; // "agora" (janela de ±15 min) e atrasadas
+  pendingSince: string; // horário da pendente mais antiga ("06:00", "ontem 20:00") ou ""
 };
 
 const WINDOW_MS = 15 * 60_000; // a mesma janela "agora" do servidor (EARLY_WINDOW_MS)
 const MAX_ENTRIES = 24; // inclui a primeira (agora) e a última (meia-noite, "stale")
-const SHOW_UPCOMING = 3;
-const SHOW_PENDING = 2;
+const SHOW_UPCOMING = 2;
 const MAX_ITEM = 28;
 const MAX_PATIENT = 20;
 
 const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 export function signedOutProps(): WidgetProps {
-  return { status: "signedOut", upcoming: [], pending: [], upcomingCount: 0, pendingCount: 0, updatedAt: "" };
+  return { status: "signedOut", resolved: 0, total: 0, upcoming: [], pendingCount: 0, pendingSince: "" };
 }
 
 type Slot = { at: number; date: Date; item: string; patient: string };
@@ -39,7 +39,7 @@ function toSlot(e: EntryDto): Slot {
 /**
  * Entradas da timeline do widget a partir da tela Hoje: uma agora e uma a cada mudança de estado até o fim do dia
  * (a dose entra na janela "agora" 15 min antes e vira atrasada 15 min depois), então o widget avança sozinho entre
- * aberturas do app. `null` = sem sessão.
+ * aberturas do app. À meia-noite de Brasília a última entrada vira "stale". `null` = sem sessão.
  */
 export function buildWidgetTimeline(now: Date, home: HomeDto | null): { date: Date; props: WidgetProps }[] {
   if (!home) return [{ date: now, props: signedOutProps() }];
@@ -54,34 +54,31 @@ export function buildWidgetTimeline(now: Date, home: HomeDto | null): { date: Da
     slots.push(toSlot(e));
   }
 
-  const updatedAt = formatTime(now);
   const todayKey = home.todayKey;
   const label = (s: Slot) => {
     const time = formatTime(s.date);
     return toLocalInput(s.date).slice(0, 10) < todayKey ? `ontem ${time}` : time;
   };
-  const item = (s: Slot, late: boolean): WidgetItem => ({ time: label(s), item: s.item, patient: s.patient, late });
+  const { resolved, total } = home.progress;
 
   const propsAt = (t: number): WidgetProps => {
     const upcoming: Slot[] = [];
-    const pending: { s: Slot; late: boolean }[] = [];
+    const pending: Slot[] = [];
     for (const s of slots) {
-      const diff = s.at - t;
       // No instante exato dose+15min o widget já conta como atrasada (o servidor só depois): é a fronteira da entrada.
-      if (diff <= -WINDOW_MS) pending.push({ s, late: true });
-      else if (diff <= WINDOW_MS) pending.push({ s, late: false });
+      if (s.at - t <= WINDOW_MS) pending.push(s);
       else upcoming.push(s);
     }
     upcoming.sort((a, b) => a.at - b.at);
-    pending.sort((a, b) => b.s.at - a.s.at);
-    const empty = slots.length === 0 && home.progress.total === 0;
+    pending.sort((a, b) => a.at - b.at);
+    const empty = slots.length === 0 && total === 0;
     return {
       status: empty ? "empty" : "ok",
-      upcoming: upcoming.slice(0, SHOW_UPCOMING).map((s) => item(s, false)),
-      pending: pending.slice(0, SHOW_PENDING).map((p) => item(p.s, p.late)),
-      upcomingCount: upcoming.length,
+      resolved,
+      total,
+      upcoming: upcoming.slice(0, SHOW_UPCOMING).map((s) => ({ time: label(s), item: s.item, patient: s.patient, at: s.at })),
       pendingCount: pending.length,
-      updatedAt,
+      pendingSince: pending[0] ? label(pending[0]) : "",
     };
   };
 
@@ -93,6 +90,5 @@ export function buildWidgetTimeline(now: Date, home: HomeDto | null): { date: Da
   const later = [...instants].sort((a, b) => a - b).slice(0, MAX_ENTRIES - 2);
   const live = [now.getTime(), ...later].map((t) => ({ date: new Date(t), props: propsAt(t) }));
   // À meia-noite de Brasília os horários e "ontem" deixam de valer: o widget para de afirmar o dia anterior.
-  const midnight = new Date(endOfDay + 1_000);
-  return [...live, { date: midnight, props: { ...signedOutProps(), status: "stale" as const, updatedAt } }];
+  return [...live, { date: new Date(endOfDay + 1_000), props: { ...signedOutProps(), status: "stale" as const } }];
 }
