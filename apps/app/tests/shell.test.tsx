@@ -20,8 +20,13 @@ jest.mock("@/components/ui/toast", () => ({ toast: { error: jest.fn() }, Toaster
 jest.mock("react-native-gesture-handler", () => ({
   GestureHandlerRootView: ({ children }: { children?: unknown }) => children,
 }));
+const mockOrder: string[] = [];
+jest.mock("@/lib/theme-pref", () => ({
+  loadThemePref: jest.fn(async () => "dark"),
+  applyThemePref: jest.fn((p: string) => { mockOrder.push(`apply:${p}`); }),
+}));
 jest.mock("expo-font", () => ({ useFonts: () => [true, null] }));
-jest.mock("expo-splash-screen", () => ({ preventAutoHideAsync: jest.fn(), hideAsync: jest.fn() }));
+jest.mock("expo-splash-screen", () => ({ preventAutoHideAsync: jest.fn(), hideAsync: jest.fn(() => { mockOrder.push("hide"); }) }));
 
 const mockSession = {
   value: { status: "signedIn", orgCount: 2, activeOrgId: "o1", signOut: jest.fn(async () => {}) } as {
@@ -205,6 +210,15 @@ describe("Screen (corpo rolável)", () => {
     const style = flat(screen.getByTestId("sc").props.contentContainerStyle);
     expect(style.paddingTop).toBe(24);
     expect(Number(style.paddingBottom)).toBeLessThan(96);
+  });
+});
+
+describe("layout raiz: tema", () => {
+  test("a preferência de tema é aplicada antes de a tela de abertura sumir", async () => {
+    mockOrder.length = 0;
+    await renderApp(<RootLayout />);
+    await waitFor(() => expect(mockOrder).toContain("hide"));
+    expect(mockOrder).toEqual(["apply:dark", "hide"]);
   });
 });
 

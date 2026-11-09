@@ -1,5 +1,5 @@
 import "../global.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -13,6 +13,7 @@ import { GEIST_FONTS } from "@/theme/fonts";
 import { apiClient } from "@/lib/api";
 import { AppOutdatedError } from "@/lib/api/errors";
 import { fetchMe } from "@/lib/api/me";
+import { applyThemePref, loadThemePref } from "@/lib/theme-pref";
 import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
 import { decideRoute } from "@/lib/route-guard";
@@ -49,13 +50,20 @@ function Gate() {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(GEIST_FONTS);
+  const [themeReady, setThemeReady] = useState(false);
 
+  // O tema escolhido vale já na abertura: aplica antes de a tela de abertura sumir (sem piscar o tema errado).
   useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync();
-  }, [loaded, error]);
+    void loadThemePref().then((pref) => { applyThemePref(pref); setThemeReady(true); });
+  }, []);
 
-  // A tela de abertura segue visível até a Geist carregar (ou falhar: aí cai na fonte do sistema).
-  if (!loaded && !error) return null;
+  const ready = (loaded || !!error) && themeReady;
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  // A tela de abertura segue visível até a Geist carregar (ou falhar: aí cai na fonte do sistema) e o tema ser aplicado.
+  if (!ready) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
