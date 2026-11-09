@@ -2,13 +2,10 @@
 
 Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). Os itens abaixo dependem de contas, do banco de produção ou de aparelho real. Atualizado a cada plano.
 
-## A. Banco e publicação (obrigatório antes de publicar o Plano 4)
+## A. Banco e publicação — feito em 2026-11-08
 
-1. **Aplicar a migração `0008` (tabela `push_devices`).** Aditiva (só `CREATE TABLE`).
-   ```bash
-   cd apps/api && node --env-file=.env.local ../../node_modules/drizzle-kit/bin.cjs migrate
-   ```
-2. **Publicar a API** (só depois do item 1): `vercel --prod --yes`. Hoje a produção roda o código do Plano 3D; `main` já tem o Plano 4.
+1. Migração `0008` (`push_devices`) aplicada em produção e conferida (5 colunas, 0 linhas).
+2. API publicada com os Planos 4 e 5 (`/privacidade` 200; `/.well-known/*` 404 até as variáveis da seção E existirem).
 
 ## B. Push nativo (detalhes e checklist em `docs/push-setup.md`)
 
