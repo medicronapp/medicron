@@ -2,6 +2,7 @@ import { Platform, View } from "react-native";
 import { useMe } from "@/lib/me-query";
 import { useActiveOrganization } from "@/lib/org";
 import { AppearanceCard } from "@/components/appearance-card";
+import { EnableNotifications } from "@/components/enable-notifications";
 import { ErrorView } from "@/components/error-view";
 import { InvitationRow } from "@/components/invitation-row";
 import { InviteForm } from "@/components/invite-form";
@@ -41,6 +42,8 @@ export default function Conta() {
   return (
     <Screen testID="conta-scroll" onRefresh={refetchAll}>
       <PageHeader title={org.data.name ?? "Conta"} description="Pessoas, convites e preferências desta conta." />
+
+      <EnableNotifications />
 
       <Card>
         <CardHeader>

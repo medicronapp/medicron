@@ -5,6 +5,7 @@ import { renderApp } from "./helpers";
 jest.mock("expo-secure-store", () => ({ getItemAsync: jest.fn(async () => null), setItemAsync: jest.fn(async () => {}) }));
 jest.mock("expo-clipboard", () => ({ setStringAsync: jest.fn(async () => true) }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
+jest.mock("@/lib/push", () => ({ getPushState: jest.fn(async () => "default"), enablePush: jest.fn(), disablePush: jest.fn() }));
 jest.mock("@/lib/api-url", () => ({ API_URL: "https://medicron.com.br" }));
 
 type Org = { name: string; members: { id: string; role: string; user: { name: string; email: string } }[]; invitations: { id: string; email: string; status: string }[] };
@@ -84,12 +85,12 @@ test("membro não vê 'Convidar alguém' nem 'Convites pendentes'", async () => 
   expect(screen.queryByText("Convites pendentes")).toBeNull();
 });
 
-test("tem o cartão de Aparência; não tem o aviso de notificações (Plano 4)", async () => {
+test("tem o cartão de Aparência e o de notificações", async () => {
   ready(org(), "owner");
   await renderApp(<Conta />);
   expect(screen.getByText("Aparência")).toBeOnTheScreen();
   expect(screen.getByLabelText("Tema do aplicativo")).toBeOnTheScreen();
-  expect(screen.queryByText(/Receba avisos no celular/)).toBeNull();
+  expect(await screen.findByText("Receba avisos no celular")).toBeOnTheScreen();
 });
 
 test("na web o cartão de Aparência não aparece (o tema escuro de lá é do navegador)", async () => {
