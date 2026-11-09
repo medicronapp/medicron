@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
 import { createTestDb } from "@/lib/db/test-db";
-import { user, organization, member, pushSubscriptions } from "@/lib/db/schema";
-import { saveSubscription, removeSubscription, listSubscriptionsForOrg } from "@/lib/services/push";
+import { user, organization, member, pushSubscriptions, pushDevices } from "@/lib/db/schema";
+import { saveSubscription, removeSubscription, listSubscriptionsForOrg, saveDevice, removeDevice, listDevicesForOrg } from "@/lib/services/push";
 
 const sub = (endpoint: string) => ({ endpoint, keys: { p256dh: "p", auth: "a" } });
 
@@ -90,5 +90,58 @@ describe("vários aparelhos do mesmo usuário", () => {
     const rows = await listSubscriptionsForOrg(db, "o1");
     expect(rows).toHaveLength(1);
     expect(rows[0].p256dh).toBe("novo");
+  });
+});
+
+const dev = (token: string, platform: "ios" | "android" = "ios") => ({ token, platform });
+
+describe("aparelhos de push nativo", () => {
+  test("salvar cria; salvar o mesmo token duas vezes não duplica", async () => {
+    const db = await seed();
+    await saveDevice(db, "u1", dev("ExponentPushToken[a]"));
+    await saveDevice(db, "u1", dev("ExponentPushToken[a]"));
+    expect(await db.select().from(pushDevices)).toHaveLength(1);
+  });
+
+  test("token registrado por outro usuário muda de dono (aparelho compartilhado)", async () => {
+    const db = await seed();
+    await saveDevice(db, "u1", dev("ExponentPushToken[a]"));
+    await saveDevice(db, "u2", dev("ExponentPushToken[a]", "android"));
+    const rows = await db.select().from(pushDevices);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].userId).toBe("u2");
+    expect(rows[0].platform).toBe("android");
+  });
+
+  test("removeDevice com userId de outra pessoa não apaga; sem userId apaga", async () => {
+    const db = await seed();
+    await saveDevice(db, "u1", dev("ExponentPushToken[a]"));
+    await removeDevice(db, "ExponentPushToken[a]", "u2");
+    expect(await db.select().from(pushDevices)).toHaveLength(1);
+    await removeDevice(db, "ExponentPushToken[a]", "u1");
+    expect(await db.select().from(pushDevices)).toHaveLength(0);
+    await saveDevice(db, "u1", dev("ExponentPushToken[b]"));
+    await removeDevice(db, "ExponentPushToken[b]");
+    expect(await db.select().from(pushDevices)).toHaveLength(0);
+  });
+
+  test("listDevicesForOrg: só aparelhos de membros da organização, sem duplicar", async () => {
+    const db = await seed();
+    await saveDevice(db, "u1", dev("ExponentPushToken[a]"));
+    await saveDevice(db, "u1", dev("ExponentPushToken[b]", "android"));
+    await saveDevice(db, "u2", dev("ExponentPushToken[c]"));
+    const o1 = await listDevicesForOrg(db, "o1");
+    expect(o1.map((d) => d.token).sort()).toEqual(["ExponentPushToken[a]", "ExponentPushToken[b]"]);
+    expect((await listDevicesForOrg(db, "o2")).map((d) => d.token)).toEqual(["ExponentPushToken[c]"]);
+  });
+
+  test("usuário que está em duas organizações aparece uma vez em cada; quem saiu não recebe mais", async () => {
+    const db = await seed();
+    await db.insert(member).values({ id: "m3", organizationId: "o2", userId: "u1", role: "member", createdAt: new Date() });
+    await saveDevice(db, "u1", dev("ExponentPushToken[a]"));
+    expect((await listDevicesForOrg(db, "o1")).map((d) => d.token)).toEqual(["ExponentPushToken[a]"]);
+    expect((await listDevicesForOrg(db, "o2")).map((d) => d.token)).toContain("ExponentPushToken[a]");
+    await db.delete(member).where((await import("drizzle-orm")).eq(member.id, "m1"));
+    expect(await listDevicesForOrg(db, "o1")).toHaveLength(0);
   });
 });

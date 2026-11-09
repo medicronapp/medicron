@@ -41,6 +41,13 @@ export const planPatchBody = z.object({
 });
 export type PlanPatchBody = z.infer<typeof planPatchBody>;
 
+/** Aparelho com o app nativo: token do Expo Push Service (`ExponentPushToken[...]` ou `ExpoPushToken[...]`) e plataforma. */
+export const pushDeviceBody = z.object({
+  token: z.string().regex(/^Expo(nent)?PushToken\[.+\]$/, "Token de notificação inválido"),
+  platform: z.enum(["ios", "android"]),
+});
+export type PushDeviceBody = z.infer<typeof pushDeviceBody>;
+
 export const doseBody = z.object({
   planId: z.string().min(1),
   scheduledFor: iso,

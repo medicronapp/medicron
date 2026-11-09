@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { API_PREFIX, doseBody, itemBody, patientBody, planCreateBody, planPatchBody } from "../src";
+import { API_PREFIX, pushDeviceBody, doseBody, itemBody, patientBody, planCreateBody, planPatchBody } from "../src";
 
 describe("schemas de corpo da API", () => {
   test("prefixo da API", () => {
@@ -31,5 +31,18 @@ describe("schemas de corpo da API", () => {
     expect(doseBody.safeParse(ok).success).toBe(true);
     expect(doseBody.safeParse({ ...ok, outcome: "later" }).success).toBe(false);
     expect(doseBody.safeParse({ ...ok, appliedAt: "2026-11-06T12:20:00.000Z" }).success).toBe(true);
+  });
+});
+
+describe("corpo de aparelho de push", () => {
+  test("aceita tokens do Expo nos dois formatos e as plataformas ios e android", () => {
+    expect(pushDeviceBody.safeParse({ token: "ExponentPushToken[abc-123]", platform: "ios" }).success).toBe(true);
+    expect(pushDeviceBody.safeParse({ token: "ExpoPushToken[abc]", platform: "android" }).success).toBe(true);
+  });
+  test("recusa token solto, vazio, sem fechar e plataforma web", () => {
+    expect(pushDeviceBody.safeParse({ token: "abc", platform: "ios" }).success).toBe(false);
+    expect(pushDeviceBody.safeParse({ token: "", platform: "ios" }).success).toBe(false);
+    expect(pushDeviceBody.safeParse({ token: "ExponentPushToken[abc", platform: "ios" }).success).toBe(false);
+    expect(pushDeviceBody.safeParse({ token: "ExponentPushToken[abc]", platform: "web" }).success).toBe(false);
   });
 });
