@@ -1,0 +1,60 @@
+{
+  "buildCommand": "npx expo export -p web",
+  "outputDirectory": "dist",
+  "installCommand": "cd ../.. && npm ci",
+  "cleanUrls": false,
+  "redirects": [
+    {
+      "source": "/gatos",
+      "destination": "/pacientes",
+      "permanent": true
+    },
+    {
+      "source": "/gatos/:path*",
+      "destination": "/pacientes/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://medicron.vercel.app/api/:path*"
+    },
+    {
+      "source": "/privacidade",
+      "destination": "https://medicron.vercel.app/privacidade"
+    },
+    {
+      "source": "/.well-known/:path*",
+      "destination": "https://medicron.vercel.app/.well-known/:path*"
+    },
+    {
+      "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "x-vercel-enable-rewrite-caching",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    }
+  ]
+}

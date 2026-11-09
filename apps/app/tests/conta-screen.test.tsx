@@ -7,7 +7,7 @@ jest.mock("expo-clipboard", () => ({ setStringAsync: jest.fn(async () => true) }
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
 jest.mock("@/lib/push", () => ({ getPushState: jest.fn(async () => "default"), enablePush: jest.fn(), disablePush: jest.fn() }));
 jest.mock("@/components/delete-account", () => ({ DeleteAccount: () => { const { Text } = require("react-native"); const React = require("react"); return React.createElement(Text, null, "Cartão excluir conta"); } }));
-jest.mock("@/lib/api-url", () => ({ API_URL: "https://medicron.com.br" }));
+jest.mock("@/lib/api-url", () => ({ API_URL: "https://medicron.com.br", inviteBase: () => "https://medicron.com.br" }));
 
 type Org = { name: string; members: { id: string; role: string; user: { name: string; email: string } }[]; invitations: { id: string; email: string; status: string }[] };
 type OrgQ = { data?: Org | null; isPending: boolean; error?: unknown; refetch: jest.Mock };

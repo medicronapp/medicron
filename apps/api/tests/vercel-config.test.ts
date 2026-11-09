@@ -26,14 +26,14 @@ describe("vercel.ts: redirecionamento para medicron.com.br", () => {
     expect(rule(await load("1"))?.permanent).toBe(false);
   });
 
-  test("o agendador dos lembretes (/api/cron) não é redirecionado, senão perde o Authorization", async () => {
+  test("a API, a política e os arquivos de links universais não são redirecionados: são o alvo das reescritas do site estático", async () => {
     const m = rule(await load("1"))?.source.match(/^\/:path\((.*)\)$/);
     expect(m).not.toBeNull();
     const re = new RegExp(`^${m![1]}$`);
-    expect(re.test("api/cron/dispatch")).toBe(false);
-    for (const ok of ["", "entrar", "pacientes/abc", "api/v1/me", "api/auth/sign-in/email"]) {
-      expect(re.test(ok), ok).toBe(true);
+    for (const no of ["api/cron/dispatch", "api/auth/get-session", "api/v1/me", "api/push/subscribe", "privacidade", ".well-known/assetlinks.json"]) {
+      expect(re.test(no), no).toBe(false);
     }
+    for (const ok of ["", "entrar", "pacientes/abc", "convite/x"]) expect(re.test(ok), ok).toBe(true);
   });
 
   test("só o host exato é redirecionado (previews de deploy continuam funcionando)", async () => {

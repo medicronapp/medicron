@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Linking, View } from "react-native";
+import { Linking, Platform, View } from "react-native";
 import { BellOff, BellRing } from "lucide-react-native";
 import { disablePush, enablePush, getPushState, type PushState } from "@/lib/push";
 import { Button, buttonLabel } from "@/components/ui/button";
@@ -82,10 +82,20 @@ export function EnableNotifications({ compact = false }: { compact?: boolean }) 
       <View className="size-10 items-center justify-center rounded-full bg-background">
         <Icon icon={BellRing} color="brandInk" size={20} />
       </View>
-      {state === "denied" ? (
+      {state === "needs-install" ? (
+        <Text className="min-w-0 flex-1 text-sm text-brand-ink">
+          No iPhone, para receber avisos: toque em Compartilhar → <Text className="font-semibold text-brand-ink">Adicionar à Tela de Início</Text> e abra o Medicron por lá.
+        </Text>
+      ) : state === "denied" ? (
         <View className="min-w-0 flex-1 gap-3">
-          <Text className="text-sm text-brand-ink">As notificações estão bloqueadas. Libere nas configurações do aparelho para receber os avisos.</Text>
-          <Button variant="outline" onPress={() => void Linking.openSettings()} accessibilityLabel="Abrir configurações">Abrir configurações</Button>
+          <Text className="text-sm text-brand-ink">
+            {Platform.OS === "web"
+              ? "As notificações estão bloqueadas. Libere nas configurações do navegador para receber os avisos."
+              : "As notificações estão bloqueadas. Libere nas configurações do aparelho para receber os avisos."}
+          </Text>
+          {Platform.OS !== "web" && (
+            <Button variant="outline" onPress={() => void Linking.openSettings()} accessibilityLabel="Abrir configurações">Abrir configurações</Button>
+          )}
         </View>
       ) : (
         <View className="min-w-0 flex-1 flex-row items-center justify-between gap-3">

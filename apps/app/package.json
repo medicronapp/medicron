@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "sync-tokens": "node scripts/sync-tokens.cli.ts",
     "check-tokens": "jest tokens",
-    "build-assets": "node scripts/build-assets.ts"
+    "build-assets": "node scripts/build-assets.ts",
+    "vercel-config": "node scripts/vercel-config.cli.ts"
   },
   "dependencies": {
     "@better-auth/expo": "1.7.18",

@@ -4,13 +4,14 @@ import * as Notifications from "expo-notifications";
 import { AndroidImportance } from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { apiClient } from "@/lib/api";
+import type { PushState } from "./push-state";
 import { registerDevice, unregisterDevice } from "@/lib/api/push";
 
 const TOKEN_KEY = "medicron.pushToken"; // token registrado por este aparelho (para poder desregistrar)
 const OPT_OUT_KEY = "medicron.pushOptOut"; // o usuário desativou: a sincronização automática não reativa
 const UNREGISTER_TIMEOUT_MS = 3000;
 
-export type PushState = "unsupported" | "denied" | "default" | "enabled";
+export type { PushState } from "./push-state";
 
 /** `projectId` do EAS (vem do `app.json`, definido por `eas init`); sem ele o Expo não emite token. */
 const projectId = (): string | undefined => {
