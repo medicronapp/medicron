@@ -12,7 +12,7 @@ const OPTIONS = [
   { value: "system", label: "Padrão", icon: Monitor },
 ] as const;
 
-/** Escolha do tema: Claro e Escuro fixos, ou Sistema (segue o aparelho/navegador). */
+/** Escolha do tema: Claro e Escuro fixos, ou Padrão (segue o aparelho/navegador). */
 export function AppearanceCard() {
   const [pref, setPref] = useState<ThemePref | null>(null);
 
