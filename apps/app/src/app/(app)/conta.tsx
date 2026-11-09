@@ -1,16 +1,12 @@
 import { View } from "react-native";
-import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api";
-import { useAppSession } from "@/lib/session";
-import { fetchMe } from "@/lib/api/me";
+import { useMe } from "@/lib/me-query";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 
 export default function Conta() {
-  const { status } = useAppSession();
-  const me = useQuery({ queryKey: ["me"], queryFn: () => fetchMe(apiClient), enabled: status === "signedIn" });
+  const me = useMe();
   return (
     <Screen>
     <View className="gap-4">

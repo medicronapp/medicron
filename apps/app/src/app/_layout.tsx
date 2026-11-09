@@ -4,15 +4,14 @@ import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { GEIST_FONTS } from "@/theme/fonts";
-import { apiClient } from "@/lib/api";
 import { AppOutdatedError } from "@/lib/api/errors";
-import { fetchMe } from "@/lib/api/me";
+import { useMe } from "@/lib/me-query";
 import { applyThemePref, loadThemePref } from "@/lib/theme-pref";
 import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
@@ -30,7 +29,7 @@ function Gate() {
   const session = useAppSession();
   const pathname = usePathname();
   const router = useRouter();
-  const me = useQuery({ queryKey: ["me"], queryFn: () => fetchMe(apiClient), enabled: session.status === "signedIn" });
+  const me = useMe();
 
   const decision =
     session.status === "loading" || session.status === "error"

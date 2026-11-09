@@ -1,3 +1,2 @@
-export function inviteLink(invitationId: string, baseUrl: string): string {
-  return `${baseUrl.replace(/\/$/, "")}/convite/${invitationId}`;
-}
+// O link de convite mora em @medicron/shared (o app monta o mesmo link).
+export { inviteLink } from "@medicron/shared";
