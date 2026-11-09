@@ -12,7 +12,8 @@ function widget(): WidgetModule | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("@/widgets/medicron-widget").default as WidgetModule;
-  } catch {
+  } catch (error) {
+    console.warn("[widget] módulo do widget indisponível", error);
     return null;
   }
 }
@@ -21,8 +22,9 @@ function widget(): WidgetModule | null {
 export function clearWidget(): void {
   try {
     widget()?.updateTimeline([{ date: new Date(), props: signedOutProps() }]);
-  } catch {
-    // o widget é uma cortesia: nunca pode quebrar o app
+  } catch (error) {
+    // o widget é uma cortesia: nunca pode quebrar o app (mas o erro aparece no log do aparelho)
+    console.warn("[widget] não foi possível limpar o widget", error);
   }
 }
 
@@ -39,8 +41,8 @@ export function useWidgetSync(): void {
     if (status !== "signedIn" || !data) return;
     try {
       widget()?.updateTimeline(buildWidgetTimeline(new Date(), data.home));
-    } catch {
-      // idem: melhor esforço
+    } catch (error) {
+      console.warn("[widget] não foi possível atualizar o widget", error);
     }
   }, [status, data]);
 }

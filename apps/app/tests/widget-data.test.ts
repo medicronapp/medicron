@@ -121,3 +121,29 @@ describe("buildWidgetTimeline", () => {
     expect(first.props.upcoming[0].item.endsWith("…")).toBe(true);
   });
 });
+
+describe("o que vai para o armazenamento do App Group (UserDefaults do iOS)", () => {
+  // O módulo nativo grava as props num dicionário de UserDefaults, que só aceita valores simples: `null` (NSNull) faz a
+  // gravação falhar e o widget fica para sempre com o estado inicial ("Abra o Medicron para entrar").
+  const plist = (v: unknown, path = "props"): string[] => {
+    if (v === null || v === undefined) return [`${path} é ${v}`];
+    if (Array.isArray(v)) return v.flatMap((x, i) => plist(x, `${path}[${i}]`));
+    if (typeof v === "object") return Object.entries(v as object).flatMap(([k, x]) => plist(x, `${path}.${k}`));
+    return typeof v === "string" || typeof v === "number" || typeof v === "boolean" ? [] : [`${path} tem tipo ${typeof v}`];
+  };
+
+  test("nenhuma prop é null, undefined ou tipo que o UserDefaults não aceita (dose sem valor inclusive)", () => {
+    const h = home({
+      attention: [entry({ planId: "m", scheduledFor: "2026-11-09T08:00:00Z", state: "missed", dose: null })],
+      entries: [entry({ planId: "a", scheduledFor: "2026-11-09T13:00:00Z", dose: null }), entry({ planId: "b", scheduledFor: "2026-11-09T14:00:00Z", dose: "5 ml" })],
+    });
+    for (const e of buildWidgetTimeline(NOW, h)) expect(plist(e.props)).toEqual([]);
+    for (const e of buildWidgetTimeline(NOW, null)) expect(plist(e.props)).toEqual([]);
+    expect(plist(signedOutProps())).toEqual([]);
+  });
+
+  test("o widget não usa a dose: ela nem vai nas props", () => {
+    const [first] = buildWidgetTimeline(NOW, home({ entries: [entry({ scheduledFor: "2026-11-09T13:00:00Z", dose: "1 comprimido" })] }));
+    expect(Object.keys(first.props.upcoming[0]).sort()).toEqual(["item", "late", "patient", "time"]);
+  });
+});

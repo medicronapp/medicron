@@ -55,7 +55,7 @@ const layout = new Function(...Object.keys(globals), `return (${source});`)(...O
 const render = (props: WidgetProps, family: string) => layout(props, { widgetFamily: family });
 const text = (props: WidgetProps, family: string) => texts(render(props, family)).join(" | ");
 
-const item = (over: Partial<WidgetProps["upcoming"][number]> = {}) => ({ time: "08:00", item: "Losartana", patient: "Mel", dose: "1 comprimido", late: false, ...over });
+const item = (over: Partial<WidgetProps["upcoming"][number]> = {}) => ({ time: "08:00", item: "Losartana", patient: "Mel", late: false, ...over });
 const ok = (over: Partial<WidgetProps> = {}): WidgetProps => ({
   status: "ok", upcoming: [item(), item({ time: "12:00", item: "Vermífugo", patient: "Tom" })], pending: [item({ time: "06:00", item: "Insulina", late: true })],
   upcomingCount: 2, pendingCount: 1, updatedAt: "07:55", ...over,
