@@ -69,6 +69,26 @@
           "icon": "./assets/notification-icon.png",
           "color": "#0f766e"
         }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "MedicronWidget",
+              "displayName": "Medicron",
+              "description": "Próximas doses e pendentes",
+              "ios": {
+                "supportedFamilies": [
+                  "systemMedium",
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ],
+                "initialLayout": "./src/widgets/medicron-widget.tsx"
+              }
+            }
+          ]
+        }
       ]
     ],
     "icon": "./assets/icon.png",
