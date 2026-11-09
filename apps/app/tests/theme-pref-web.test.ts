@@ -5,6 +5,7 @@ let store: Record<string, string>;
 let storageBroken: boolean;
 let dataset: Record<string, string | undefined>;
 let systemDark: boolean;
+let metas: Record<"status" | "light" | "dark", { content: string; setAttribute: (n: string, v: string) => void }>;
 
 function install() {
   store = {};
@@ -15,7 +16,18 @@ function install() {
     getItem: (k: string) => { if (storageBroken) throw new Error("bloqueado"); return store[k] ?? null; },
     setItem: (k: string, v: string) => { if (storageBroken) throw new Error("bloqueado"); store[k] = v; },
   };
-  g.document = { documentElement: { dataset }, querySelector: () => null };
+  metas = {
+    status: { content: "default", setAttribute(_: string, v: string) { this.content = v; } },
+    light: { content: "#fbfaf7", setAttribute(_: string, v: string) { this.content = v; } },
+    dark: { content: "#0b1314", setAttribute(_: string, v: string) { this.content = v; } },
+  };
+  g.document = {
+    documentElement: { dataset },
+    querySelector: (sel: string) =>
+      sel.includes("status-bar-style") ? metas.status
+      : sel.includes("theme-color") && sel.includes("light") ? metas.light
+      : sel.includes("theme-color") && sel.includes("dark") ? metas.dark : null,
+  };
   const listeners = new Set<Listener>();
   g.window = {
     matchMedia: () => ({
@@ -61,6 +73,33 @@ describe("preferência de tema na web", () => {
     expect(dataset.theme).toBe("light");
     applyThemePref("system");
     expect(dataset.theme).toBeUndefined();
+  });
+});
+
+describe("barra de status e cor do tema (iOS/Safari)", () => {
+  test("escuro fixo: barra translúcida e theme-color escuro nos dois esquemas", () => {
+    applyThemePref("dark");
+    expect(metas.status.content).toBe("black-translucent");
+    expect(metas.light.content).toBe("#0b1314");
+    expect(metas.dark.content).toBe("#0b1314");
+  });
+  test("claro fixo, mesmo com o aparelho escuro: barra padrão e theme-color claro", () => {
+    systemDark = true;
+    applyThemePref("light");
+    expect(metas.status.content).toBe("default");
+    expect(metas.light.content).toBe("#fbfaf7");
+    expect(metas.dark.content).toBe("#fbfaf7");
+  });
+  test("Padrão decide pelo aparelho e restaura as cores por esquema", () => {
+    applyThemePref("dark");
+    systemDark = true;
+    applyThemePref("system");
+    expect(metas.status.content).toBe("black-translucent");
+    expect(metas.light.content).toBe("#fbfaf7");
+    expect(metas.dark.content).toBe("#0b1314");
+    systemDark = false;
+    applyThemePref("system");
+    expect(metas.status.content).toBe("default");
   });
 });
 

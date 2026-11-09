@@ -1,4 +1,5 @@
 import { setThemePref } from "@/lib/theme-store.web";
+import { COLORS } from "@/theme/colors.generated";
 
 export type ThemePref = "light" | "dark" | "system";
 const KEY = "medicron.theme"; // a mesma chave do app nativo; o script do <head> do index.html lê a mesma
@@ -28,4 +29,25 @@ export function applyThemePref(pref: ThemePref): void {
   if (pref === "system") delete root.dataset.theme;
   else root.dataset.theme = pref;
   setThemePref(pref);
+  syncBrowserChrome(pref);
+}
+
+const BG = { light: COLORS.light.background, dark: COLORS.dark.background };
+
+/** Barra de status do iPhone e cor do tema do Safari acompanham o esquema resolvido (a escolha, ou o aparelho em "Padrão"). */
+function syncBrowserChrome(pref: ThemePref): void {
+  const systemDark = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  const dark = pref === "dark" || (pref === "system" && systemDark);
+  const meta = (sel: string) => document.querySelector(sel);
+  meta('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute("content", dark ? "black-translucent" : "default");
+  const light = meta('meta[name="theme-color"][media*="light"]');
+  const night = meta('meta[name="theme-color"][media*="dark"]');
+  if (pref === "system") {
+    light?.setAttribute("content", BG.light);
+    night?.setAttribute("content", BG.dark);
+  } else {
+    const color = BG[pref];
+    light?.setAttribute("content", color);
+    night?.setAttribute("content", color);
+  }
 }
