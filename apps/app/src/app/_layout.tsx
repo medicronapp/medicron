@@ -16,6 +16,7 @@ import { applyThemePref, loadThemePref } from "@/lib/theme-pref";
 import { setupNotificationHandler } from "@/lib/notification-handler";
 import { useNotificationRouting } from "@/lib/notification-routing";
 import { usePushSync } from "@/lib/push-sync";
+import { useWidgetSync } from "@/lib/widget-sync";
 import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
 import { decideRoute } from "@/lib/route-guard";
@@ -38,6 +39,7 @@ function Gate() {
   const router = useRouter();
   const me = useMe();
   usePushSync();
+  useWidgetSync();
   useNotificationRouting();
 
   const decision =

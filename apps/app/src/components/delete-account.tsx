@@ -4,6 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { NETWORK_MESSAGE } from "@/lib/api/errors";
 import { queryClient } from "@/lib/api/query";
 import { unregisterThisDevice } from "@/lib/push";
+import { clearWidget } from "@/lib/widget-sync";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Drawer } from "@/components/ui/drawer";
@@ -34,6 +35,7 @@ export function DeleteAccount() {
       }
       // A conta já foi excluída (o servidor também apagou os aparelhos de push): limpa o que sobrou aqui.
       queryClient.clear();
+      clearWidget();
       await unregisterThisDevice();
       setPassword("");
       setOpen(false);

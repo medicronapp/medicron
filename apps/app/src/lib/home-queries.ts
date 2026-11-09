@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DoseBody } from "@medicron/shared";
 import { apiClient } from "@/lib/api";
-import { completeWelcome, dismissChecklist, fetchHome, recordDose } from "@/lib/api/home";
+import { completeWelcome, dismissChecklist, fetchHome, recordDose, type HomeResponse } from "@/lib/api/home";
 import { useAppSession } from "@/lib/session";
 
 export const HOME_KEY = ["home"] as const;
@@ -10,6 +10,11 @@ export const HOME_KEY = ["home"] as const;
 export function useHome(dia?: string) {
   const { status } = useAppSession();
   return useQuery({ queryKey: [...HOME_KEY, dia ?? "today"], queryFn: () => fetchHome(apiClient, dia), enabled: status === "signedIn" });
+}
+
+/** Só LÊ o cache da Hoje de hoje (nunca busca nada) e avisa quando a tela Hoje o atualiza: base do widget do iOS. */
+export function useCachedHome() {
+  return useQuery<HomeResponse>({ queryKey: [...HOME_KEY, "today"], queryFn: skipToken }).data;
 }
 
 /** Registrar dose: recarrega a Hoje quando algo mudou (registrada, ou "já registrada" por outra pessoa). */
