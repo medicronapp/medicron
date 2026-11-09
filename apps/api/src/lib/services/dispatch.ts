@@ -84,20 +84,21 @@ export async function dispatchDue(
     }
     // Aparelhos nativos: o mesmo lembrete, por um canal à parte; falha aqui não impede o Web Push (e vice-versa).
     if (sendDevices) {
-      if (!devicesByOrg.has(plan.organizationId)) devicesByOrg.set(plan.organizationId, await listDevicesForOrg(db, plan.organizationId));
-      const devices = devicesByOrg.get(plan.organizationId)!;
-      if (devices.length > 0) {
-        try {
+      try {
+        // A consulta também fica no try: um erro de banco neste canal (ex.: tabela ainda não migrada) não derruba o Web Push.
+        if (!devicesByOrg.has(plan.organizationId)) devicesByOrg.set(plan.organizationId, await listDevicesForOrg(db, plan.organizationId));
+        const devices = devicesByOrg.get(plan.organizationId)!;
+        if (devices.length > 0) {
           const r = await sendDevices(devices, payload);
           okCount += r.sent;
           for (const token of r.gone) {
             await removeDevice(db, token);
             removed++;
           }
-        } catch (err) {
-          failed++;
-          console.error("push (expo) send failed", err instanceof Error ? err.message : "erro");
         }
+      } catch (err) {
+        failed++;
+        console.error("push (expo) send failed", err instanceof Error ? err.message : "erro");
       }
     }
     sent += okCount;

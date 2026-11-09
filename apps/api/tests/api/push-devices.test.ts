@@ -6,14 +6,25 @@ import { call, env, freshDb } from "./harness";
 import { DELETE, POST } from "@/app/api/v1/push/devices/route";
 
 vi.mock("@/lib/db", async () => { const { env } = await import("./harness"); return { getDb: () => env.db }; });
+const flags = vi.hoisted(() => ({ noOrg: false }));
 vi.mock("@/lib/api/context", async () => {
   const { env } = await import("./harness");
-  return { getApiContext: async () => { if (env.fail) throw env.fail; return env.ctx; } };
+  const { ApiError } = await import("@/lib/api/errors");
+  return {
+    getApiContext: async () => {
+      if (env.fail) throw env.fail;
+      if (flags.noOrg) throw new ApiError(403, "no_organization");
+      return env.ctx;
+    },
+    // Só a sessão: sem sessão 401, mas não exige conta.
+    getApiUserId: async () => { if (env.fail) throw env.fail; return env.ctx.userId; },
+  };
 });
 
 const TOKEN = "ExponentPushToken[abc-123]";
 
 beforeEach(async () => {
+  flags.noOrg = false;
   const db = await freshDb();
   await db.insert(user).values([
     { id: "u1", name: "Ana", email: "a@x.com" },
@@ -68,5 +79,17 @@ describe("DELETE /push/devices", () => {
   test("token inexistente é idempotente (204); sem token é 400", async () => {
     expect((await call(DELETE, "/api/v1/push/devices", { method: "DELETE", json: { token: TOKEN } })).status).toBe(204);
     expect((await call(DELETE, "/api/v1/push/devices", { method: "DELETE", json: {} })).status).toBe(400);
+  });
+});
+
+describe("sem organização (quem saiu da única conta)", () => {
+  test("ainda consegue desregistrar o aparelho (só a sessão importa) e cadastrar", async () => {
+    await saveDevice(env.db, "u1", { token: TOKEN, platform: "ios" });
+    flags.noOrg = true;
+    const del = await call(DELETE, "/api/v1/push/devices", { method: "DELETE", json: { token: TOKEN } });
+    expect(del.status).toBe(204);
+    expect(await listDevicesForOrg(env.db, "o1")).toHaveLength(0);
+    const post = await call(POST, "/api/v1/push/devices", { method: "POST", json: { token: TOKEN, platform: "ios" } });
+    expect(post.status).toBe(200);
   });
 });

@@ -32,7 +32,7 @@ npm run build-assets   # regenera ícones e tela de abertura
 
 ### Estado do app
 
-Prontos: login, casca de navegação, a tela **Hoje** (sequência, atenção, linha do dia, registrar dose, primeiros passos e boas-vindas) **Pacientes e Rotinas** (lista, novo, detalhe com Dados e Rotina, editar, arquivar, nova rotina) e **Itens** (medicações e procedimentos: lista, novo, editar, arquivar). **Conta** (pessoas, convites, aparência) e a tela de **convite**. O **push nativo** está implementado, mas só funciona depois de aplicar a migração `0008` e configurar o EAS e as chaves de push: veja `docs/push-setup.md`. O aviso de notificações da Hoje e o push nativo entram no Plano 4.
+Prontos: login, casca de navegação, a tela **Hoje** (sequência, atenção, linha do dia, registrar dose, primeiros passos e boas-vindas) **Pacientes e Rotinas** (lista, novo, detalhe com Dados e Rotina, editar, arquivar, nova rotina) e **Itens** (medicações e procedimentos: lista, novo, editar, arquivar). **Conta** (pessoas, convites, aparência) e a tela de **convite**. O **push nativo** está implementado, mas só funciona depois de aplicar a migração `0008` e configurar o EAS e as chaves de push: veja `docs/push-setup.md`.
 
 ## Documentos
 

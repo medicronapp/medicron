@@ -24,7 +24,8 @@ const platform = (): "ios" | "android" => (Platform.OS === "android" ? "android"
 export async function getPushState(): Promise<PushState> {
   if (Platform.OS === "web" || !projectId()) return "unsupported";
   const perm = await Notifications.getPermissionsAsync();
-  if (perm.status === "denied") return "denied";
+  // "denied" só quando não dá mais para perguntar; no Android a primeira recusa ainda permite pedir de novo.
+  if (perm.status === "denied" && !perm.canAskAgain) return "denied";
   if (!perm.granted) return "default";
   return (await SecureStore.getItemAsync(TOKEN_KEY)) ? "enabled" : "default";
 }
@@ -58,12 +59,12 @@ export async function enablePush(): Promise<"enabled" | "denied" | "no-project">
 async function removeStoredToken(): Promise<void> {
   const token = await SecureStore.getItemAsync(TOKEN_KEY).catch(() => null);
   if (!token) return;
+  // Apaga a chave antes da rede: quem entrar logo depois (ou uma chamada lenta) não vê um token velho como se fosse seu.
+  await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
   try {
     await unregisterDevice(apiClient, token);
   } catch {
     // sem rede ou sessão já expirada
-  } finally {
-    await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
   }
 }
 

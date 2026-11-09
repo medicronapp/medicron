@@ -25,7 +25,7 @@ Confira que `apps/app/app.json` ficou com `expo.extra.eas.projectId` preenchido 
 ## 3. Chaves de push
 
 - **iPhone (APNs):** no Apple Developer, *Certificates, Identifiers & Profiles → Keys → +*, marque *Apple Push Notifications service (APNs)*, baixe a chave `.p8` e anote o *Key ID* e o *Team ID*. Envie ao EAS: `npx eas-cli credentials` → iOS → *Push Notifications* → *Add a new push key*.
-- **Android (FCM v1):** no Firebase Console crie um projeto, adicione o app Android com o pacote `app.medicron` e baixe o `google-services.json` (guarde fora do Git ou como arquivo secreto do EAS). Em *Configurações → Contas de serviço* gere a chave privada (JSON) e envie ao EAS: `npx eas-cli credentials` → Android → *Google Service Account Key for Push Notifications (FCM V1)*.
+- **Android (FCM v1):** no Firebase Console crie um projeto, adicione o app Android com o pacote `app.medicron` e baixe o `google-services.json`. Coloque o arquivo em `apps/app/google-services.json` e **referencie-o no `apps/app/app.json`**, dentro de `expo`: `"android": { "googleServicesFile": "./google-services.json" }` (sem isso o app Android não consegue pedir o token e o botão **Ativar** mostra "Não foi possível ativar as notificações"). O arquivo não é segredo de alto risco e pode ser commitado; se preferir não commitar, use um arquivo secreto do EAS (`eas secret:create --type file`) e aponte para ele em `app.config.js`. Depois, em *Configurações → Contas de serviço*, gere a chave privada (JSON) e envie ao EAS: `npx eas-cli credentials` → Android → *Google Service Account Key for Push Notifications (FCM V1)*.
 
 ## 4. (Opcional) Token de acesso do Expo
 

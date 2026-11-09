@@ -296,4 +296,17 @@ describe("dispatchDue com aparelhos nativos", () => {
     expect((await dispatchDue(db, now, failWeb, sendDevices)).sent).toBe(0);
     expect(calls).toHaveLength(1);
   });
+
+  test("erro de banco no canal nativo (ex.: tabela ausente) não derruba o Web Push de nenhum plano", async () => {
+    const { db, send, sent } = await setup();
+    const { sql } = await import("drizzle-orm");
+    await db.execute(sql`drop table push_devices`);
+    const { sendDevices, calls } = recorder();
+    const r = await dispatchDue(db, now, send, sendDevices);
+    expect(r.sent).toBe(2); // o Web Push chegou aos dois membros
+    expect(sent).toHaveLength(2);
+    expect(calls).toHaveLength(0);
+    // e o horário continua reivindicado: não duplica na passada seguinte
+    expect((await dispatchDue(db, now, send, sendDevices)).sent).toBe(0);
+  });
 });

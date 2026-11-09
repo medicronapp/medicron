@@ -57,9 +57,13 @@ describe("getPushState", () => {
   test("permissão ainda não decidida: default", async () => {
     expect(await getPushState()).toBe("default");
   });
-  test("negada: denied", async () => {
+  test("negada de vez (não dá para perguntar de novo): denied", async () => {
     mockNotif.perm = { status: "denied", granted: false, canAskAgain: false };
     expect(await getPushState()).toBe("denied");
+  });
+  test("negada uma vez mas ainda dá para perguntar (Android): default, com o botão Ativar disponível", async () => {
+    mockNotif.perm = { status: "denied", granted: false, canAskAgain: true };
+    expect(await getPushState()).toBe("default");
   });
   test("concedida mas sem token registrado neste aparelho: default (dá para ativar sem pedir de novo)", async () => {
     mockNotif.perm = { status: "granted", granted: true, canAskAgain: true };
@@ -159,6 +163,14 @@ describe("disablePush e unregisterThisDevice", () => {
     await jest.advanceTimersByTimeAsync(3100);
     await expect(p).resolves.toBeUndefined();
     jest.useRealTimers();
+  });
+
+  test("a chave do token é apagada ANTES da chamada de rede (quem entra logo depois não é confundido por um token velho)", async () => {
+    mockStore.set("medicron.pushToken", "ExponentPushToken[abc]");
+    mockRequest.mockReturnValue(new Promise(() => {})); // rede pendurada
+    void unregisterThisDevice();
+    await waitFor(() => expect(mockRequest).toHaveBeenCalled());
+    expect(mockStore.has("medicron.pushToken")).toBe(false);
   });
 
   test("sem token guardado não chama a API", async () => {
