@@ -33,9 +33,9 @@ describe("eas.json", () => {
     }
     expect(JSON.stringify(eas)).not.toMatch(/secret|password|token/i);
   });
-  test("produção incrementa o número de build sozinha e a versão vem do app.json", () => {
+  test("produção incrementa o número de build sozinha e o número de build fica no EAS (o app.json não é reescrito a cada build)", () => {
     expect(eas.build.production.autoIncrement).toBe(true);
-    expect(eas.cli.appVersionSource).toBe("local");
+    expect(eas.cli.appVersionSource).toBe("remote");
   });
   test("preview gera APK/instalável interno", () => {
     expect(eas.build.preview.distribution).toBe("internal");
