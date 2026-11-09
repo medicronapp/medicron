@@ -1,8 +1,8 @@
 import { and, eq, inArray, isNull, lt, lte, or } from "drizzle-orm";
 import type { Db } from "@/lib/db";
-import { carePlans, careSlots, patients, items, type PushSubscriptionRow } from "@/lib/db/schema";
+import { carePlans, careSlots, patients, items, type PushDeviceRow, type PushSubscriptionRow } from "@/lib/db/schema";
 import { ensureSlots } from "@/lib/services/slots";
-import { listSubscriptionsForOrg, removeSubscription } from "@/lib/services/push";
+import { listDevicesForOrg, listSubscriptionsForOrg, removeDevice, removeSubscription } from "@/lib/services/push";
 
 export type PushPayload = { title: string; body: string; tag: string; url: string };
 export type PushSender = (
@@ -10,12 +10,18 @@ export type PushSender = (
 ) => Promise<{ ok: true } | { ok: false; gone: boolean }>;
 
 /**
+ * Envio em lote para os aparelhos nativos (Expo). `gone` são tokens que o Expo diz estar mortos (serão apagados).
+ * Lança quando nada foi enviado por falha transitória (rede, limite): aí o horário pode ser devolvido para nova tentativa.
+ */
+export type DeviceSender = (devices: PushDeviceRow[], payload: PushPayload) => Promise<{ sent: number; gone: string[] }>;
+
+/**
  * Notifica os cuidados vencidos e ainda não resolvidos, uma vez por horário. Por rotina avisa só o
  * horário mais recente (os mais antigos pendentes são marcados como avisados sem enviar). Seguro para
  * execuções concorrentes: o slot é reivindicado por compare-and-set em notified_at antes do envio.
  */
 export async function dispatchDue(
-  db: Db, now: Date, send: PushSender,
+  db: Db, now: Date, send: PushSender, sendDevices?: DeviceSender,
 ): Promise<{ plans: number; sent: number; removed: number }> {
   await ensureSlots(db, now);
 
@@ -37,6 +43,7 @@ export async function dispatchDue(
   for (const c of candidates) byPlan.set(c.plan.id, [...(byPlan.get(c.plan.id) ?? []), c]);
 
   const subsByOrg = new Map<string, PushSubscriptionRow[]>();
+  const devicesByOrg = new Map<string, PushDeviceRow[]>();
   let plans = 0;
   let sent = 0;
   let removed = 0;
@@ -73,6 +80,24 @@ export async function dispatchDue(
       else if (r.value.gone) {
         await removeSubscription(db, sub.endpoint);
         removed++;
+      }
+    }
+    // Aparelhos nativos: o mesmo lembrete, por um canal à parte; falha aqui não impede o Web Push (e vice-versa).
+    if (sendDevices) {
+      if (!devicesByOrg.has(plan.organizationId)) devicesByOrg.set(plan.organizationId, await listDevicesForOrg(db, plan.organizationId));
+      const devices = devicesByOrg.get(plan.organizationId)!;
+      if (devices.length > 0) {
+        try {
+          const r = await sendDevices(devices, payload);
+          okCount += r.sent;
+          for (const token of r.gone) {
+            await removeDevice(db, token);
+            removed++;
+          }
+        } catch (err) {
+          failed++;
+          console.error("push (expo) send failed", err instanceof Error ? err.message : "erro");
+        }
       }
     }
     sent += okCount;

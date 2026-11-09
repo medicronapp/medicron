@@ -4,7 +4,7 @@ import { user } from "@/lib/db/schema";
 import { createPatient } from "@/lib/services/patients";
 import { createItem } from "@/lib/services/items";
 import { createPlan } from "@/lib/services/plans";
-import { saveSubscription } from "@/lib/services/push";
+import { saveSubscription, saveDevice } from "@/lib/services/push";
 import { dismissChecklist, getOnboarding, markWelcomeSeen } from "@/lib/services/onboarding";
 
 async function setup() {
@@ -58,5 +58,15 @@ describe("onboarding", () => {
     const db = await setup();
     await createPatient(db, "o2", { name: "Outro", species: "dog" });
     expect((await getOnboarding(db, "u1", "o1")).checklist.steps.patient).toBe(false);
+  });
+});
+
+describe("passo 'push' do checklist com aparelho nativo", () => {
+  test("só um aparelho nativo já marca o passo", async () => {
+    const db = await createTestDb();
+    await db.insert(user).values({ id: "u1", name: "Ana", email: "a@x.com" });
+    expect((await getOnboarding(db, "u1", "o1")).checklist.steps.push).toBe(false);
+    await saveDevice(db, "u1", { token: "ExponentPushToken[a]", platform: "ios" });
+    expect((await getOnboarding(db, "u1", "o1")).checklist.steps.push).toBe(true);
   });
 });
