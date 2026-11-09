@@ -110,7 +110,7 @@ Estrutura exata de pastas, nomes dos endpoints, biblioteca de formulários, estr
 
 ## Decisões registradas na limpeza (2026-11-09)
 
-- **Tema manual na web:** não existe de propósito. Na web o escuro segue o navegador (`prefers-color-scheme`); o cartão Aparência só aparece no app nativo.
+- **Tema manual na web (revisto em 2026-11-09, a pedido do usuário):** existe. Padrão (segue o navegador), Claro e Escuro, salvos no navegador (`medicron.theme`), aplicados por `data-theme` no `<html>` antes da primeira pintura. O rótulo "Sistema" virou "Padrão" também no app nativo. A barra de status do iPhone (app na tela de início) acompanha o esquema: escuro = `black-translucent`, claro = `default`.
 - **Exclusão de conta:** a purga dos dados e a exclusão do usuário pelo `better-auth` são duas operações; se a segunda falhar depois da primeira, a pessoa fica com a conta sem organizações (as chaves estrangeiras têm cascade, então é improvável). Limitação conhecida, aceita.
 - **Convites pendentes:** os convites que alguém enviou e que ainda não foram aceitos somem se essa pessoa excluir a conta (`inviterId` com cascade). Aceito: quem foi convidado pede um novo link.
 - **Versão mínima do app:** `MIN_APP_VERSION` malformada cai em `0.0.0` e registra o erro, em vez de bloquear todos os clientes.
