@@ -14,10 +14,11 @@ export const config: VercelConfig = {
     ? [
         // Só o host exato antigo redireciona (previews seguem funcionando).
         // Temporário (307): o navegador não guarda para sempre e dá para desfazer se o domínio novo falhar.
-        // /api/cron fica de fora: o agendador dos lembretes ainda chama o host antigo e perderia o Authorization
-        // no redirecionamento; ele passa a usar o domínio novo e esta exceção sai depois.
+        // /api, /privacidade e /.well-known ficam de fora: depois da virada da web o site estático em medicron.com.br
+        // reescreve essas rotas para este host (medicron.vercel.app); redirecioná-las de volta seria um laço, e o
+        // agendador dos lembretes perderia o Authorization.
         {
-          source: "/:path((?!api/cron/).*)",
+          source: "/:path((?!api/|privacidade|\\.well-known/).*)",
           has: [{ type: "host", value: "medicron.vercel.app" }],
           destination: "https://medicron.com.br/:path",
           permanent: false,
