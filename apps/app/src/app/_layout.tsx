@@ -13,6 +13,7 @@ import { GEIST_FONTS } from "@/theme/fonts";
 import { AppOutdatedError } from "@/lib/api/errors";
 import { useMe } from "@/lib/me-query";
 import { applyThemePref, loadThemePref } from "@/lib/theme-pref";
+import { usePushSync } from "@/lib/push-sync";
 import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
 import { decideRoute } from "@/lib/route-guard";
@@ -33,6 +34,7 @@ function Gate() {
   const pathname = typeof next === "string" && next ? `${path}?next=${encodeURIComponent(next)}` : path;
   const router = useRouter();
   const me = useMe();
+  usePushSync();
 
   const decision =
     session.status === "loading" || session.status === "error"
