@@ -119,3 +119,16 @@ test("disablePush com o servidor recusando (não ok) também lança", async () =
   await expect(disablePush()).rejects.toThrow();
   expect(s.unsubscribe).not.toHaveBeenCalled();
 });
+
+test("sair/excluir a conta com a sessão já inválida (401) ainda remove a inscrição do navegador", async () => {
+  sub = makeSub(); const s = sub;
+  mockFetch.mockResolvedValue({ ok: false, status: 401 });
+  await unregisterThisDevice();
+  expect(s.unsubscribe).toHaveBeenCalled();
+});
+test("sair offline também remove a inscrição local", async () => {
+  sub = makeSub(); const s = sub;
+  mockFetch.mockRejectedValue(new Error("offline"));
+  await unregisterThisDevice();
+  expect(s.unsubscribe).toHaveBeenCalled();
+});

@@ -63,13 +63,22 @@ export async function disablePush(): Promise<void> {
   await sub.unsubscribe();
 }
 
-/** Ao sair da conta: com limite de tempo; sair nunca pode travar nem falhar por isso. */
+/**
+ * Ao sair ou excluir a conta: tenta o servidor e remove SEMPRE a inscrição do navegador (a sessão pode já ter acabado,
+ * como na exclusão de conta; deixar a local viva faria o próximo login ver "ativado" sem registro no servidor).
+ * Com limite de tempo; sair nunca pode travar nem falhar por isso.
+ */
 export async function unregisterThisDevice(): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const limit = new Promise<void>((resolve) => { timer = setTimeout(resolve, UNREGISTER_TIMEOUT_MS); });
+  const run = async () => {
+    const sub = await currentSubscription();
+    if (!sub) return;
+    await unsubscribeWebPush(sub.endpoint).catch(() => {}); // offline ou sessão encerrada: o servidor limpa quando o serviço de push disser que morreu
+    await sub.unsubscribe();
+  };
   try {
-    // offline ou sessão já expirada: o servidor limpa a inscrição quando o serviço de push disser que morreu
-    await Promise.race([disablePush().catch(() => {}), limit]);
+    await Promise.race([run().catch(() => {}), limit]);
   } finally {
     clearTimeout(timer);
   }

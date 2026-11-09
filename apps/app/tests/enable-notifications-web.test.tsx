@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import { screen } from "@testing-library/react-native";
+import { fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { renderApp } from "./helpers";
 
 const mockPush = { state: "needs-install" as string, disable: jest.fn(async () => {}), enable: jest.fn(async (): Promise<string> => "enabled") };
@@ -10,7 +10,6 @@ jest.mock("@/lib/push", () => ({
 }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
 
-import { fireEvent, waitFor } from "@testing-library/react-native";
 import { toast as mockToast } from "@/components/ui/toast";
 import { EnableNotifications } from "@/components/enable-notifications";
 
