@@ -54,6 +54,31 @@ describe("arquivos gerados estão em dia com o site", () => {
   });
 });
 
+describe("tema fixo (data-theme) para a web", () => {
+  const { css } = buildTokens(site);
+  const forced = (t: "light" | "dark") => {
+    const i = css.indexOf(`:root[data-theme="${t}"] {`);
+    return i < 0 ? "" : css.slice(i, css.indexOf("\n}", i));
+  };
+
+  test("Claro e Escuro fixos trazem os mesmos valores dos temas, com especificidade acima do @media", () => {
+    expect(forced("light")).toContain("--background: oklch(0.985 0.004 95)");
+    expect(forced("light")).toContain("--primary: oklch(0.48 0.09 190)");
+    expect(forced("dark")).toContain("--background: oklch(0.18 0.012 200)");
+    expect(forced("dark")).toContain("--primary: oklch(0.46 0.09 190)");
+    expect(forced("dark")).toContain("--brand-20:"); // tokens de alfa também
+  });
+
+  test("ficam depois do @theme (não entram nos blocos claro/escuro que os testes de contraste fatiam)", () => {
+    expect(css.indexOf(':root[data-theme="light"]')).toBeGreaterThan(css.indexOf("@theme inline"));
+    expect(css.indexOf(':root[data-theme="dark"]')).toBeGreaterThan(css.indexOf("@theme inline"));
+  });
+
+  test("o global.css do disco é o gerado (já tem os blocos)", () => {
+    expect(read("src/global.css")).toContain(':root[data-theme="dark"] {');
+  });
+});
+
 describe("contraste AA (≥ 4,5) do que vai gerado", () => {
   const css = read("src/global.css");
   const blocks = {
