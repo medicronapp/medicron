@@ -55,7 +55,7 @@ describe("buildWidgetTimeline", () => {
     const h = home({ entries: [entry({ scheduledFor: "2026-11-09T13:00:00Z" })] }); // 10:00
     const t = buildWidgetTimeline(NOW, h);
     const dates = t.map((e) => e.date.toISOString());
-    expect(dates).toEqual(["2026-11-09T11:00:00.000Z", "2026-11-09T12:45:00.000Z", "2026-11-09T13:15:00.000Z"]);
+    expect(dates).toEqual(["2026-11-09T11:00:00.000Z", "2026-11-09T12:45:00.000Z", "2026-11-09T13:15:00.000Z", "2026-11-10T03:00:00.000Z"]); // a última é a meia-noite ("stale")
     expect(t[0].props.upcoming).toHaveLength(1);
     expect(t[0].props.pending).toHaveLength(0);
     expect(t[1].props.upcoming).toHaveLength(0);
@@ -86,13 +86,31 @@ describe("buildWidgetTimeline", () => {
     expect(first.props.pending[0].time).toBe("ontem 20:00");
   });
 
-  test("a timeline termina no fim do dia de Brasília, em ordem crescente e com no máximo 24 entradas", () => {
+  test("a timeline segue em ordem crescente, tem no máximo 24 entradas e só avança até o fim do dia de Brasília", () => {
     const many = Array.from({ length: 30 }, (_, i) => entry({ planId: `x${i}`, scheduledFor: new Date(NOW.getTime() + (i + 1) * 20 * 60_000).toISOString() }));
     const t = buildWidgetTimeline(NOW, home({ entries: many }));
     expect(t.length).toBeLessThanOrEqual(24);
     const times = t.map((e) => e.date.getTime());
     expect([...times].sort((a, b) => a - b)).toEqual(times);
-    expect(times.every((x) => x <= at("02:59", "2026-11-10").getTime() + 60_000)).toBe(true); // 23:59 de Brasília
+    const live = t.filter((e) => e.props.status !== "stale");
+    expect(live.every((e) => e.date.getTime() <= at("02:59", "2026-11-10").getTime() + 59_000)).toBe(true);
+  });
+
+  test("à meia-noite de Brasília o widget deixa de afirmar o dia anterior: 'stale', sem listas", () => {
+    const h = home({ entries: [entry({ scheduledFor: "2026-11-09T13:00:00Z" })] });
+    const t = buildWidgetTimeline(NOW, h);
+    const last = t[t.length - 1];
+    expect(last.props.status).toBe("stale");
+    expect(last.date).toEqual(at("03:00", "2026-11-10")); // 00:00 do dia seguinte em Brasília
+    expect(last.props.upcoming).toEqual([]);
+    expect(last.props.pending).toEqual([]);
+    expect(t.slice(0, -1).every((e) => e.props.status !== "stale")).toBe(true);
+  });
+
+  test("dia sem doses também vira 'stale' à meia-noite; sem sessão nunca", () => {
+    const empty = buildWidgetTimeline(NOW, home({ total: 0 }));
+    expect(empty[empty.length - 1].props.status).toBe("stale");
+    expect(buildWidgetTimeline(NOW, null).every((e) => e.props.status === "signedOut")).toBe(true);
   });
 
   test("nome longo é cortado para caber no widget", () => {

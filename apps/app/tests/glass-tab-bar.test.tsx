@@ -66,3 +66,16 @@ test("com 'Reduzir transparência' ligado, não usa vidro", async () => {
   await waitFor(() => expect(screen.queryByTestId("glass-view")).toBeNull());
   expect(screen.getAllByRole("button")).toHaveLength(4);
 });
+
+test("sem piscar: enquanto 'Reduzir transparência' não responde, não mostra a barra sólida para trocar pelo vidro depois", async () => {
+  (AccessibilityInfo.isReduceTransparencyEnabled as jest.Mock).mockReturnValue(new Promise(() => {}));
+  await renderApp(<TabBar />);
+  expect(screen.queryByTestId("tab-bar")).toBeNull();
+});
+
+test("sem liquid glass disponível, a barra de sempre aparece na hora (não espera nada)", async () => {
+  mockGlass.available = false;
+  (AccessibilityInfo.isReduceTransparencyEnabled as jest.Mock).mockReturnValue(new Promise(() => {}));
+  await renderApp(<TabBar />);
+  expect(screen.getByTestId("tab-bar")).toBeOnTheScreen();
+});

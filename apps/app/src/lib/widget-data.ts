@@ -5,7 +5,7 @@ export type WidgetItem = { time: string; item: string; patient: string; dose: st
 
 /** Tudo que o widget mostra: o widget não tem rede nem lógica, o app entrega pronto. */
 export type WidgetProps = {
-  status: "ok" | "empty" | "signedOut";
+  status: "ok" | "empty" | "stale" | "signedOut"; // stale = o dia do dado já passou (pede para abrir o app)
   upcoming: WidgetItem[];
   pending: WidgetItem[];
   upcomingCount: number;
@@ -14,7 +14,7 @@ export type WidgetProps = {
 };
 
 const WINDOW_MS = 15 * 60_000; // a mesma janela "agora" do servidor (EARLY_WINDOW_MS)
-const MAX_ENTRIES = 24;
+const MAX_ENTRIES = 24; // inclui a primeira (agora) e a última (meia-noite, "stale")
 const SHOW_UPCOMING = 3;
 const SHOW_PENDING = 2;
 const MAX_ITEM = 28;
@@ -87,6 +87,9 @@ export function buildWidgetTimeline(now: Date, home: HomeDto | null): { date: Da
   for (const s of slots) {
     for (const t of [s.at - WINDOW_MS, s.at + WINDOW_MS]) if (t > now.getTime() && t <= endOfDay) instants.add(t);
   }
-  const later = [...instants].sort((a, b) => a - b).slice(0, MAX_ENTRIES - 1);
-  return [now.getTime(), ...later].map((t) => ({ date: new Date(t), props: propsAt(t) }));
+  const later = [...instants].sort((a, b) => a - b).slice(0, MAX_ENTRIES - 2);
+  const live = [now.getTime(), ...later].map((t) => ({ date: new Date(t), props: propsAt(t) }));
+  // À meia-noite de Brasília os horários e "ontem" deixam de valer: o widget para de afirmar o dia anterior.
+  const midnight = new Date(endOfDay + 1_000);
+  return [...live, { date: midnight, props: { ...signedOutProps(), status: "stale" as const, updatedAt } }];
 }

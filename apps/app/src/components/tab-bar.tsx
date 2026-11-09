@@ -9,7 +9,10 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 
 /** Liquid Glass só no iOS 26+ (build com o SDK novo) e sem "Reduzir transparência"; nos demais casos, a barra de sempre. */
-function useLiquidGlass(): boolean {
+const glassAvailable = () => Platform.OS === "ios" && isLiquidGlassAvailable();
+
+/** `"pending"` = o iOS 26 ainda não respondeu sobre "Reduzir transparência" (alguns milissegundos): não desenha a barra errada. */
+function useLiquidGlass(): boolean | "pending" {
   const [reduceTransparency, setReduce] = useState<boolean | null>(null);
   useEffect(() => {
     if (Platform.OS !== "ios") return;
@@ -20,7 +23,8 @@ function useLiquidGlass(): boolean {
     const sub = AccessibilityInfo.addEventListener("reduceTransparencyChanged", setReduce);
     return () => { alive = false; sub.remove(); };
   }, []);
-  return Platform.OS === "ios" && reduceTransparency === false && isLiquidGlassAvailable();
+  if (!glassAvailable()) return false;
+  return reduceTransparency === null ? "pending" : !reduceTransparency;
 }
 
 function Items({ glass }: { glass: boolean }) {
@@ -59,6 +63,8 @@ function Items({ glass }: { glass: boolean }) {
 export function TabBar() {
   const glass = useLiquidGlass();
   const insets = useSafeAreaInsets();
+
+  if (glass === "pending") return null;
 
   if (glass) {
     return (

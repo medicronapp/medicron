@@ -2,7 +2,7 @@ import { HStack, Spacer, Text, VStack } from "@expo/ui/swift-ui";
 import { containerBackground, font, foregroundStyle, lineLimit, padding } from "@expo/ui/swift-ui/modifiers";
 import { createWidget, type WidgetEnvironment } from "expo-widgets";
 import { PlatformColor } from "react-native";
-import { signedOutProps, type WidgetProps } from "@/lib/widget-data";
+import type { WidgetProps } from "@/lib/widget-data";
 
 /**
  * Widget de próximas doses e pendentes (médio e tela de bloqueio). Roda isolado na extensão do iOS: sem hooks, sem
@@ -17,6 +17,7 @@ const MedicronWidget = (props: WidgetProps, environment: WidgetEnvironment) => {
 
   const message =
     props.status === "signedOut" ? "Abra o Medicron para entrar"
+    : props.status === "stale" ? "Abra o Medicron para atualizar"
     : props.status === "empty" ? "Sem doses hoje"
     : props.upcoming.length === 0 && props.pending.length === 0 ? "Tudo em dia"
     : null;
@@ -84,4 +85,8 @@ const MedicronWidget = (props: WidgetProps, environment: WidgetEnvironment) => {
   );
 };
 
-export default createWidget("MedicronWidget", MedicronWidget, signedOutProps());
+// Estado inicial (galeria de widgets, antes do app entregar dados): sem sessão, literal. Não pode importar valores do app:
+// o registro de layouts do build avalia este arquivo e resolve imports do app como módulo vazio. Igual a `signedOutProps()`.
+const INITIAL: WidgetProps = { status: "signedOut", upcoming: [], pending: [], upcomingCount: 0, pendingCount: 0, updatedAt: "" };
+
+export default createWidget("MedicronWidget", MedicronWidget, INITIAL);

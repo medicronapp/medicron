@@ -63,7 +63,7 @@ const ok = (over: Partial<WidgetProps> = {}): WidgetProps => ({
 
 test("é registrado com o nome do plugin e um estado inicial sem dados (nada de paciente na galeria)", () => {
   expect((widget as unknown as { name: string }).name).toBe("MedicronWidget");
-  expect((widget as unknown as { initialProps: WidgetProps }).initialProps).toEqual(signedOutProps());
+  expect((widget as unknown as { initialProps: WidgetProps }).initialProps).toEqual(signedOutProps()); // o literal do widget = o do app
 });
 
 describe("médio", () => {
@@ -113,6 +113,14 @@ describe("estados do widget (todas as famílias)", () => {
   });
 });
 
+describe("dado de ontem", () => {
+  test.each(["systemMedium", "accessoryRectangular", "accessoryInline"])("%s: pede para abrir o app, sem mostrar listas", (family) => {
+    const t = text({ ...ok(), status: "stale", upcoming: [], pending: [], upcomingCount: 0, pendingCount: 0 }, family);
+    expect(t).toContain("Abra o Medicron para atualizar");
+    expect(t).not.toMatch(/Losartana|Nenhuma a seguir/);
+  });
+});
+
 describe("contrato do runtime do widget", () => {
   test("a raiz de cada família tem o fundo do widget (obrigatório no iOS 17+)", () => {
     for (const f of ["systemMedium", "accessoryRectangular", "accessoryInline"]) {
@@ -122,10 +130,12 @@ describe("contrato do runtime do widget", () => {
   test("é puro: as mesmas props dão a mesma árvore (sem hooks nem estado)", () => {
     expect(JSON.stringify(render(ok(), "systemMedium"))).toBe(JSON.stringify(render(ok(), "systemMedium")));
   });
-  test("o fonte só importa expo-widgets, @expo/ui, react-native e tipos locais, e declara 'widget'", () => {
+  test("o fonte só importa VALORES de expo-widgets, @expo/ui e react-native (o registro de layouts do build resolve o resto como módulo vazio)", () => {
     const src = fs.readFileSync(path.join(__dirname, "..", "src/widgets/medicron-widget.tsx"), "utf8");
-    const imports = [...src.matchAll(/^import .* from "(.+)";$/gm)].map((m) => m[1]);
-    for (const i of imports) expect(["expo-widgets", "@expo/ui/swift-ui", "@expo/ui/swift-ui/modifiers", "react-native", "@/lib/widget-data"]).toContain(i);
+    const valueImports = [...src.matchAll(/^import (?!type\b).* from "(.+)";$/gm)].map((m) => m[1]);
+    for (const i of valueImports) expect(["expo-widgets", "@expo/ui/swift-ui", "@expo/ui/swift-ui/modifiers", "react-native"]).toContain(i);
+    const appImports = [...src.matchAll(/^import .* from "@\/.+";$/gm)].map((m) => m[0]);
+    for (const line of appImports) expect(line).toMatch(/^import type /); // do app, só tipos (somem na compilação)
     expect(src).toMatch(/'widget';|"widget";/);
     expect(src).not.toMatch(/use(State|Effect|Memo|Ref|Callback)\(/);
   });
