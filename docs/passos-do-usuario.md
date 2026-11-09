@@ -17,6 +17,10 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 
 6. **Remover `EXTRA_TRUSTED_ORIGINS=exp://**` da produção** (era só para o Expo Go em desenvolvimento): `vercel env rm EXTRA_TRUSTED_ORIGINS production` e publicar de novo. Os builds de loja usam `medicron://`.
 
+## D. Teste de ponta a ponta (você, no simulador/aparelho)
+
+7. Login, trocar de conta, sair; Hoje (registrar dose, tour, dia passado); Pacientes e Rotinas; Itens; Conta (convite com **segunda conta**, copiar link, aparência nos três modos, notificações); fluxo do convidado (link sem sessão → criar conta → aceitar); voltar/gestos sem tela duplicada.
+
 ## E. Lojas (Plano 5; textos e questionários prontos em `docs/lojas.md`)
 
 8. **Variáveis na Vercel** (projeto da API; você roda com `!`): `vercel env add CONTACT_EMAIL production` (e-mail de suporte). `APPLE_TEAM_ID` (Apple Developer → Membership) e `ANDROID_SHA256_CERT_FINGERPRINTS` (Play Console → Integridade do app → Assinatura do app, impressão SHA-256; várias separadas por vírgula) só existem depois dos itens 11 e 12. Publique a API de novo depois de definir.
@@ -33,7 +37,3 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 16. `cd apps/app && vercel env add EXPO_PUBLIC_VAPID_PUBLIC_KEY production` (mesmo valor da `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e republicar `medicron-web` (comando no guia).
 17. **Ensaio do login** (passo 3 do guia: `EXTRA_TRUSTED_ORIGINS` com `https://medicron-web.vercel.app`) e **trocar o domínio**: tirar `medicron.com.br` **e `www.medicron.com.br`** do projeto `medicron` e pôr em `medicron-web` (Vercel → Domains); com uma aba já logada aberta, recarregar e ver que a sessão continua.
 18. Uma semana estável depois: publicar a API (`vercel --prod --yes` na raiz) com o código sem as telas do Next. **Não antes da troca.**
-
-## D. Teste de ponta a ponta (você, no simulador/aparelho)
-
-7. Login, trocar de conta, sair; Hoje (registrar dose, tour, dia passado); Pacientes e Rotinas; Itens; Conta (convite com **segunda conta**, copiar link, aparência nos três modos, notificações); fluxo do convidado (link sem sessão → criar conta → aceitar); voltar/gestos sem tela duplicada.

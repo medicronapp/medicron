@@ -34,3 +34,13 @@ test("usa o e-mail de contato quando configurado e tem texto alternativo quando 
   expect(screen.queryByRole("link", { name: /@/ })).toBeNull();
   expect(document.body.textContent).toContain("pelo próprio app");
 });
+
+test("diz a verdade sobre a senha, o push do navegador e como avisa mudanças", () => {
+  render(<Page />);
+  const text = document.body.textContent ?? "";
+  expect(text).not.toMatch(/criptografada/i);
+  expect(text).toMatch(/hash|protegida de forma irreversível/i);
+  expect(text).toMatch(/serviços de push dos navegadores/i);
+  expect(text).not.toMatch(/avisamos no app/i);
+  expect(text).toMatch(/atualizamos a data/i);
+});
