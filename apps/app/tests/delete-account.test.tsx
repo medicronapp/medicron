@@ -110,3 +110,13 @@ test("cancelar fecha sem chamar nada", async () => {
   await fireEvent.press(screen.getByRole("button", { name: "Cancelar" }));
   expect(mockDelete).not.toHaveBeenCalled();
 });
+
+test("outro 400 (que não é senha errada) mostra a mensagem genérica, não 'Senha incorreta.'", async () => {
+  mockDelete.mockResolvedValue({ data: null, error: { status: 400, code: "CREDENTIAL_ACCOUNT_NOT_FOUND", message: "x" } });
+  await renderApp(<DeleteAccount />);
+  await open();
+  await typePassword("segredo123");
+  await confirm();
+  expect(await screen.findByText("Não foi possível excluir a conta. Tente de novo.")).toBeOnTheScreen();
+  expect(screen.queryByText("Senha incorreta.")).toBeNull();
+});

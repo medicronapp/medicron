@@ -17,6 +17,10 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 
 6. **Remover `EXTRA_TRUSTED_ORIGINS=exp://**` da produção** (era só para o Expo Go em desenvolvimento): `vercel env rm EXTRA_TRUSTED_ORIGINS production` e publicar de novo. Os builds de loja usam `medicron://`.
 
+## D. Teste de ponta a ponta (você, no simulador/aparelho)
+
+7. Login, trocar de conta, sair; Hoje (registrar dose, tour, dia passado); Pacientes e Rotinas; Itens; Conta (convite com **segunda conta**, copiar link, aparência nos três modos, notificações); fluxo do convidado (link sem sessão → criar conta → aceitar); voltar/gestos sem tela duplicada.
+
 ## E. Lojas (Plano 5; textos e questionários prontos em `docs/lojas.md`)
 
 8. **Variáveis na Vercel** (projeto da API; você roda com `!`): `vercel env add CONTACT_EMAIL production` (e-mail de suporte). `APPLE_TEAM_ID` (Apple Developer → Membership) e `ANDROID_SHA256_CERT_FINGERPRINTS` (Play Console → Integridade do app → Assinatura do app, impressão SHA-256; várias separadas por vírgula) só existem depois dos itens 11 e 12. Publique a API de novo depois de definir.
@@ -28,12 +32,8 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 14. **Fichas e revisão:** cole textos, questionários e notas de `docs/lojas.md`; crie a conta de demonstração; envie capturas de tela; informe a política `https://medicron.com.br/privacidade`; envie para revisão.
 15. **Conferir exclusão de conta** pelo app antes de enviar (Conta → Excluir conta) e remover `EXTRA_TRUSTED_ORIGINS` (item 6).
 
-## F. Virada da web (Plano 6; passo a passo em `docs/virada-da-web.md`)
+## F. Virada da web — feita em 2026-11-09
 
-16. `cd apps/app && vercel env add EXPO_PUBLIC_VAPID_PUBLIC_KEY production` (mesmo valor da `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e republicar `medicron-web` (comando no guia).
-17. **Ensaio do login** (passo 3 do guia: `EXTRA_TRUSTED_ORIGINS` com `https://medicron-web.vercel.app`) e **trocar o domínio**: tirar `medicron.com.br` **e `www.medicron.com.br`** do projeto `medicron` e pôr em `medicron-web` (Vercel → Domains); com uma aba já logada aberta, recarregar e ver que a sessão continua.
-18. Uma semana estável depois: publicar a API (`vercel --prod --yes` na raiz) com o código sem as telas do Next. **Não antes da troca.**
-
-## D. Teste de ponta a ponta (você, no simulador/aparelho)
-
-7. Login, trocar de conta, sair; Hoje (registrar dose, tour, dia passado); Pacientes e Rotinas; Itens; Conta (convite com **segunda conta**, copiar link, aparência nos três modos, notificações); fluxo do convidado (link sem sessão → criar conta → aceitar); voltar/gestos sem tela duplicada.
+16. Variável `EXPO_PUBLIC_VAPID_PUBLIC_KEY` definida e `medicron-web` republicado.
+17. Domínio `medicron.com.br` (e `www`) movido para `medicron-web`; web testada e funcionando.
+18. **Pendente, em uma semana estável:** publicar a API de `main` (sem as telas do Next): `vercel --prod --yes` na raiz. Antes disso, nenhum deploy da API a partir de `main` (ver `docs/virada-da-web.md`, "Regra de publicação da API").

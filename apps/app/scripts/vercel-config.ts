@@ -19,6 +19,8 @@ export function buildVercelConfig(apiOrigin: string) {
       toApi("/api/:path*"),
       toApi("/privacidade"),
       toApi("/.well-known/:path*"),
+      // Arquivos reais já são servidos antes das reescritas; a regra só impede que um arquivo inexistente (`/x.js`)
+      // devolva o HTML do app. Consequência: um caminho do app com ponto (`/convite/a.b`) dá 404; os ids atuais não têm ponto.
       { source: "/((?!.*\\.[a-zA-Z0-9]+$).*)", destination: "/index.html" },
     ] as Rewrite[],
     headers: [

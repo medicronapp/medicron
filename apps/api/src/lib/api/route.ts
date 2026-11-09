@@ -16,13 +16,29 @@ export function endDateError(err: unknown): never {
   throw err;
 }
 
-export const minAppVersion = () => process.env.MIN_APP_VERSION ?? "0.0.0";
+/** Versão mínima aceita. Valor malformado no ambiente não pode tirar todos os clientes do ar: cai em 0.0.0 e registra. */
+export const minAppVersion = () => {
+  const v = process.env.MIN_APP_VERSION ?? "0.0.0";
+  try {
+    compareVersions(v, "0.0.0");
+    return v;
+  } catch {
+    console.error("MIN_APP_VERSION inválida; usando 0.0.0", v);
+    return "0.0.0";
+  }
+};
 
 type Ctx<P> = { params: Promise<P> };
 
-/** Lê e valida o corpo JSON. JSON malformado vira SyntaxError e campos inválidos viram ZodError (ambos 400). */
+/** Lê e valida o corpo JSON. JSON malformado e campos inválidos viram 400 (`invalid_request`). */
 export async function readJson<T>(req: Request, schema: ZodType<T>): Promise<T> {
-  return schema.parse(await req.json());
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    throw new ApiError(400, "invalid_request", "Corpo da requisição inválido.");
+  }
+  return schema.parse(body);
 }
 
 function checkAppVersion(req: Request): Response | null {
@@ -41,7 +57,6 @@ function errorResponse(err: unknown): Response {
   if (err instanceof ZodError) {
     return json({ error: "invalid_request", message: "Dados inválidos.", issues: err.issues }, 400);
   }
-  if (err instanceof SyntaxError) return json({ error: "invalid_request", message: "Corpo da requisição inválido." }, 400);
   if (err instanceof NotFound) return json({ error: "not_found", message: err.message }, 404);
   if (err instanceof Forbidden) return json({ error: "forbidden", message: err.message }, 403);
   if (err instanceof TooEarly) return json({ error: "too_early", message: err.message }, 409);

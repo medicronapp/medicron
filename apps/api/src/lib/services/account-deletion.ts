@@ -15,10 +15,10 @@ import {
  */
 export async function purgeUserData(
   db: Db, userId: string,
-): Promise<{ deletedOrganizations: string[]; transferredOrganizations: string[] }> {
+): Promise<{ deletedOrganizations: string[]; leftOrganizations: string[] }> {
   return db.transaction(async (tx) => {
     const deletedOrganizations: string[] = [];
-    const transferredOrganizations: string[] = [];
+    const leftOrganizations: string[] = [];
     const memberships = await tx.select().from(member).where(eq(member.userId, userId));
 
     for (const mine of memberships) {
@@ -43,11 +43,11 @@ export async function purgeUserData(
         await tx.update(member).set({ role: "owner" }).where(eq(member.id, heir.id));
       }
       await tx.delete(member).where(eq(member.id, mine.id));
-      transferredOrganizations.push(orgId);
+      leftOrganizations.push(orgId);
     }
 
     await tx.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
     await tx.delete(pushDevices).where(eq(pushDevices.userId, userId));
-    return { deletedOrganizations, transferredOrganizations };
+    return { deletedOrganizations, leftOrganizations };
   });
 }

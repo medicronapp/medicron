@@ -24,5 +24,7 @@ test("o HTML da web (modelo do Expo em single) liga o manifest, o ícone da tela
   expect(html).toContain('name="theme-color" content="#0d9488"');
   expect(html).toContain('lang="pt-BR"');
   expect(html).toContain("%WEB_TITLE%");
+  expect(html).toContain('http-equiv="X-UA-Compatible"');
+  expect(html).not.toContain("httpEquiv");
   expect(html).toContain('<div id="root">');
 });

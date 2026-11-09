@@ -10,7 +10,7 @@ Textos prontos para colar nos consoles. Tudo em português do Brasil. O Medicron
 - **Descrição curta (Google, até 80):** Lembretes de remédios e cuidados para você, sua família e seus pets.
 - **Categoria:** Saúde e fitness (iOS) / Saúde e fitness (Google)
 - **Palavras-chave (iOS, até 100):** remédio,medicamento,lembrete,pet,vacina,cuidados,família,dose,horário,rotina
-- **Classificação etária:** 4+ (iOS) / Livre (Google). Sem conteúdo gerado por usuários público, sem compras, sem anúncios.
+- **Classificação etária:** definida pelo questionário de cada loja (a Apple tem a pergunta "Informações médicas ou de tratamento": app de lembrete de remédio costuma sair 12+; Google: Livre/Todos). Sem conteúdo público de usuários, sem compras, sem anúncios.
 - **Preço:** gratuito, sem compras no app.
 
 ## Descrição longa
@@ -59,7 +59,7 @@ Não coletamos: localização, contatos, fotos, dados financeiros, histórico de
 - **Conta de demonstração:** crie uma conta de teste (e-mail e senha de sua escolha, que não sejam os seus pessoais) com um paciente e uma rotina, e informe nos campos de "informações de login" das duas lojas.
 - Fluxo: Entrar → Hoje (lista de doses) → Pacientes → Rotinas → Itens → Conta.
 - **Exclusão de conta:** Conta → rolar até "Excluir conta" → informar a senha → confirmar.
-- **Notificações:** o app pede permissão na tela Conta → Notificações; não é exigida para usar o app.
+- **Notificações:** o app pede permissão pelo bloco de notificações no topo da tela Conta (e um convite compacto em Hoje); não é exigida para usar o app.
 - Convites: link `https://medicron.com.br/convite/...` abre o app quando instalado.
 
 ## Capturas de tela necessárias

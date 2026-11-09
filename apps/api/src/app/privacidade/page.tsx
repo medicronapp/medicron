@@ -29,7 +29,7 @@ export default function PrivacyPage() {
 
       <Section title="Que dados coletamos e para quê">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Nome e e-mail e senha (guardada de forma criptografada), para criar e proteger a sua conta.</li>
+          <li>Nome e e-mail e senha (guardada apenas como um hash, protegida de forma irreversível), para criar e proteger a sua conta.</li>
           <li>
             Dados que você cadastra: pacientes (pessoas ou animais), medicamentos e itens de cuidado, rotinas, horários
             e o registro de doses dadas, para mostrar a agenda e enviar os lembretes.
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
       <Section title="Com quem compartilhamos">
         <p>
           Apenas com quem faz o serviço funcionar: a Vercel (hospedagem), a Neon (banco de dados) e a Expo (envio das
-          notificações push). Pessoas que você convidar para a sua conta veem os dados dela. Não compartilhamos dados
+          notificações push no celular) e, no navegador, os serviços de push dos navegadores (Apple, Google, Mozilla). Pessoas que você convidar para a sua conta veem os dados dela. Não compartilhamos dados
           com anunciantes.
         </p>
       </Section>
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Mudanças nesta política">
-        <p>Se mudarmos algo importante, atualizamos a data acima e avisamos no app.</p>
+        <p>Se mudarmos algo importante, atualizamos a data acima.</p>
       </Section>
     </main>
   );

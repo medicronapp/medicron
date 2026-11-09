@@ -5,7 +5,7 @@ import { NotFound } from "@/lib/errors";
 import { Forbidden } from "@/lib/tenancy";
 import { InvalidAppliedAt, TooEarly } from "@/lib/services/slots";
 import { ApiError } from "@/lib/api/errors";
-import { route } from "@/lib/api/route";
+import { readJson, route } from "@/lib/api/route";
 import { call, env, freshDb } from "./harness";
 import { GET as me } from "@/app/api/v1/me/route";
 import { GET as config } from "@/app/api/v1/config/route";
@@ -62,6 +62,16 @@ describe("versão mínima do app (x-app-version)", () => {
   });
 });
 
+describe("MIN_APP_VERSION inválida", () => {
+  test("não derruba todos os clientes: cai em 0.0.0 e registra o erro", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    process.env.MIN_APP_VERSION = "abc";
+    const r = await call(route(async () => Response.json({ ok: true })), "/x", { headers: { "x-app-version": "1.0.0" } });
+    expect(r.status).toBe(200);
+    expect(err).toHaveBeenCalled();
+  });
+});
+
 describe("GET /config", () => {
   test("público: responde sem sessão e ignora a verificação de versão", async () => {
     env.fail = new ApiError(401, "unauthorized");
@@ -78,11 +88,24 @@ describe("route(): erros viram JSON", () => {
     [new Forbidden(), 403, "forbidden"],
     [new TooEarly(), 409, "too_early"],
     [new InvalidAppliedAt(), 422, "invalid_applied_at"],
-    [new SyntaxError("Unexpected token"), 400, "invalid_request"],
   ])("%s", async (err, status, code) => {
     const r = await call(failing(err), "/x");
     expect(r.status).toBe(status);
     expect(r.body.error).toBe(code);
+  });
+
+  test("JSON malformado no corpo: 400 invalid_request", async () => {
+    const h = route(async (req) => { await readJson(req, z.object({ a: z.string() })); return new Response(); });
+    const r = await call(h, "/x", { method: "POST", rawBody: "{nao-json" });
+    expect(r.status).toBe(400);
+    expect(r.body.error).toBe("invalid_request");
+  });
+
+  test("SyntaxError de um bug interno não vira 400: é 500 (não mascara o defeito)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const r = await call(failing(new SyntaxError("Unexpected token")), "/x");
+    expect(r.status).toBe(500);
+    expect(r.body).toEqual({ error: "internal" });
   });
 
   test("ZodError: 400 invalid_request com issues", async () => {

@@ -63,7 +63,7 @@ describe("purgeUserData", () => {
     await fill(db, "o3", "u3");
 
     const r = await purgeUserData(db, "u1");
-    expect(r).toEqual({ deletedOrganizations: ["o1"], transferredOrganizations: [] });
+    expect(r).toEqual({ deletedOrganizations: ["o1"], leftOrganizations: [] });
 
     for (const t of [patients, items, carePlans, careSlots, doseLogs]) {
       expect(await count(db, t, "o1")).toBe(0);
@@ -83,7 +83,7 @@ describe("purgeUserData", () => {
     ]);
     await fill(db, "o2", "u2");
     const r = await purgeUserData(db, "u1");
-    expect(r).toEqual({ deletedOrganizations: [], transferredOrganizations: ["o2"] });
+    expect(r).toEqual({ deletedOrganizations: [], leftOrganizations: ["o2"] });
     expect(await count(db, patients, "o2")).toBe(1);
     const roles = Object.fromEntries((await db.select().from(member)).map((m) => [m.userId, m.role]));
     expect(roles).toEqual({ u3: "owner", u2: "member" }); // o administrador virou dono; u1 saiu
@@ -124,7 +124,7 @@ describe("purgeUserData", () => {
     await fill(db, "o2", "u2");
     const r = await purgeUserData(db, "u1");
     expect(r.deletedOrganizations).toEqual(["o1"]);
-    expect(r.transferredOrganizations).toEqual(["o2"]);
+    expect(r.leftOrganizations).toEqual(["o2"]);
     expect(await count(db, patients, "o1")).toBe(0);
     expect(await count(db, patients, "o2")).toBe(1);
     // o histórico de doses de quem saiu continua legível: só fica sem o nome na tela
@@ -133,7 +133,7 @@ describe("purgeUserData", () => {
 
   test("usuário sem nenhuma conta não falha", async () => {
     const db = await base();
-    expect(await purgeUserData(db, "u1")).toEqual({ deletedOrganizations: [], transferredOrganizations: [] });
+    expect(await purgeUserData(db, "u1")).toEqual({ deletedOrganizations: [], leftOrganizations: [] });
   });
 
   test("apaga as inscrições de Web Push e os aparelhos do usuário, e só os dele", async () => {
