@@ -1,18 +1,18 @@
 import "../global.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { Stack, usePathname, useRouter } from "expo-router";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Stack, useGlobalSearchParams, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { GEIST_FONTS } from "@/theme/fonts";
-import { apiClient } from "@/lib/api";
 import { AppOutdatedError } from "@/lib/api/errors";
-import { fetchMe } from "@/lib/api/me";
+import { useMe } from "@/lib/me-query";
+import { applyThemePref, loadThemePref } from "@/lib/theme-pref";
 import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
 import { decideRoute } from "@/lib/route-guard";
@@ -27,9 +27,12 @@ bindFocusToAppState();
 /** Aplica a guarda de rotas e troca tudo pela tela de atualização quando a API recusa esta versão. */
 function Gate() {
   const session = useAppSession();
-  const pathname = usePathname();
+  const path = usePathname();
+  const { next } = useGlobalSearchParams<{ next?: string }>();
+  // `usePathname` não traz a query: devolve o `next` para a guarda levar ao destino guardado depois do login/cadastro.
+  const pathname = typeof next === "string" && next ? `${path}?next=${encodeURIComponent(next)}` : path;
   const router = useRouter();
-  const me = useQuery({ queryKey: ["me"], queryFn: () => fetchMe(apiClient), enabled: session.status === "signedIn" });
+  const me = useMe();
 
   const decision =
     session.status === "loading" || session.status === "error"
@@ -49,13 +52,20 @@ function Gate() {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(GEIST_FONTS);
+  const [themeReady, setThemeReady] = useState(false);
 
+  // O tema escolhido vale já na abertura: aplica antes de a tela de abertura sumir (sem piscar o tema errado).
   useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync();
-  }, [loaded, error]);
+    void loadThemePref().then((pref) => { applyThemePref(pref); setThemeReady(true); });
+  }, []);
 
-  // A tela de abertura segue visível até a Geist carregar (ou falhar: aí cai na fonte do sistema).
-  if (!loaded && !error) return null;
+  const ready = (loaded || !!error) && themeReady;
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  // A tela de abertura segue visível até a Geist carregar (ou falhar: aí cai na fonte do sistema) e o tema ser aplicado.
+  if (!ready) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

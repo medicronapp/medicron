@@ -6,8 +6,10 @@ import { queryClient } from "@/lib/api/query";
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), navigate: jest.fn() };
 const mockNav = { pathname: "/" };
+const mockSearch: { value: Record<string, string> } = { value: {} };
 jest.mock("expo-router", () => ({
   usePathname: () => mockNav.pathname,
+  useGlobalSearchParams: () => mockSearch.value,
   useRouter: () => mockRouter,
   Slot: () => null,
   Stack: () => {
@@ -20,8 +22,13 @@ jest.mock("@/components/ui/toast", () => ({ toast: { error: jest.fn() }, Toaster
 jest.mock("react-native-gesture-handler", () => ({
   GestureHandlerRootView: ({ children }: { children?: unknown }) => children,
 }));
+const mockOrder: string[] = [];
+jest.mock("@/lib/theme-pref", () => ({
+  loadThemePref: jest.fn(async () => "dark"),
+  applyThemePref: jest.fn((p: string) => { mockOrder.push(`apply:${p}`); }),
+}));
 jest.mock("expo-font", () => ({ useFonts: () => [true, null] }));
-jest.mock("expo-splash-screen", () => ({ preventAutoHideAsync: jest.fn(), hideAsync: jest.fn() }));
+jest.mock("expo-splash-screen", () => ({ preventAutoHideAsync: jest.fn(), hideAsync: jest.fn(() => { mockOrder.push("hide"); }) }));
 
 const mockSession = {
   value: { status: "signedIn", orgCount: 2, activeOrgId: "o1", signOut: jest.fn(async () => {}) } as {
@@ -55,6 +62,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   queryClient.clear();
   mockNav.pathname = "/";
+  mockSearch.value = {};
   mockWide.value = false;
   mockSession.value = { status: "signedIn", orgCount: 2, activeOrgId: "o1", signOut: jest.fn(async () => {}) };
   mockOrgs.data = [{ id: "o1", name: "Casa da Vovó" }, { id: "o2", name: "Sítio" }];
@@ -205,6 +213,25 @@ describe("Screen (corpo rolável)", () => {
     const style = flat(screen.getByTestId("sc").props.contentContainerStyle);
     expect(style.paddingTop).toBe(24);
     expect(Number(style.paddingBottom)).toBeLessThan(96);
+  });
+});
+
+describe("layout raiz: tema", () => {
+  test("a preferência de tema é aplicada antes de a tela de abertura sumir", async () => {
+    mockOrder.length = 0;
+    await renderApp(<RootLayout />);
+    await waitFor(() => expect(mockOrder).toContain("hide"));
+    expect(mockOrder).toEqual(["apply:dark", "hide"]);
+  });
+});
+
+describe("layout raiz: destino guardado (next)", () => {
+  test("logado numa tela de acesso, o Gate leva ao destino de `next` (usePathname não traz a query)", async () => {
+    mockNav.pathname = "/cadastrar";
+    mockSearch.value = { next: "/convite/abc" };
+    mockSession.value = { status: "signedIn", orgCount: 0, activeOrgId: null, signOut: jest.fn() };
+    await renderApp(<RootLayout />);
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/convite/abc"));
   });
 });
 

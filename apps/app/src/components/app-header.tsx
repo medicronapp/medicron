@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react-native";
 import { authClient } from "@/lib/auth-client";
-import { apiClient } from "@/lib/api";
-import { fetchMe } from "@/lib/api/me";
+import { useMe } from "@/lib/me-query";
 import { resetAccountData } from "@/lib/api/query";
 import { useAppSession } from "@/lib/session";
 import { initials } from "@/lib/initials";
@@ -20,9 +18,9 @@ import { toast } from "@/components/ui/toast";
 /** Cabeçalho fixo: marca (só no celular), seletor de conta e menu do usuário. */
 export function AppHeader({ showBrand = true }: { showBrand?: boolean }) {
   const router = useRouter();
-  const { activeOrgId, signOut, status } = useAppSession();
+  const { activeOrgId, signOut } = useAppSession();
   const { data: orgs } = authClient.useListOrganizations();
-  const me = useQuery({ queryKey: ["me"], queryFn: () => fetchMe(apiClient), enabled: status === "signedIn" });
+  const me = useMe();
   const [orgsOpen, setOrgsOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
 
