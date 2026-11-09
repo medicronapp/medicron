@@ -108,6 +108,13 @@ Trocar de `medicron.vercel.app` para `medicron.com.br` muda o host. Isso desloga
 
 Estrutura exata de pastas, nomes dos endpoints, biblioteca de formulários, estratégia de cache do TanStack Query, organização dos tokens de alfa, detalhes de acessibilidade em cada componente.
 
+## Decisões registradas na limpeza (2026-11-09)
+
+- **Tema manual na web:** não existe de propósito. Na web o escuro segue o navegador (`prefers-color-scheme`); o cartão Aparência só aparece no app nativo.
+- **Exclusão de conta:** a purga dos dados e a exclusão do usuário pelo `better-auth` são duas operações; se a segunda falhar depois da primeira, a pessoa fica com a conta sem organizações (as chaves estrangeiras têm cascade, então é improvável). Limitação conhecida, aceita.
+- **Convites pendentes:** os convites que alguém enviou e que ainda não foram aceitos somem se essa pessoa excluir a conta (`inviterId` com cascade). Aceito: quem foi convidado pede um novo link.
+- **Versão mínima do app:** `MIN_APP_VERSION` malformada cai em `0.0.0` e registra o erro, em vez de bloquear todos os clientes.
+
 ## Riscos principais
 
 1. NativeWind v5 em RC (mitigação: versões fixadas e plano B).
