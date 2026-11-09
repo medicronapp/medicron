@@ -3,6 +3,8 @@ import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { orgSlug } from "@medicron/shared";
 import { authClient } from "@/lib/auth-client";
+import { useAppSession } from "@/lib/session";
+import { DeleteAccount } from "@/components/delete-account";
 import { resetAccountData } from "@/lib/api/query";
 import { NETWORK_MESSAGE } from "@/lib/api/errors";
 import { AuthShell } from "@/components/auth-shell";
@@ -14,6 +16,7 @@ import { Input } from "@/components/ui/input";
 
 export default function NovaConta() {
   const router = useRouter();
+  const { signOut } = useAppSession();
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,6 +52,10 @@ export default function NovaConta() {
           </FormField>
           <FormError message={error} />
           <Button size="lg" loading={loading} onPress={submit} accessibilityLabel="Criar conta">Criar conta</Button>
+        </View>
+        <View className="gap-4">
+          <Button variant="outline" onPress={() => void signOut()} accessibilityLabel="Sair">Sair</Button>
+          <DeleteAccount />
         </View>
       </View>
     </AuthShell>

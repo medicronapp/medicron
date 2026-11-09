@@ -26,6 +26,9 @@ jest.mock("@/lib/auth-client", () => ({
   },
 }));
 
+jest.mock("@/lib/session", () => ({ useAppSession: () => ({ status: "signedIn", orgCount: 0, activeOrgId: null, signOut: jest.fn() }) }));
+jest.mock("@/lib/push", () => ({ unregisterThisDevice: jest.fn(async () => {}) }));
+
 import Entrar from "@/app/(auth)/entrar";
 import Cadastrar from "@/app/(auth)/cadastrar";
 import NovaConta from "@/app/nova-conta";

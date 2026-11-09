@@ -6,6 +6,7 @@ jest.mock("expo-secure-store", () => ({ getItemAsync: jest.fn(async () => null),
 jest.mock("expo-clipboard", () => ({ setStringAsync: jest.fn(async () => true) }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
 jest.mock("@/lib/push", () => ({ getPushState: jest.fn(async () => "default"), enablePush: jest.fn(), disablePush: jest.fn() }));
+jest.mock("@/components/delete-account", () => ({ DeleteAccount: () => { const { Text } = require("react-native"); const React = require("react"); return React.createElement(Text, null, "Cartão excluir conta"); } }));
 jest.mock("@/lib/api-url", () => ({ API_URL: "https://medicron.com.br" }));
 
 type Org = { name: string; members: { id: string; role: string; user: { name: string; email: string } }[]; invitations: { id: string; email: string; status: string }[] };
@@ -100,6 +101,12 @@ test("na web o cartão de Aparência não aparece (o tema escuro de lá é do na
   await renderApp(<Conta />);
   expect(screen.queryByText("Aparência")).toBeNull();
   Platform.OS = original;
+});
+
+test.each(["owner", "admin", "member"])("o cartão de excluir conta aparece para qualquer papel (%s), no fim da tela", async (role) => {
+  ready(org(), role);
+  await renderApp(<Conta />);
+  expect(screen.getByText("Cartão excluir conta")).toBeOnTheScreen();
 });
 
 test("carregando mostra o esqueleto e não pisca o cartão de convite enquanto o papel não chega", async () => {
