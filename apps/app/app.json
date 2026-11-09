@@ -74,8 +74,13 @@
     "icon": "./assets/icon.png",
     "owner": "thiagog3",
     "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
       "eas": {
-        "projectId": "c22d57cb-58cd-4940-9d3d-a84861152340"
+        "projectId": "f93d61ca-6621-4d98-a5e1-2e1667b557d6"
       }
     }
   }
