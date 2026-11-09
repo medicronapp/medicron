@@ -50,7 +50,10 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           <View className="mx-auto w-full max-w-sm gap-8">
             {wide ? null : (
               <View className="items-center gap-3">
-                <BrandMark className="size-14 rounded-2xl" size={28} />
+                <View accessibilityLabel="Logo do Medicron" className="flex-row items-center gap-3">
+                  <BrandMark className="size-14 rounded-2xl" size={28} />
+                  <Text className="text-3xl font-semibold tracking-tight">Medicron</Text>
+                </View>
                 <Text className="text-center text-sm text-muted-foreground">Horários de remédios e cuidados de quem você cuida</Text>
               </View>
             )}
