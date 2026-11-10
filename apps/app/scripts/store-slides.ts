@@ -1,10 +1,10 @@
 // Imagens da App Store (iPhone) no mesmo estilo do hotsite: fundo colorido, título, e o celular com a tela REAL do app
 // recortado pela base (ou, nos slides de widgets, a tela de bloqueio e a tela inicial com os widgets). Este módulo só monta o HTML de cada slide; quem fotografa é capture-store-shots.cli.ts.
 
-import { DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW } from "./demo-data.ts";
+import { DEMO_NOW, DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW } from "./demo-data.ts";
 import { renderWidgetScreen } from "./store-widgets.ts";
 
-export type StoreSize = { id: "6.9" | "6.5"; width: number; height: number };
+export type StoreSize = { id: "6.9" | "6.5" | "1080x1920"; platform: "ios" | "android"; width: number; height: number };
 /** `app` = captura real de uma tela do app (`route`); `lock` e `home` = widgets do iOS reproduzidos (store-widgets.ts). */
 export type StoreSlide = {
   id: string; kind: "app" | "lock" | "home"; route: string;
@@ -15,11 +15,15 @@ export type StoreSlide = {
   subtitle: string; theme: "light" | "dark";
 };
 
-/** Tamanhos de captura exigidos para iPhone (docs/lojas.md). */
+/** Tamanhos: iPhone 6,9" e 6,5" (exigidos pela App Store) e telefone Android 1080×1920 (Google Play: 320 a 3840 px, até 2:1). */
 export const STORE_SIZES: StoreSize[] = [
-  { id: "6.9", width: 1320, height: 2868 },
-  { id: "6.5", width: 1284, height: 2778 },
+  { id: "6.9", platform: "ios", width: 1320, height: 2868 },
+  { id: "6.5", platform: "ios", width: 1284, height: 2778 },
+  { id: "1080x1920", platform: "android", width: 1080, height: 1920 },
 ];
+
+/** Os slides de cada plataforma: o iPhone leva todos; o Android só as telas do app (os widgets são do iOS e não valem lá). */
+export const slidesFor = (size: StoreSize): StoreSlide[] => (size.platform === "android" ? STORE_SLIDES.filter((s) => s.kind === "app") : STORE_SLIDES);
 
 const slide = (o: Omit<StoreSlide, "title">): StoreSlide => ({ ...o, title: o.lines.join(" ") });
 
@@ -58,6 +62,9 @@ export function renderStoreSlide(slide: StoreSlide, size: StoreSize, screenDataU
   const k = size.width / 1320;
   const px = (n: number) => `${Math.round(n * k * 10) / 10}px`;
   const dark = slide.theme === "dark";
+  const droid = size.platform === "android";
+  const sbTime = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit", hour12: false }).format(DEMO_NOW);
+  const sbColor = dark ? "#fff" : "#10201f";
   // tema escuro: degradê fundo-escuro do site, texto branco; tema claro: o degradê pálido do hero e as cores de texto do site
   const bg = dark
     ? "radial-gradient(90% 38% at 6% 100%,oklch(0.5 0.1 190 / 0.9) 0%,transparent 62%),radial-gradient(70% 28% at 100% 56%,oklch(0.55 0.09 190 / 0.45) 0%,transparent 66%),linear-gradient(170deg,oklch(0.3 0.07 205) 0%,oklch(0.2 0.055 235) 100%)"
@@ -81,15 +88,17 @@ h1{margin:0;font-size:${px(128)};line-height:1.1;letter-spacing:-.028em;font-wei
 .ln{display:block;white-space:nowrap}
 h1 em{font-style:normal;color:${hi}}
 p{margin:${px(34)} 0 0;font-size:${px(54)};line-height:1.45;font-weight:400;color:${sub};text-wrap:balance}
-.phone{${frame};position:absolute;left:50%;top:${px(790)};width:${px(1000)};margin-left:${px(-500)};overflow:hidden;border:${px(26)} solid var(--bezel);border-bottom:0;border-radius:${px(150)} ${px(150)} 0 0;outline:${px(3)} solid ${dark ? "rgba(255,255,255,.28)" : "rgba(20,26,27,.18)"};background:var(--screen);padding-top:${px(78)}}
-.phone::before{content:"";position:absolute;z-index:2;top:${px(26)};left:50%;width:${px(290)};height:${px(62)};margin-left:${px(-145)};border-radius:999px;background:var(--bezel)}
+.phone{${frame};position:absolute;left:50%;top:${px(790)};width:${px(1000)};margin-left:${px(-500)};overflow:hidden;border:${px(droid ? 20 : 26)} solid var(--bezel);border-bottom:0;border-radius:${px(droid ? 110 : 150)} ${px(droid ? 110 : 150)} 0 0;outline:${px(3)} solid ${dark ? "rgba(255,255,255,.28)" : "rgba(20,26,27,.18)"};background:var(--screen);padding-top:${px(droid ? 64 : 78)}}
+.phone::before{content:"";position:absolute;z-index:2;${droid ? `top:${px(18)};left:50%;width:${px(34)};height:${px(34)};margin-left:${px(-17)};border-radius:50%` : `top:${px(26)};left:50%;width:${px(290)};height:${px(62)};margin-left:${px(-145)};border-radius:999px`};background:var(--bezel)}
+${droid ? `.droidsb{position:absolute;z-index:3;top:${px(15)};left:${px(48)};right:${px(44)};display:flex;justify-content:space-between;align-items:center;font-size:${px(27)};font-weight:600;color:${sbColor}}
+.droidsb i{display:inline-block;width:${px(26)};height:${px(14)};border-radius:${px(4)};border:${px(2.4)} solid ${sbColor};margin-left:${px(14)}}` : ""}
 .phone img{display:block;width:100%;height:auto}
 .phone.raw{padding-top:0;background:#000}
 </style>
 </head>
 <body>
 <div class="box"><div class="copy"><h1>${titleHtml(slide.lines, slide.highlight)}</h1><p>${escapeHtml(slide.subtitle)}</p></div>
-<div class="phone${slide.kind === "app" ? "" : " raw"}">${slide.kind === "app" ? `<img src="${screenDataUri}" alt="">` : renderWidgetScreen(slide.kind, DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW, k, lockWallpaper)}</div></div>
+<div class="phone${slide.kind === "app" ? "" : " raw"}">${droid && slide.kind === "app" ? `<div class="droidsb"><span>${sbTime}</span><span><i></i></span></div>` : ""}${slide.kind === "app" ? `<img src="${screenDataUri}" alt="">` : renderWidgetScreen(slide.kind, DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW, k, lockWallpaper)}</div></div>
 ${FIT_SCRIPT}
 </body>
 </html>

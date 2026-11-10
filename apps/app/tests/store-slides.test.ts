@@ -1,13 +1,24 @@
-import { renderStoreSlide, STORE_SIZES, STORE_SLIDES } from "../scripts/store-slides";
+import { renderStoreSlide, slidesFor, STORE_SIZES, STORE_SLIDES } from "../scripts/store-slides";
 
 const PIXEL = "data:image/png;base64,iVBORw0KGgo=";
 
 describe("imagens da App Store: tamanhos e roteiro", () => {
-  test("tamanhos exigidos pela Apple para iPhone: 6,9\" (1320×2868) e 6,5\" (1284×2778)", () => {
+  test("tamanhos: iPhone 6,9\" (1320×2868) e 6,5\" (1284×2778) e Android (1080×1920)", () => {
     expect(STORE_SIZES).toEqual([
-      { id: "6.9", width: 1320, height: 2868 },
-      { id: "6.5", width: 1284, height: 2778 },
+      { id: "6.9", platform: "ios", width: 1320, height: 2868 },
+      { id: "6.5", platform: "ios", width: 1284, height: 2778 },
+      { id: "1080x1920", platform: "android", width: 1080, height: 1920 },
     ]);
+  });
+  test("a Google Play aceita telefone de 320 a 3840 px com proporção de até 2:1", () => {
+    const a = STORE_SIZES.find((s) => s.platform === "android")!;
+    for (const d of [a.width, a.height]) { expect(d).toBeGreaterThanOrEqual(320); expect(d).toBeLessThanOrEqual(3840); }
+    expect(Math.max(a.width, a.height) / Math.min(a.width, a.height)).toBeLessThanOrEqual(2);
+  });
+  test("Android: só as 5 telas do app (os widgets são do iOS e não valem lá); iPhone: as 7", () => {
+    const android = STORE_SIZES.find((s) => s.platform === "android")!;
+    expect(slidesFor(android).map((s) => s.id)).toEqual(["hoje", "pacientes", "rotina", "itens", "conta"]);
+    expect(slidesFor(STORE_SIZES[0]).map((s) => s.id)).toHaveLength(7);
   });
   test("as 5 telas de docs/lojas.md, na ordem (Hoje, Pacientes, Rotina, Itens, Conta), mais os 2 slides de widgets", () => {
     expect(STORE_SLIDES.map((s) => s.id)).toEqual(["hoje", "pacientes", "rotina", "itens", "conta", "bloqueio", "widget"]);
@@ -136,6 +147,37 @@ describe("cartão arredondado como o hero do site", () => {
     const p = px(/p\{[^}]*font-size:([\d.]+)px/);
     const gap = px(/p\{margin:([\d.]+)px/);
     expect(top + 2 * h1 * 1.1 + gap + 2 * p * 1.45).toBeLessThanOrEqual(px(/\.phone\{[^}]*?;top:([\d.]+)px/) - 20);
+  });
+});
+
+describe("moldura do Android", () => {
+  const droid = STORE_SIZES.find((s) => s.platform === "android")!;
+  const a = renderStoreSlide(STORE_SLIDES[0], droid, PIXEL, "");
+  const i = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+  test("câmera em furo (círculo pequeno) no lugar da ilha, com barra de status (hora 12:05 da demonstração)", () => {
+    expect(a).toMatch(/\.phone::before\{[^}]*border-radius:50%/);
+    expect(i).toMatch(/\.phone::before\{[^}]*border-radius:999px/);
+    expect(a).toContain('class="droidsb"');
+    expect(a).toContain(">12:05<");
+    expect(i).not.toContain('droidsb');
+  });
+  test("o estilo da barra do Android não vaza para o iPhone (slide dos widgets tem a própria barra, .sb)", () => {
+    const home = renderStoreSlide(STORE_SLIDES.find((x) => x.kind === "home")!, STORE_SIZES[0], "", "");
+    expect(home).not.toMatch(/(^|[\n}])\.sb i\{/);
+    expect(home).toMatch(/\.ws-home \.batt i\{/);
+  });
+  test("cantos do celular menos arredondados que os do iPhone, em proporção", () => {
+    const r = (h: string, k: number) => Number(h.match(/\.phone\{[^}]*border-radius:([\d.]+)px/)![1]) / k;
+    expect(r(a, 1080 / 1320)).toBeLessThan(r(i, 1));
+  });
+  test("o texto não chega ao celular nem na proporção do Android", () => {
+    const px = (re: RegExp) => Number(a.match(re)![1]);
+    const top = px(/\.copy\{[^}]*top:([\d.]+)px/), h1 = px(/h1\{[^}]*font-size:([\d.]+)px/), p = px(/p\{[^}]*font-size:([\d.]+)px/), gap = px(/p\{margin:([\d.]+)px/);
+    expect(top + 2 * h1 * 1.1 + gap + 2 * p * 1.45).toBeLessThanOrEqual(px(/\.phone\{[^}]*?;top:([\d.]+)px/) - 20);
+  });
+  test("mesmas cores e títulos do iPhone (identidade única)", () => {
+    expect(a).toContain("h1 em{font-style:normal;color:#0f766e}");
+    expect(a.replace(/<[^>]+>/g, "")).toContain("Cada dose");
   });
 });
 
