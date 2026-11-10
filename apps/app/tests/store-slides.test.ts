@@ -23,6 +23,37 @@ describe("imagens da App Store: tamanhos e roteiro", () => {
   });
 });
 
+describe("tema das telas: algumas no claro, outras no escuro", () => {
+  test("alterna: Hoje, Rotina e Conta no claro; Pacientes e Itens no escuro", () => {
+    expect(STORE_SLIDES.map((s) => s.theme)).toEqual(["light", "dark", "light", "dark", "light"]);
+  });
+  test("a moldura e a faixa de status acompanham o tema da tela", () => {
+    const light = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+    const dark = renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "");
+    expect(light).toContain("--bezel:#141a1b");
+    expect(light).toContain("--screen:#fbfaf7");
+    expect(dark).toContain("--bezel:#2b3436");
+    expect(dark).toContain("--screen:#0b1314");
+  });
+});
+
+describe("estilo: fundo escuro e tipografia do hero do site", () => {
+  const html = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+  test("o degradê de fundo começa e termina escuro (luminosidade ≤ 0,34 em OKLCH)", () => {
+    const stops = [...html.match(/linear-gradient\(170deg,([^;]*)\)\}/)![1].matchAll(/oklch\(([\d.]+) /g)].map((m) => Number(m[1]));
+    expect(stops.length).toBe(2);
+    for (const l of stops) expect(l).toBeLessThanOrEqual(0.34);
+  });
+  test("título como no hero: peso 600, entrelinha justa e letras apertadas; subtítulo mais discreto (peso 400, branco a ≤ 72%)", () => {
+    expect(html).toMatch(/h1\{[^}]*font-weight:600/);
+    expect(html).toMatch(/h1\{[^}]*letter-spacing:-\.028em/);
+    expect(html).toMatch(/h1\{[^}]*line-height:1\.1[;}]/);
+    const alpha = Number(html.match(/p\{[^}]*color:rgba\(255,255,255,([\d.]+)\)/)![1]);
+    expect(alpha).toBeLessThanOrEqual(0.72);
+    expect(html).toMatch(/p\{[^}]*font-weight:400/);
+  });
+});
+
 describe("renderStoreSlide", () => {
   const slide = STORE_SLIDES[0];
   const size = STORE_SIZES[0];
