@@ -186,12 +186,26 @@ describe("buildSite", () => {
   });
 });
 
+const enter = (css: string) => css.match(/(?:^|\n)\.enter\{[^}]*\}/)![0];
+
 describe("texto e botão do topo", () => {
   const h = renderSite({}, loadSources(path.resolve(__dirname, "..")));
   test("não usa a palavra \"bicho\" em lugar nenhum", () => {
     expect(h.toLowerCase()).not.toContain("bicho");
   });
-  test("Entrar é um botão de contorno com ícone, não um link simples", () => {
-    expect(h).toMatch(/<a class="enter" href="\/entrar"><svg[^>]*aria-hidden="true"[\s\S]*?<\/svg><span>Entrar<\/span><\/a>/);
+  test("Entrar é um botão suave no tom do Medicron (sem borda nem ícone), com o mesmo raio do Criar conta", () => {
+    expect(h).toMatch(/<a class="enter" href="\/entrar">Entrar<\/a>/);
+    const css = h.slice(h.indexOf("<style>"), h.indexOf("</style>"));
+    const enter = css.match(/(?:^|\n)\.enter\{[^}]*\}/)![0];
+    const btn = css.match(/(?:^|\n)\.btn\{[^}]*\}/)![0];
+    expect(enter).toMatch(/border:0/);
+    expect(enter).toMatch(/color-mix\(in oklab,var\(--primary\)/);
+    expect(enter.match(/border-radius:(\d+px)/)![1]).toBe(btn.match(/border-radius:(\d+px)/)![1]);
+  });
+  test("no tema escuro o texto do Entrar é a menta clara (legível), nos dois mecanismos de tema", () => {
+    const css = h.slice(h.indexOf("<style>"), h.indexOf("</style>"));
+    expect(enter(css)).toMatch(/color:var\(--enter\)/);
+    expect(css.match(/--enter:#99f6e4/g)).toHaveLength(2); // automático e escolhido
+    expect(css).toMatch(/:root\{[^}]*--enter:var\(--primary\)/);
   });
 });

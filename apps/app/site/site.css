@@ -2,9 +2,9 @@
 @font-face{font-family:Geist;font-weight:600;font-style:normal;font-display:swap;src:url(/landing/fonts/geist-600.woff2) format("woff2")}
 @font-face{font-family:"Geist Fallback";src:local("Arial");size-adjust:104%;ascent-override:92%;descent-override:24%;line-gap-override:0%}
 *{box-sizing:border-box}
-:root{--tint:oklch(0.965 0.012 190);--grad:linear-gradient(110deg,oklch(0.955 0.03 195) 0%,oklch(0.975 0.01 95) 48%,oklch(0.95 0.03 235) 100%);--bezel:#141a1b;--art:radial-gradient(90% 70% at 88% 6%,oklch(0.88 0.12 80) 0%,transparent 60%),radial-gradient(80% 80% at 4% 98%,oklch(0.72 0.13 185) 0%,transparent 62%),linear-gradient(155deg,oklch(0.55 0.1 195) 0%,oklch(0.38 0.09 225) 100%)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tint:oklch(0.23 0.02 200);--bezel:#2b3436;--art:radial-gradient(90% 70% at 88% 6%,oklch(0.62 0.12 70) 0%,transparent 60%),radial-gradient(80% 80% at 4% 98%,oklch(0.5 0.11 185) 0%,transparent 62%),linear-gradient(155deg,oklch(0.36 0.08 200) 0%,oklch(0.24 0.07 235) 100%);--grad:linear-gradient(110deg,oklch(0.27 0.045 195) 0%,oklch(0.2 0.015 200) 50%,oklch(0.25 0.04 240) 100%)}}
-:root[data-theme="dark"]{--tint:oklch(0.23 0.02 200);--bezel:#2b3436;--art:radial-gradient(90% 70% at 88% 6%,oklch(0.62 0.12 70) 0%,transparent 60%),radial-gradient(80% 80% at 4% 98%,oklch(0.5 0.11 185) 0%,transparent 62%),linear-gradient(155deg,oklch(0.36 0.08 200) 0%,oklch(0.24 0.07 235) 100%);--grad:linear-gradient(110deg,oklch(0.27 0.045 195) 0%,oklch(0.2 0.015 200) 50%,oklch(0.25 0.04 240) 100%)}
+:root{--tint:oklch(0.965 0.012 190);--grad:linear-gradient(110deg,oklch(0.955 0.03 195) 0%,oklch(0.975 0.01 95) 48%,oklch(0.95 0.03 235) 100%);--bezel:#141a1b;--enter:var(--primary);--art:radial-gradient(90% 70% at 88% 6%,oklch(0.88 0.12 80) 0%,transparent 60%),radial-gradient(80% 80% at 4% 98%,oklch(0.72 0.13 185) 0%,transparent 62%),linear-gradient(155deg,oklch(0.55 0.1 195) 0%,oklch(0.38 0.09 225) 100%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tint:oklch(0.23 0.02 200);--bezel:#2b3436;--enter:#99f6e4;--art:radial-gradient(90% 70% at 88% 6%,oklch(0.62 0.12 70) 0%,transparent 60%),radial-gradient(80% 80% at 4% 98%,oklch(0.5 0.11 185) 0%,transparent 62%),linear-gradient(155deg,oklch(0.36 0.08 200) 0%,oklch(0.24 0.07 235) 100%);--grad:linear-gradient(110deg,oklch(0.27 0.045 195) 0%,oklch(0.2 0.015 200) 50%,oklch(0.25 0.04 240) 100%)}}
+:root[data-theme="dark"]{--tint:oklch(0.23 0.02 200);--bezel:#2b3436;--enter:#99f6e4;--art:radial-gradient(90% 70% at 88% 6%,oklch(0.62 0.12 70) 0%,transparent 60%),radial-gradient(80% 80% at 4% 98%,oklch(0.5 0.11 185) 0%,transparent 62%),linear-gradient(155deg,oklch(0.36 0.08 200) 0%,oklch(0.24 0.07 235) 100%);--grad:linear-gradient(110deg,oklch(0.27 0.045 195) 0%,oklch(0.2 0.015 200) 50%,oklch(0.25 0.04 240) 100%)}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--background);color:var(--foreground);font-family:Geist,"Geist Fallback",ui-sans-serif,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit}
@@ -17,9 +17,8 @@ a:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radiu
 .mark svg{width:26px;height:26px;display:block}
 .lnk{font-weight:400;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px;text-decoration-color:var(--border);display:inline-flex;align-items:center;min-height:44px}
 .lnk:hover{text-decoration-color:currentColor}
-.enter{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px 0 16px;border-radius:999px;border:1px solid color-mix(in oklab,var(--foreground) 22%,transparent);background:var(--background);color:var(--foreground);font-weight:600;font-size:15px;text-decoration:none}
-.enter svg{width:18px;height:18px;display:block;color:var(--primary)}
-.enter:hover{border-color:var(--primary);color:var(--primary)}
+.enter{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:0;border-radius:11px;background:color-mix(in oklab,var(--primary) 12%,var(--background));color:var(--enter);font-weight:600;font-size:15px;text-decoration:none}
+.enter:hover{background:color-mix(in oklab,var(--primary) 20%,var(--background))}
 .hero{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:64px;align-items:center;padding:64px 64px 64px 80px;margin:8px 0 72px;border-radius:32px;overflow:hidden;background:var(--grad)}
 .hero-text{position:relative;z-index:2}
 h1{font-size:42px;line-height:1.1;letter-spacing:-.028em;font-weight:600;margin:0 0 28px;text-wrap:balance}
