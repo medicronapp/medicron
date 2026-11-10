@@ -66,6 +66,8 @@ Não coletamos: localização, contatos, fotos, dados financeiros, histórico de
 ## Capturas de tela necessárias
 
 - iPhone 6,9" (1320×2868) e 6,5" (1284×2778): Hoje, Pacientes, Rotina, Itens, Conta (mínimo 3, ideal 5).
+  - **Já geradas** em `store-assets/ios/6.9/` e `store-assets/ios/6.5/` (`01-hoje.png` … `05-conta.png`), no estilo do hotsite: tela real do app com dados de demonstração (Família Souza), celular recortado e título em fundo colorido. Textos em `apps/app/scripts/store-slides.ts`.
+  - Para refazer depois de mudar o app: `cd apps/app && npx expo export -p web && node scripts/finalize-web.cli.ts && npm run capture-store-shots`.
 - Android telefone: 1080×1920 ou maior (mínimo 2, ideal 5), mesmas telas.
 - Ícone 1024×1024 (iOS, sem transparência) e 512×512 (Google); gráfico de destaque 1024×500 (Google).
 - iPad não é necessário (`supportsTablet: false`).

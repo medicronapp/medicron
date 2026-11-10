@@ -17,7 +17,8 @@
     "vercel-config": "node scripts/vercel-config.cli.ts",
     "build-site": "node scripts/build-site.cli.ts",
     "build-og": "node scripts/build-og.cli.ts",
-    "capture-site-shots": "node scripts/capture-site-shots.cli.ts"
+    "capture-site-shots": "node scripts/capture-site-shots.cli.ts",
+    "capture-store-shots": "node scripts/capture-store-shots.cli.ts"
   },
   "dependencies": {
     "@better-auth/expo": "1.7.18",
