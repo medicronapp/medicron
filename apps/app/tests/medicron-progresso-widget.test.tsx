@@ -21,39 +21,50 @@ test("é o widget 'Progresso': nome próprio na galeria e estado inicial sem dad
   expect((widget as unknown as { initialProps: WidgetProps }).initialProps).toEqual(signedOutProps());
 });
 
-describe("anel compacto + texto que quebra linha", () => {
-  test("o anel mostra o progresso do dia (Gauge nativo) e, no meio, a contagem de pendentes", () => {
-    const g = all(ok(), F).find((e) => e.type === "Gauge")!;
+describe("barra do dia (sem anel)", () => {
+  const bar = (p: WidgetProps) => all(p, F).find((e) => e.type === "Gauge")!;
+  test("uma barra horizontal nativa com a fração do dia (e rótulo para o VoiceOver); não há anel", () => {
+    const g = bar(ok());
     expect(g.props!.value).toBeCloseTo(0.6);
-    expect(g.props!.modifiers!.some((m) => m.m === "gaugeStyle" && m.a[0] === "circularCapacity")).toBe(true);
+    expect(g.props!.modifiers!.some((m) => m.m === "gaugeStyle" && m.a[0] === "linearCapacity")).toBe(true);
     expect(g.props!.modifiers!.find((m) => m.m === "accessibilityLabel")!.a[0]).toBe("3 de 5 doses feitas hoje");
-    expect(text(ok(), F)).toContain("3 | pend.");
+    expect(all(ok(), F).some((e) => e.type === "ZStack")).toBe(false);
+    expect(text(ok(), F)).not.toContain("pend.");
   });
-  test("sem pendências o meio do anel mostra ✓ em vez de 0", () => {
-    const p = ok({ pendingCount: 0, pendingSince: "" });
-    expect(has(p, F, "Image", (e) => e.props!.systemName === "checkmark")).toBe(true);
-    expect(all(p, F).some((e) => e.type === "Text" && e.props!.children === "0")).toBe(false);
-  });
-  test("linha de cima: horário e paciente; embaixo o remédio, que pode quebrar em 2 linhas e reduz até 75% antes de cortar", () => {
+  test("linha 1: horário e paciente; linha 2: o remédio, que reduz até 75% antes de cortar", () => {
     expect(text(ok(), F)).toContain("12:00 · Mel");
     const item = byText(ok(), "Losartana");
     expect(styleOf(item)).toBe("subheadline");
-    expect(item.props!.modifiers!.find((m) => m.m === "lineLimit")!.a[0]).toBe(2);
+    expect(item.props!.modifiers!.find((m) => m.m === "lineLimit")!.a[0]).toBe(1);
     expect(item.props!.modifiers!.find((m) => m.m === "minimumScaleFactor")!.a[0]).toBe(0.75);
+  });
+  test("ao lado da barra: pendentes com símbolo (não só cor) e o 'feitas/total' com dígitos tabulares", () => {
+    expect(has(ok(), F, "Image", (e) => e.props!.systemName === "exclamationmark.circle.fill")).toBe(true);
+    expect(byText(ok(), "3")).toBeDefined();
+    const frac = byText(ok(), "3/5");
+    expect(frac.props!.modifiers!.some((m) => m.m === "monospacedDigit")).toBe(true);
+  });
+  test("sem pendências: nada de símbolo nem '0'; a barra e o 'feitas/total' continuam", () => {
+    const p = ok({ pendingCount: 0, pendingSince: "" });
+    expect(has(p, F, "Image")).toBe(false);
+    expect(all(p, F).some((e) => e.type === "Text" && e.props!.children === "0")).toBe(false);
+    expect(text(p, F)).toContain("3/5");
+    expect(bar(p)).toBeDefined();
   });
   test("o horário tem dígitos tabulares", () => {
     const line = all(ok(), F).find((e) => e.type === "Text" && String(e.props!.children).startsWith("12:00"))!;
     expect(line.props!.modifiers!.some((m) => m.m === "monospacedDigit")).toBe(true);
   });
-  test("tudo em dia: anel cheio, título e '5 de 5 feitas'", () => {
+  test("tudo em dia: título, barra cheia e '5/5'", () => {
     const p = ok({ resolved: 5, total: 5, upcoming: [], pendingCount: 0, pendingSince: "" });
-    const g = all(p, F).find((e) => e.type === "Gauge")!;
-    expect(g.props!.value).toBe(1);
     expect(text(p, F)).toContain("Tudo em dia");
-    expect(text(p, F)).toContain("5 de 5 feitas");
+    expect(text(p, F)).toContain("5/5");
+    expect(bar(p).props!.value).toBe(1);
   });
-  test("sem próximas mas com pendentes: não inventa uma dose", () => {
-    expect(text(ok({ upcoming: [] }), F)).toContain("Nenhuma dose a seguir");
+  test("sem próximas mas com pendentes: não inventa uma dose e mostra as pendentes", () => {
+    const t = text(ok({ upcoming: [] }), F);
+    expect(t).toContain("Nenhuma dose a seguir");
+    expect(has(ok({ upcoming: [] }), F, "Image", (e) => e.props!.systemName === "exclamationmark.circle.fill")).toBe(true);
   });
 });
 
