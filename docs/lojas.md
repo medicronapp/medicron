@@ -49,7 +49,7 @@ Não coletamos: localização, contatos, fotos, dados financeiros, histórico de
 ## Questionário — Google Play (Segurança dos dados)
 
 - Coleta dados: **sim**. Compartilha dados com terceiros: **não** (apenas provedores que processam em nosso nome: hospedagem, banco de dados e envio de notificações).
-- Dados coletados: Informações pessoais (nome, e-mail); Saúde e fitness (medicamentos e doses); Identificadores de dispositivo (token de notificação); Conteúdo do app (pacientes, itens, rotinas).
+- Dados coletados: Informações pessoais (nome, e-mail); Saúde e fitness (medicamentos e doses); Identificadores de dispositivo (token de notificação); Conteúdo do app (pacientes, itens, rotinas); Informações financeiras: histórico de compras (a assinatura do Medicron Plus; o cartão é processado pelo Google).
 - Finalidade: funcionalidade do app e gerenciamento da conta. Nenhuma para anúncios ou marketing.
 - Criptografia em trânsito: **sim** (HTTPS).
 - O usuário pode pedir a exclusão dos dados: **sim**, no app (Conta → Excluir conta) — e a URL da política descreve o processo.

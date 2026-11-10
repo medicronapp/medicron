@@ -83,9 +83,11 @@ Em "Tipos de dados", marque exatamente estes (todos: **vinculados à identidade 
 | Informações de contato | Endereço de e-mail | entrar na conta |
 | Saúde e fitness | Saúde | medicamentos e doses registradas pelo usuário |
 | Identificadores | ID do dispositivo | token de notificação (envio dos lembretes) |
+| Identificadores | ID do usuário | identificador da conta (organização) usado pelo RevenueCat para a assinatura |
+| Compras | Histórico de compras | assinatura do Medicron Plus (plano e validade) |
 | Conteúdo do usuário | Outro conteúdo do usuário | pacientes, itens e rotinas cadastrados |
 
-**Não marque:** localização, contatos, fotos/vídeos, dados financeiros, histórico de navegação/pesquisa, dados de uso/análise, diagnósticos, compras. (O app não tem anúncios nem ferramenta de análise.) A senha não é um "tipo de dado" do questionário; ela é guardada só como hash (está na política).
+**Não marque:** localização, contatos, fotos/vídeos, dados financeiros (o cartão é da Apple), histórico de navegação/pesquisa, dados de uso/análise, diagnósticos. (O app não tem anúncios nem ferramenta de análise.) A senha não é um "tipo de dado" do questionário; ela é guardada só como hash (está na política).
 
 ---
 
@@ -115,9 +117,14 @@ O Medicron ajuda você a não esquecer o que importa: o remédio de quem você c
 • Widgets no iPhone: o anel do dia, as próximas doses e as pendentes, na tela inicial e na tela de bloqueio.
 • Tema claro, escuro ou automático.
 
-Gratuito, sem anúncios. Você pode apagar a sua conta e tudo o que cadastrou direto no app (Conta → Excluir conta).
+O essencial é grátis e sem anúncios. O Medicron Plus é uma assinatura opcional, mensal ou anual (com 7 dias grátis no anual para quem ainda não testou), com pacientes ilimitados, até 8 pessoas na conta e histórico completo. A assinatura é renovada automaticamente e pode ser cancelada a qualquer momento nos Ajustes da App Store.
+
+Você pode apagar a sua conta e tudo o que cadastrou direto no app (Conta → Excluir conta).
 
 Importante: o Medicron é um organizador de lembretes. Ele não faz diagnóstico nem indica doses ou tratamentos. Siga sempre a orientação do seu médico ou veterinário.
+
+Termos de uso: https://medicron.com.br/termos
+Política de privacidade: https://medicron.com.br/privacidade
 ```
 
 ### Palavras-chave (até 100)
@@ -172,12 +179,29 @@ How to review:
 4. "Conta" (Account): invite people by link, appearance, notifications ("Ativar" button) and "Excluir minha conta" (in-app account deletion: asks for the password, then removes the account and its data).
 
 Notes:
-- No in-app purchases, no ads, no tracking, no third-party sign-in. The account is e-mail and password.
+- Optional auto-renewing subscription "Medicron Plus" (monthly and annual, 7-day free trial on the annual plan), sold with StoreKit through RevenueCat. The essentials (reminders, Today, marking doses, widgets) are free forever; the free plan is limited to 2 patients, 2 people per account and 30 days of history. To see the paywall: Account tab > "Conhecer o Plus", or try to add a 3rd patient. Purchases work in the sandbox environment. The Restore Purchases button and links to the Terms of Use and Privacy Policy are on that screen. The demo account is on the free plan on purpose.
+- No ads, no tracking, no third-party sign-in. The account is e-mail and password.
 - Push notifications are optional and only requested when the user taps "Ativar" (Account tab or Today tab).
 - Home Screen and Lock Screen widgets (iOS) are added manually from the widget gallery: "Medicron", "Medicron · Agora" and "Medicron · Progresso".
 - Invitation links (https://medicron.com.br/convite/...) open the app when installed.
 - Privacy policy: https://medicron.com.br/privacidade (also linked inside the app).
 ```
+
+---
+
+## 6.1 Assinatura (compras no app)
+
+O Medicron Plus é uma assinatura renovável automaticamente; a Apple exige estes itens (diretriz 3.1.2), **todos já implementados no app**:
+
+| Exigência | Onde está |
+|---|---|
+| Preço, período e o que está incluso **antes** da compra | tela do Plus (Conta → Conhecer o Plus), com os preços da loja |
+| Condições do teste grátis (7 dias, depois o preço, data da cobrança, como cancelar) | tela do Plus, no plano anual |
+| **Restaurar compras** | botão na tela do Plus |
+| Links para **Termos de uso** e **Política de privacidade** | na tela do Plus e na descrição da loja |
+| Como cancelar | tela do Plus, Termos de uso e "Gerenciar assinatura" na Conta |
+
+No App Store Connect: **crie o grupo e os produtos** (passo a passo na seção J de `docs/passos-do-usuario.md`), preencha o **nome e a descrição em português** de cada assinatura, anexe uma **captura da tela do Plus** como imagem de revisão e **adicione as assinaturas à versão** (Compras no app e assinaturas, na página da versão) antes de enviar. A primeira assinatura só é revisada junto com uma versão do app.
 
 ---
 
@@ -201,7 +225,7 @@ npx eas-cli submit --platform ios                       # envia ao App Store Con
 1. **Rodar o app pelo TestFlight** e passar pelo fluxo de `docs/passos-do-usuario.md`, seção D (login, Hoje, Pacientes, convite, **Excluir conta**).
 2. **`CONTACT_EMAIL` definido** na Vercel da API **e** no `medicron-web` (itens 8 e 24 de `docs/passos-do-usuario.md`) e os dois publicados. Sem isso a política de privacidade e o hotsite não mostram um contato.
 3. **`EXTRA_TRUSTED_ORIGINS=exp://**` removido** da API (item 15) e a API publicada.
-4. **Conta de demonstração**: crie uma conta nova (e-mail e senha que **não** sejam seus pessoais), com 1 ou 2 pacientes, uma rotina de cada e algumas doses para Hoje não ficar vazio. Não envolve verificação de e-mail (o app não exige).
+4. **Conta de demonstração**: crie uma conta nova (e-mail e senha que **não** sejam seus pessoais), com 1 ou 2 pacientes, uma rotina de cada e algumas doses para Hoje não ficar vazio. Não envolve verificação de e-mail (o app não exige). **Mantenha-a no plano grátis** (não dê Plus a ela): assim o revisor consegue ver o paywall ao tentar criar o 3º paciente.
 5. **`APPLE_TEAM_ID`** definido na API (item 8) para os links de convite abrirem o app (sem ele, abrem no navegador).
 6. **App Group dos widgets** criado (item 20), senão o build falha.
 7. **Imagens**: slides 06 e 07 conferidos no aparelho (item 29).
@@ -232,3 +256,5 @@ Avaliação honesta, contra as Diretrizes de Revisão da App Store. Com os itens
 | 16 | **Menores de idade**: o app permite cadastrar crianças como pacientes, mas a conta é de um adulto; o app não é voltado a crianças. | 1.3, 5.1.4 | OK; não use a categoria "Crianças". Se quiser, a política pode dizer "uso por maiores de 18 anos". |
 
 Já em conformidade (nenhuma ação): compras no app (não há, 3.1.1), anúncios (não há), rastreamento (não há; sem o aviso de transparência), criptografia (só HTTPS, `ITSAppUsesNonExemptEncryption = false`), permissões (nenhuma exige texto de uso no `Info.plist`).
+8. **Assinaturas** cadastradas e anexadas à versão (seção 6.1), contrato de apps pagos e dados bancários **aprovados**, e a compra testada no **sandbox** (seção J de `docs/passos-do-usuario.md`).
+9. **Termos de uso** no ar (`https://medicron.com.br/termos`) e a API publicada com o webhook do RevenueCat.
