@@ -14,7 +14,7 @@ describe("conteúdo (texto exato da spec)", () => {
     for (const t of [
       "Lembretes de remédio para quem cuida de gente e de bicho.",
       "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir.",
-      "Criar conta", "Já tenho conta →", "Em poucas palavras", "A tela Hoje do app: o que falta e o que atrasou.",
+      "Criar conta", "Já tenho conta →", "Em poucas palavras",
       "O Medicron é um organizador de lembretes. Não faz diagnóstico nem indica doses ou tratamentos: siga a orientação do seu médico ou veterinário.",
     ]) expect(h).toContain(t);
   });
@@ -66,8 +66,8 @@ describe("a tela do app é a captura REAL (não um desenho em HTML)", () => {
     expect(h).not.toContain('class="shot"');
     expect(h).not.toContain("Família Souza</span>");
   });
-  test("legenda da figura", () => {
-    expect(h).toContain("A tela Hoje do app: o que falta e o que atrasou.");
+  test("a figura não tem legenda", () => {
+    expect(h).not.toContain("A tela Hoje do app");
   });
 });
 
@@ -147,9 +147,9 @@ describe("sem terceiros e sem decoração", () => {
     expect(h).not.toMatch(/@import|url\(["']?https?:/);
     expect(h).not.toMatch(/https?:\/\/(?!medicron\.com\.br)/);
   });
-  test("CSS sem degradê, sombra pesada nem animação", () => {
+  test("CSS sem animação nem desfoque de fundo", () => {
     const style = h.slice(h.indexOf("<style>"), h.indexOf("</style>"));
-    expect(style).not.toMatch(/gradient|animation|@keyframes|transition|backdrop-filter/);
+    expect(style).not.toMatch(/animation|@keyframes|transition|backdrop-filter/);
   });
 });
 

@@ -23,9 +23,10 @@ describe("estrutura e navegação por teclado", () => {
   test("foco visível de 2 px em links e botões", () => {
     expect(style).toMatch(/a:focus-visible\{[^}]*outline:2px solid/);
   });
-  test("hierarquia: h1, depois h2; figura com legenda; viewport definido", () => {
+  test("hierarquia: h1, depois h2; figura sem legenda; viewport definido", () => {
     expect(body.indexOf("<h1")).toBeLessThan(body.indexOf("<h2"));
-    expect(body).toMatch(/<figure[\s\S]*<figcaption>[\s\S]*<\/figcaption>[\s\S]*<\/figure>/);
+    expect(body).toMatch(/<figure[\s\S]*<\/figure>/);
+    expect(body).not.toMatch(/figcaption/);
     expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
   });
 });
@@ -138,15 +139,35 @@ describe("leve e sem enfeite", () => {
     expect(style.match(/font-display:swap/g)).toHaveLength(2);
     expect(html).toMatch(/<link rel="preload" href="\/landing\/fonts\/geist-400.woff2" as="font" type="font\/woff2" crossorigin>/);
   });
-  test("sem animação, transição, sombra, filtro nem degradê", () => {
-    expect(style).not.toMatch(/animation|transition|@keyframes|box-shadow|filter|gradient/);
+  test("sem animação nem transição; degradê só no fundo do hero e sombra só na captura", () => {
+    expect(style).not.toMatch(/animation|transition|@keyframes|filter/);
+    expect(style.match(/gradient/g)!.length).toBeLessThanOrEqual(3);
+    expect(style.match(/box-shadow/g)).toHaveLength(3); // claro, escuro (automático) e escuro (escolhido), todas em .hero-shot img
+  });
+  test("hero é uma caixa arredondada, com respiro antes de \"Em poucas palavras\"", () => {
+    const hero = style.match(/\.hero\{[^}]*\}/)![0];
+    expect(Number(hero.match(/border-radius:(\d+)px/)![1])).toBeGreaterThanOrEqual(24);
+    expect(Number(hero.match(/margin:\d+px 0 (\d+)px/)![1])).toBeGreaterThanOrEqual(64);
+    expect(hero).toMatch(/overflow:hidden/);
+  });
+  test("o destaque atrás da captura não invade o texto: círculos menores que a coluna + folga, e o texto fica por cima", () => {
+    const gap = 64;
+    const widths = [...style.matchAll(/\.hero-shot::(?:before|after)\{[^}]*width:(\d+)px/g)].map((m) => Number(m[1]));
+    expect(widths).toHaveLength(4); // 2 círculos no computador, 2 no celular
+    for (const w of widths) expect(w).toBeLessThanOrEqual(340 + 2 * (gap - 8));
+    expect(style).toMatch(/\.hero-text\{[^}]*position:relative[^}]*z-index:2/);
+  });
+  test("sombra grande e esfumaçada abaixo da captura (deslocada para baixo, blur largo)", () => {
+    const m = style.match(/\.hero-shot img\{[^}]*box-shadow:0 (\d+)px (\d+)px/)!;
+    expect(Number(m[1])).toBeGreaterThanOrEqual(30);
+    expect(Number(m[2])).toBeGreaterThanOrEqual(50);
   });
   test("só um elemento sólido de ação (uma cor de ação); vermelho e verde de estado só existem dentro da captura do app", () => {
     expect(body.match(/class="btn"/g)).toHaveLength(1);
     expect(style).not.toMatch(/--destructive|--success/);
   });
-  test("largura: página larga (até 1080 px), hero em duas colunas no computador e em uma só no celular", () => {
-    expect(style).toMatch(/\.top,main,\.foot\{max-width:1080px;margin:0 auto/);
+  test("largura: página larga (até 1160 px), hero em duas colunas no computador e em uma só no celular", () => {
+    expect(style).toMatch(/\.top,main,\.foot\{max-width:1160px;margin:0 auto/);
     expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 340px/);
     expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero\{grid-template-columns:1fr/);
     expect(style).not.toMatch(/body\{[^}]*max-width:640px/);
