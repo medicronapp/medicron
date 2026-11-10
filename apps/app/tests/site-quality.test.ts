@@ -184,9 +184,23 @@ describe("leve e sem enfeite", () => {
   });
   test("largura: página larga (até 1160 px), hero em duas colunas no computador e em uma só no celular", () => {
     expect(style).toMatch(/\.top,main,\.foot\{max-width:1160px;margin:0 auto/);
-    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 400px/);
+    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) clamp\(300px,34vw,400px\)/);
     expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero\{grid-template-columns:1fr/);
     expect(style).not.toMatch(/body\{[^}]*max-width:640px/);
+  });
+  test("hero fluido: logo acima do breakpoint (861 px) a coluna do texto ainda tem largura para o título (≥ 340 px)", () => {
+    const hero = style.match(/(?:^|\n)\.hero\{[^}]*\}/)![0];
+    const clamp = (src: string, vw: number) => {
+      const m = src.match(/clamp\((\d+)px,(\d+(?:\.\d+)?)vw,(\d+)px\)/)!;
+      return Math.min(Number(m[3]), Math.max(Number(m[1]), (Number(m[2]) * vw) / 100));
+    };
+    const W = 861, content = W - 64; // .top,main,.foot têm 32 px de margem de cada lado
+    const cols = hero.match(/grid-template-columns:minmax\(0,1fr\) (clamp\([^)]*\))/)![1];
+    const gap = hero.match(/gap:(clamp\([^)]*\))/)![1];
+    const pad = hero.match(/padding:(clamp\([^)]*\)) (clamp\([^)]*\)) (clamp\([^)]*\)) (clamp\([^)]*\))/)!;
+    const text = content - clamp(cols, W) - clamp(gap, W) - clamp(pad[2], W) - clamp(pad[4], W);
+    expect(text).toBeGreaterThanOrEqual(340);
+    expect(style).toMatch(/\.hero-shot\{[^}]*width:clamp\(300px,34vw,400px\)/);
   });
   test("a captura nunca estoura a moldura (largura 100% e altura automática)", () => {
     expect(style).toMatch(/\.phone img\{[^}]*width:100%[^}]*height:auto/);
