@@ -42,6 +42,9 @@ test.each(["/.well-known/assetlinks.json", "/.well-known/apple-app-site-associat
 test("/privacidade é servida pela API", () => {
   expect(firstRewrite("/privacidade")?.destination).toBe(`${API}/privacidade`);
 });
+test("/termos (termos de uso da assinatura) é servida pela API, antes do fallback do app", () => {
+  expect(firstRewrite("/termos")?.destination).toBe(`${API}/termos`);
+});
 test.each(["/pacientes", "/pacientes/abc/editar", "/convite/xyz", "/conta", "/entrar", "/cadastrar"])("%s cai no app (app.html)", (p) => {
   expect(firstRewrite(p)?.destination).toBe("/app.html");
 });
@@ -53,13 +56,13 @@ test.each(["/sw.js", "/manifest.webmanifest", "/icons/icon-192.png", "/_expo/sta
 
 test("o fallback do app é a última reescrita e a API tem prioridade", () => {
   expect(cfg.rewrites[cfg.rewrites.length - 1].destination).toBe("/app.html");
-  expect(cfg.rewrites.slice(0, 3).every((r) => r.destination.startsWith(API))).toBe(true);
+  expect(cfg.rewrites.slice(0, 4).every((r) => r.destination.startsWith(API))).toBe(true);
 });
 
 describe("a raiz decide entre o hotsite e o app", () => {
   test("ordem: API, PWA, cookie de sessão, hotsite, fallback do app", () => {
     expect(cfg.rewrites.map((r) => r.destination)).toEqual([
-      `${API}/api/:path*`, `${API}/privacidade`, `${API}/.well-known/:path*`, "/app.html", "/app.html", "/landing/index.html", "/app.html",
+      `${API}/api/:path*`, `${API}/privacidade`, `${API}/termos`, `${API}/.well-known/:path*`, "/app.html", "/app.html", "/landing/index.html", "/app.html",
     ]);
   });
   test("o cookie de sessão é o do better-auth em produção", () => {

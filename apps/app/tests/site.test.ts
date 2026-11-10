@@ -33,6 +33,7 @@ describe("links", () => {
     expect(l.find((x) => x.text === "Criar conta")!.href).toBe("/cadastrar");
     expect(l.find((x) => x.text === "Já tenho conta →")!.href).toBe("/entrar");
     expect(l.find((x) => x.text === "Política de privacidade")!.href).toBe("/privacidade");
+    expect(l.find((x) => x.text === "Termos de uso")!.href).toBe("/termos");
   });
   test("só links internos, âncora ou mailto (sem terceiros)", () => {
     for (const x of l) expect(x.href).toMatch(/^(\/|#|mailto:)/);

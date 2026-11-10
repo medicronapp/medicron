@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Política de privacidade — Medicron" };
 
-const UPDATED = "8 de novembro de 2026";
+const UPDATED = "10 de novembro de 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -42,9 +42,18 @@ export default function PrivacyPage() {
 
       <Section title="Com quem compartilhamos">
         <p>
-          Apenas com quem faz o serviço funcionar: a Vercel (hospedagem), a Neon (banco de dados) e a Expo (envio das
-          notificações push no celular) e, no navegador, os serviços de push dos navegadores (Apple, Google, Mozilla). Pessoas que você convidar para a sua conta veem os dados dela. Não compartilhamos dados
+          Apenas com quem faz o serviço funcionar: a Vercel (hospedagem), a Neon (banco de dados), a Expo (envio das
+          notificações push no celular) e o RevenueCat (confirmação das assinaturas do Medicron Plus) e, no navegador, os serviços de push dos navegadores (Apple, Google, Mozilla). Pessoas que você convidar para a sua conta veem os dados dela. Não compartilhamos dados
           com anunciantes.
+        </p>
+      </Section>
+
+      <Section title="Compras e assinatura">
+        <p>
+          Se você assinar o Medicron Plus, a compra é feita e cobrada pela Apple ou pelo Google, que processam o
+          pagamento: não guardamos dados de cartão. Usamos o RevenueCat para confirmar a assinatura; ele recebe o
+          identificador da compra e o identificador da sua conta (organização). Guardamos apenas o plano e a validade
+          da conta, para liberar os recursos do Plus.
         </p>
       </Section>
 
