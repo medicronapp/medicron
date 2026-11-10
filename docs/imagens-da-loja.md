@@ -14,6 +14,8 @@ Saída em `store-assets/ios/<tamanho>/NN-id.png`, PNG sem transparência:
 | `store-assets/ios/6.5/` | 1284×2778 | iPhone 6,5" |
 | `store-assets/android/1080x1920/` | 1080×1920 | Google Play, capturas de telefone (só os slides 01 a 05) |
 | `store-assets/android/feature-graphic-1024x500.png` | 1024×500 | Google Play, gráfico de destaque |
+| `store-assets/icons/ios-1024.png` | 1024×1024 | ícone da App Store (sem transparência; vem do build, cópia para outros usos) |
+| `store-assets/icons/android-512.png` | 512×512 | ícone da Google Play (32 bits, quadrado) |
 
 Sete slides, na ordem de exibição:
 
@@ -105,7 +107,7 @@ Google Play: capturas de telefone entre 320 e 3840 px com proporção de até 2:
 - **Moldura de celular Android**: câmera em furo (círculo de 34 px), cantos menos arredondados (110 px contra 150 px do iPhone), borda mais fina (20 px) e barra de status com a hora 12:05 (a da demonstração) e a bateria. A barra de gestos fica fora da área visível (o celular sai pela base).
 - **Mesmos textos, cores e títulos** do iPhone (identidade única nas duas lojas).
 - **Gráfico de destaque** `feature-graphic-1024x500.png`: fundo verde-petróleo, marca, "Lembretes de remédio / para gente e pets" com destaque e o celular com a tela Hoje. Texto mínimo, sem preço, ranking ou promessa (a Google Play rejeita; um teste barra "grátis", "nº 1", "melhor", "baixe" e porcentagens).
-- **Ícone 512×512**: não é gerado aqui (é o ícone do app, `apps/app/assets`); exporte em 512×512 para o console.
+- **Ícones das lojas**: `npm run build-store-icons` (módulo `scripts/store-icons.ts`) gera `store-assets/icons/ios-1024.png` e `android-512.png` a partir de `apps/app/assets/icon.png`. O iOS sai **sem canal alfa** e o Google em 32 bits **todo opaco**; ambos **quadrados até as pontas** (as lojas aplicam a máscara arredondada; não arredonde aqui). A origem precisa ser quadrada e ter pelo menos 1024 px (um teste barra o contrário).
 - **Fidelidade**: as telas são do app **web** no Chrome (fonte Geist, não a do sistema Android). Para fidelidade total (fonte e barra de navegação do Android), capture do emulador/aparelho e substitua o `<img>` do slide; o resto do pipeline não muda.
 
 ## Armadilhas já encontradas

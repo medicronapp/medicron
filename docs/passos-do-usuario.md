@@ -30,7 +30,7 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 11. **Build iOS:** `cd apps/app && npx eas-cli build --platform ios --profile production`; depois `npx eas-cli submit --platform ios` (vai para o TestFlight). Teste no TestFlight antes de enviar para revisão.
 12. **Build Android:** `npx eas-cli build --platform android --profile production`; envie o `.aab` na faixa de teste interno do Google Play (`eas submit --platform android`). Pegue a impressão SHA-256 e volte ao item 8.
 13. **Teste fechado do Google:** contas pessoais novas exigem 12 testadores por 14 dias seguidos antes de liberar a produção — **se** o console pedir.
-14. **Fichas e revisão:** cole textos, questionários e notas de `docs/lojas.md`; crie a conta de demonstração; envie capturas de tela; informe a política `https://medicron.com.br/privacidade`; envie para revisão.
+14. **Fichas e revisão:** cole textos, questionários e notas de `docs/lojas.md`; crie a conta de demonstração; envie as capturas de tela e os ícones (**já prontos**, veja a seção I); informe a política `https://medicron.com.br/privacidade`; envie para revisão.
 15. **Conferir exclusão de conta** pelo app antes de enviar (Conta → Excluir conta) e remover `EXTRA_TRUSTED_ORIGINS` (item 6).
 
 ## F. Virada da web — feita em 2026-11-09
@@ -55,3 +55,11 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 27. **Como conferir:** numa janela anônima, `https://medicron.com.br` mostra o hotsite; logado, abre direto o app. O app instalado (PWA) abre sempre o app.
 28. **Atualizar as capturas do hotsite** (só quando a tela Hoje mudar de aparência): dentro de `apps/app`, `npx expo export -p web && node scripts/finalize-web.cli.ts` e depois `npm run capture-site-shots` (usa o Google Chrome; gera `site/hoje-claro.webp` e `site/hoje-escuro.webp`), commitar e republicar o `medicron-web`.
 
+## I. Imagens e ícones das lojas (prontos em `store-assets/`; padrões e como alterar em `docs/imagens-da-loja.md`)
+
+29. **Antes de enviar as imagens do iPhone** (depois do build com widgets, item 19): instale o build no iPhone, adicione os widgets (item 21) e compare com os slides 06 (tela de bloqueio) e 07 (tela inicial). Eles foram **reproduzidos em HTML** a partir do código dos widgets, não fotografados. Se algo divergir (fonte, tamanho, textos), me avise para ajustar `apps/app/scripts/store-widgets.ts` e refazer.
+30. **App Store Connect → seu app → versão → Capturas de tela → iPhone 6,9":** arraste os 7 arquivos de `store-assets/ios/6.9/` (`01-hoje.png` a `07-widget.png`; a ordem do nome é a ordem de exibição). Se o console pedir o tamanho de 6,5", use `store-assets/ios/6.5/`. Todas são PNG sem transparência.
+31. **Ícone do iOS:** vem do próprio build (o EAS usa `apps/app/assets/icon.png`, 1024×1024); a App Store Connect **não** tem upload separado. A cópia para outros usos está em `store-assets/icons/ios-1024.png` (sem transparência e sem cantos arredondados, como a Apple exige; o iOS aplica a máscara).
+32. **Google Play Console → Crescimento → Presença na loja → Ficha principal da loja** (o nome do menu pode variar): **Ícone do app** = `store-assets/icons/android-512.png` (512×512, 32 bits, quadrado: o Google aplica a máscara); **Gráfico de recursos** = `store-assets/android/feature-graphic-1024x500.png`; **Capturas de tela do telefone** = os 5 arquivos de `store-assets/android/1080x1920/` (`01-hoje.png` a `05-conta.png`; mínimo 2).
+33. **Android sem widgets:** o Medicron não tem widgets no Android, então a ficha do Google Play **não** deve citá-los (as imagens do Android já não os mostram).
+34. **Refazer as imagens depois de mudar o visual do app** (em `apps/app`): `npx expo export -p web && node scripts/finalize-web.cli.ts`, depois `npm run capture-store-shots` (iPhone, Android e gráfico de destaque) e, se o ícone mudar, `npm run build-store-icons`. Commitar os arquivos de `store-assets/` e reenviar às lojas.
