@@ -1,6 +1,6 @@
 # Hotsite do Medicron: design
 
-> **Ajuste de 2026-11-10 (feedback do usuário):** a página ficou mais larga (1080 px) e a captura do app foi para o **lado direito do título** (hero em duas colunas no computador; uma coluna no celular). O desenho em HTML da tela foi trocado por **capturas reais do app** (claro e escuro), geradas por `npm run capture-site-shots` (o app web real contra uma API simulada, relógio congelado em 10/11/2026 12:05).
+> **Ajuste de 2026-11-10 (feedback do usuário):** a página ficou mais larga (1080 px) e a captura do app foi para o **lado direito do título** (hero em duas colunas no computador; uma coluna no celular). Depois, o texto da esquerda passou a **acompanhar a altura da captura**: título e texto no topo, botões num ponto intermediário e a linha de disponibilidade no pé, alinhada à legenda (sem fundo de gradiente, cantos arredondados nem destaque atrás do app). O desenho em HTML da tela foi trocado por **capturas reais do app** (claro e escuro), geradas por `npm run capture-site-shots` (o app web real contra uma API simulada, relógio congelado em 10/11/2026 12:05).
 
 Data: 2026-11-10. Autor do pedido: usuário. Status: **implementado** (Plano 10); publicação em produção conforme `docs/passos-do-usuario.md`, seção H.
 
