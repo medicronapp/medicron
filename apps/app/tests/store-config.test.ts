@@ -44,20 +44,26 @@ describe("eas.json", () => {
   });
 });
 
-describe("widget do iOS (expo-widgets)", () => {
+describe("widgets do iOS (expo-widgets)", () => {
   const plugin = (expo.plugins as unknown[]).find((p) => Array.isArray(p) && p[0] === "expo-widgets") as [string, Record<string, any>] | undefined;
+  const widgets = (plugin?.[1].widgets ?? []) as { name: string; displayName: string; ios: { supportedFamilies: string[]; initialLayout: string } }[];
+  const byName = (n: string) => widgets.find((w) => w.name === n)!;
 
-  test("um widget Medicron com médio e tela de bloqueio, só no iOS", () => {
-    expect(plugin).toBeDefined();
-    const widgets = plugin![1].widgets as { name: string; ios: { supportedFamilies: string[]; initialLayout: string } }[];
-    expect(widgets).toHaveLength(1);
-    expect(widgets[0].name).toBe("MedicronWidget");
-    expect(widgets[0].ios.supportedFamilies).toEqual(["systemMedium", "accessoryRectangular", "accessoryInline"]);
+  test("três widgets na galeria: médio, Agora e Progresso, só no iOS", () => {
+    expect(widgets.map((w) => w.name).sort()).toEqual(["MedicronAgoraWidget", "MedicronProgressoWidget", "MedicronWidget"]);
     expect(plugin![1].enableAndroid).toBeUndefined();
+    expect(byName("MedicronWidget").displayName).toBe("Medicron");
+    expect(byName("MedicronAgoraWidget").displayName).toBe("Medicron · Agora");
+    expect(byName("MedicronProgressoWidget").displayName).toBe("Medicron · Progresso");
   });
 
-  test("o arquivo do layout inicial existe", () => {
-    const file = (plugin![1].widgets[0].ios.initialLayout as string).replace(/^\.\//, "");
-    expect(fs.existsSync(path.join(__dirname, "..", file))).toBe(true);
+  test("cada widget só declara os tamanhos para os quais foi desenhado", () => {
+    expect(byName("MedicronWidget").ios.supportedFamilies).toEqual(["systemMedium"]);
+    expect(byName("MedicronAgoraWidget").ios.supportedFamilies).toEqual(["accessoryRectangular", "accessoryInline"]);
+    expect(byName("MedicronProgressoWidget").ios.supportedFamilies).toEqual(["accessoryRectangular"]);
+  });
+
+  test("o arquivo de layout inicial de cada widget existe", () => {
+    for (const w of widgets) expect(fs.existsSync(path.join(__dirname, "..", w.ios.initialLayout.replace(/^\.\//, "")))).toBe(true);
   });
 });

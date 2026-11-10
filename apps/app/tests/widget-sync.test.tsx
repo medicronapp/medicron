@@ -2,8 +2,12 @@ import { Platform } from "react-native";
 import { renderHook } from "@testing-library/react-native";
 import type { HomeDto } from "@medicron/shared";
 
-const mockUpdate = jest.fn();
+const mockUpdate = jest.fn(); // médio
+const mockUpdateAgora = jest.fn();
+const mockUpdateProgresso = jest.fn();
 jest.mock("@/widgets/medicron-widget", () => ({ __esModule: true, default: { updateTimeline: (...a: unknown[]) => mockUpdate(...a) } }));
+jest.mock("@/widgets/medicron-agora-widget", () => ({ __esModule: true, default: { updateTimeline: (...a: unknown[]) => mockUpdateAgora(...a) } }));
+jest.mock("@/widgets/medicron-progresso-widget", () => ({ __esModule: true, default: { updateTimeline: (...a: unknown[]) => mockUpdateProgresso(...a) } }));
 const mockSession = { value: { status: "signedIn" } as { status: string } };
 jest.mock("@/lib/session", () => ({ useAppSession: () => mockSession.value }));
 const mockHome: { data: { home: HomeDto } | undefined } = { data: undefined };
@@ -27,6 +31,7 @@ const original = Platform.OS;
 afterAll(() => setPlatform(original));
 beforeEach(() => {
   jest.clearAllMocks();
+  for (const m of [mockUpdate, mockUpdateAgora, mockUpdateProgresso]) m.mockReset();
   setPlatform("ios");
   mockSession.value = { status: "signedIn" };
   mockHome.data = undefined;
@@ -88,4 +93,27 @@ test("só lê o cache: não existe nenhuma requisição própria do widget (o ap
   const src = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "src/lib/widget-sync.ts"), "utf8");
   expect(src).toContain("useCachedHome");
   expect(src).not.toMatch(/useHome\(|fetchHome|apiClient/);
+});
+
+test("os TRÊS widgets (médio, Agora e Progresso) recebem a mesma timeline", async () => {
+  mockHome.data = { home: home(2) };
+  await renderHook(() => useWidgetSync());
+  for (const m of [mockUpdate, mockUpdateAgora, mockUpdateProgresso]) expect(m).toHaveBeenCalledTimes(1);
+  expect(mockUpdateAgora.mock.calls[0][0]).toEqual(mockUpdate.mock.calls[0][0]);
+  expect(mockUpdateProgresso.mock.calls[0][0]).toEqual(mockUpdate.mock.calls[0][0]);
+});
+
+test("sair da conta limpa os três widgets", () => {
+  clearWidget();
+  for (const m of [mockUpdate, mockUpdateAgora, mockUpdateProgresso]) {
+    expect((m.mock.calls[0][0] as { props: { status: string } }[])[0].props.status).toBe("signedOut");
+  }
+});
+
+test("se um widget falhar, os outros ainda são atualizados", async () => {
+  mockUpdate.mockImplementation(() => { throw new Error("native"); });
+  mockHome.data = { home: home(1) };
+  await renderHook(() => useWidgetSync());
+  expect(mockUpdateAgora).toHaveBeenCalledTimes(1);
+  expect(mockUpdateProgresso).toHaveBeenCalledTimes(1);
 });
