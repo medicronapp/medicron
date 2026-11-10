@@ -2,6 +2,7 @@
 // com o relógio congelado, então as imagens são do próprio app (não um desenho) e saem iguais em qualquer dia.
 import type { EntryDto, HomeDto, ItemDto, MeDto, PatientDto, PlanDto } from "@medicron/shared"; // só tipos: o Node não importa o fonte do shared em tempo de execução
 import type { HomeResponse } from "../src/lib/api/home";
+import type { WidgetProps } from "../src/lib/widget-data";
 
 /** Terça-feira, 10/11/2026, 12:05 em Brasília (UTC-3). */
 export const DEMO_NOW = new Date("2026-11-10T15:05:00.000Z");
@@ -152,3 +153,32 @@ export function demoPlans(patientId: string): PlanDto[] {
       return [];
   }
 }
+
+// ---- Widgets (slides de tela de bloqueio e tela inicial da App Store) ----
+
+/** Terça, 10/11/2026, 11:40 em Brasília: a Losartana das 12:00 ainda está por vir e a Vitamina D das 08:00 está pendente. */
+export const WIDGET_DEMO_NOW = new Date("2026-11-10T14:40:00.000Z");
+
+/** A tela Hoje nesse momento, com mais uma dose da Ana à noite (Cálcio, 20:00: a mesma da tela Rotina). */
+export function demoWidgetHome(): HomeDto {
+  const base = demoHome().home;
+  const calcio = entry({ planId: "pl7", patientId: "pa_ana", patientName: "Ana", itemName: "Cálcio", dose: "500 mg", state: "later", time: "20:00" });
+  const losartanaLater: EntryDto = { ...losartana, state: "later" };
+  return {
+    ...base,
+    now: WIDGET_DEMO_NOW.toISOString(),
+    progress: { resolved: 3, total: 6 },
+    attention: [vitaminaD],
+    patients: [group("pa_pedro", "Pedro", [vitaminaD]), group("pa_ana", "Ana", [omeprazol, losartanaLater, calcio]), group("pa_mel", "Mel", [vermifugo, antialergico])],
+  };
+}
+
+/** O que o app entregaria ao widget nesse momento (o teste confere com `buildWidgetTimeline`, que é o código real). */
+export const DEMO_WIDGET_PROPS: WidgetProps = {
+  status: "ok", resolved: 3, total: 6,
+  upcoming: [
+    { time: "12:00", item: "Losartana", patient: "Ana", at: new Date(at("12:00")).getTime() },
+    { time: "20:00", item: "Cálcio", patient: "Ana", at: new Date(at("20:00")).getTime() },
+  ],
+  pendingCount: 1, pendingSince: "08:00",
+};

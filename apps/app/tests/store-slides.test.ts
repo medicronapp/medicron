@@ -9,9 +9,10 @@ describe("imagens da App Store: tamanhos e roteiro", () => {
       { id: "6.5", width: 1284, height: 2778 },
     ]);
   });
-  test("5 telas na ordem de docs/lojas.md: Hoje, Pacientes, Rotina, Itens, Conta", () => {
-    expect(STORE_SLIDES.map((s) => s.id)).toEqual(["hoje", "pacientes", "rotina", "itens", "conta"]);
-    expect(STORE_SLIDES.map((s) => s.route)).toEqual(["/", "/pacientes", "/pacientes/pa_ana", "/itens", "/conta"]);
+  test("as 5 telas de docs/lojas.md, na ordem (Hoje, Pacientes, Rotina, Itens, Conta), mais os 2 slides de widgets", () => {
+    expect(STORE_SLIDES.map((s) => s.id)).toEqual(["hoje", "pacientes", "rotina", "itens", "conta", "bloqueio", "widget"]);
+    const app = STORE_SLIDES.filter((s) => s.kind === "app");
+    expect(app.map((s) => s.route)).toEqual(["/", "/pacientes", "/pacientes/pa_ana", "/itens", "/conta"]);
   });
   test("textos curtos, em português e sem promessa médica nem superlativo", () => {
     for (const s of STORE_SLIDES) {
@@ -24,8 +25,8 @@ describe("imagens da App Store: tamanhos e roteiro", () => {
 });
 
 describe("tema das telas: algumas no claro, outras no escuro", () => {
-  test("alterna: Hoje, Rotina e Conta no claro; Pacientes e Itens no escuro", () => {
-    expect(STORE_SLIDES.map((s) => s.theme)).toEqual(["light", "dark", "light", "dark", "light"]);
+  test("alterna claro e escuro, começando pelo claro", () => {
+    expect(STORE_SLIDES.map((s) => s.theme)).toEqual(["light", "dark", "light", "dark", "light", "dark", "light"]);
   });
   test("a moldura e a faixa de status acompanham o tema da tela", () => {
     const light = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");

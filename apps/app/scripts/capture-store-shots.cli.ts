@@ -23,7 +23,7 @@ const demo = await startDemoServer(path.join(appRoot, "dist"), CHROME);
 try {
   // 1) a tela real de cada slide, em 390×844 pt a 3x (1170×2532), tema de cada slide (alternam claro e escuro)
   const raws = new Map<string, string>();
-  for (const s of STORE_SLIDES) {
+  for (const s of STORE_SLIDES.filter((x) => x.kind === "app")) {
     const png = path.join(tmp, `raw-${s.id}.png`);
     await demo.shoot({ route: s.route, theme: s.theme, width: 390, height: 844, scale: 3, out: png });
     raws.set(s.id, `data:image/png;base64,${fs.readFileSync(png).toString("base64")}`);
@@ -37,7 +37,7 @@ try {
     for (const [i, s] of STORE_SLIDES.entries()) {
       const html = path.join(tmp, `${size.id}-${s.id}.html`);
       const shot = path.join(tmp, `${size.id}-${s.id}.png`);
-      fs.writeFileSync(html, renderStoreSlide(s, size, raws.get(s.id)!, fontCss));
+      fs.writeFileSync(html, renderStoreSlide(s, size, raws.get(s.id) ?? "", fontCss));
       const r = await runChrome(CHROME, ["--headless=new", "--disable-gpu", "--hide-scrollbars", `--window-size=${size.width},${size.height}`, "--force-device-scale-factor=1", "--virtual-time-budget=5000", `--screenshot=${shot}`, `file://${html}`]);
       if (r.code !== 0 || !fs.existsSync(shot)) throw new Error(`Chrome falhou em ${size.id}/${s.id}: ${r.stderr.slice(-200)}`);
       const out = path.join(dir, `${String(i + 1).padStart(2, "0")}-${s.id}.png`);

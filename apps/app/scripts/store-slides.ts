@@ -1,8 +1,12 @@
 // Imagens da App Store (iPhone) no mesmo estilo do hotsite: fundo colorido, título, e o celular com a tela REAL do app
-// recortado pela base. Este módulo só monta o HTML de cada slide; quem fotografa é capture-store-shots.cli.ts.
+// recortado pela base (ou, nos slides de widgets, a tela de bloqueio e a tela inicial com os widgets). Este módulo só monta o HTML de cada slide; quem fotografa é capture-store-shots.cli.ts.
+
+import { DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW } from "./demo-data.ts";
+import { renderWidgetScreen } from "./store-widgets.ts";
 
 export type StoreSize = { id: "6.9" | "6.5"; width: number; height: number };
-export type StoreSlide = { id: string; route: string; title: string; subtitle: string; theme: "light" | "dark" };
+/** `app` = captura real de uma tela do app (`route`); `lock` e `home` = widgets do iOS reproduzidos (store-widgets.ts). */
+export type StoreSlide = { id: string; kind: "app" | "lock" | "home"; route: string; title: string; subtitle: string; theme: "light" | "dark" };
 
 /** Tamanhos de captura exigidos para iPhone (docs/lojas.md). */
 export const STORE_SIZES: StoreSize[] = [
@@ -10,13 +14,15 @@ export const STORE_SIZES: StoreSize[] = [
   { id: "6.5", width: 1284, height: 2778 },
 ];
 
-/** Roteiro: as 5 telas de docs/lojas.md, na ordem. Textos fiéis ao que o app faz (sem promessa médica). */
+/** Roteiro: as 5 telas de docs/lojas.md, na ordem, e os 2 slides de widgets (iPhone). Textos fiéis ao que o app faz (sem promessa médica). */
 export const STORE_SLIDES: StoreSlide[] = [
-  { id: "hoje", route: "/", title: "Cada dose na hora certa", subtitle: "Veja o que falta e o que atrasou.", theme: "light" },
-  { id: "pacientes", route: "/pacientes", title: "Gente e pets, cada um com a sua rotina", subtitle: "Todos os cuidados da casa em um só lugar.", theme: "dark" },
-  { id: "rotina", route: "/pacientes/pa_ana", title: "Monte a rotina de cada um", subtitle: "Medicação ou procedimento, com dose e frequência.", theme: "light" },
-  { id: "itens", route: "/itens", title: "Tudo o que entra na rotina", subtitle: "Medicações e procedimentos, cadastrados uma vez.", theme: "dark" },
-  { id: "conta", route: "/conta", title: "A família inteira no mesmo cuidado", subtitle: "Convide por link: todos veem o que já foi dado.", theme: "light" },
+  { id: "hoje", kind: "app", route: "/", title: "Cada dose na hora certa", subtitle: "Veja o que falta e o que atrasou.", theme: "light" },
+  { id: "pacientes", kind: "app", route: "/pacientes", title: "Gente e pets, cada um com a sua rotina", subtitle: "Todos os cuidados da casa em um só lugar.", theme: "dark" },
+  { id: "rotina", kind: "app", route: "/pacientes/pa_ana", title: "Monte a rotina de cada um", subtitle: "Medicação ou procedimento, com dose e frequência.", theme: "light" },
+  { id: "itens", kind: "app", route: "/itens", title: "Tudo o que entra na rotina", subtitle: "Medicações e procedimentos, cadastrados uma vez.", theme: "dark" },
+  { id: "conta", kind: "app", route: "/conta", title: "A família inteira no mesmo cuidado", subtitle: "Convide por link: todos veem o que já foi dado.", theme: "light" },
+  { id: "bloqueio", kind: "lock", route: "", title: "Na tela de bloqueio", subtitle: "A próxima dose e as pendentes, sem abrir o app.", theme: "dark" },
+  { id: "widget", kind: "home", route: "", title: "Na tela inicial", subtitle: "O anel do dia, as próximas doses e o que está pendente.", theme: "light" },
 ];
 
 const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -51,11 +57,12 @@ p{margin:${px(34)} 0 0;font-size:${px(54)};line-height:1.45;font-weight:400;colo
 .phone{${frame};position:absolute;left:50%;top:${px(830)};width:${px(1000)};margin-left:${px(-500)};overflow:hidden;border:${px(26)} solid var(--bezel);border-bottom:0;border-radius:${px(150)} ${px(150)} 0 0;outline:${px(3)} solid ${dark ? "rgba(255,255,255,.28)" : "rgba(20,26,27,.18)"};background:var(--screen);padding-top:${px(78)}}
 .phone::before{content:"";position:absolute;z-index:2;top:${px(26)};left:50%;width:${px(290)};height:${px(62)};margin-left:${px(-145)};border-radius:999px;background:var(--bezel)}
 .phone img{display:block;width:100%;height:auto}
+.phone.raw{padding-top:0;background:#000}
 </style>
 </head>
 <body>
 <div class="copy"><h1>${escapeHtml(slide.title)}</h1><p>${escapeHtml(slide.subtitle)}</p></div>
-<div class="phone"><img src="${screenDataUri}" alt=""></div>
+<div class="phone${slide.kind === "app" ? "" : " raw"}">${slide.kind === "app" ? `<img src="${screenDataUri}" alt="">` : renderWidgetScreen(slide.kind, DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW, k)}</div>
 </body>
 </html>
 `;
