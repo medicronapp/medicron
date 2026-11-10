@@ -2,6 +2,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { BellRing, HeartPulse, Users } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandMark } from "@/components/brand-mark";
+import { LegalNote } from "@/components/legal-note";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { useIsWide } from "@/lib/use-breakpoint";
@@ -58,6 +59,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
               </View>
             )}
             {children}
+            <LegalNote />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -1,12 +1,12 @@
 # Fichas das lojas (App Store e Google Play)
 
-Textos prontos para colar nos consoles. Tudo em português do Brasil. O Medicron **não é dispositivo médico**: organiza lembretes e registros, não diagnostica, não indica doses e não substitui orientação de profissionais de saúde.
+Textos prontos para colar nos consoles. **Para a Apple, use o guia campo a campo `docs/app-store-connect.md` (versão final dos textos, privacidade, notas de revisão e riscos de aprovação).** Tudo em português do Brasil. O Medicron **não é dispositivo médico**: organiza lembretes e registros, não diagnostica, não indica doses e não substitui orientação de profissionais de saúde.
 
 ## Identidade
 
 - **Nome:** Medicron
 - **Identificador (iOS e Android):** `app.medicron`
-- **Subtítulo (iOS, até 30):** Lembretes de remédios e cuidados
+- **Subtítulo (iOS, até 30):** Lembretes para gente e pets (27 caracteres; o antigo "Lembretes de remédios e cuidados" tinha 32 e passava do limite)
 - **Descrição curta (Google, até 80):** Lembretes de remédios e cuidados para você, sua família e seus pets.
 - **Categoria:** Saúde e fitness (iOS) / Saúde e fitness (Google)
 - **Palavras-chave (iOS, até 100):** remédio,medicamento,lembrete,pet,vacina,cuidados,família,dose,horário,rotina
