@@ -34,7 +34,11 @@ describe("GET /me", () => {
   test("com sessão: usuário, conta e papel", async () => {
     const r = await call(me, "/api/v1/me");
     expect(r.status).toBe(200);
-    expect(r.body).toEqual({ user: { id: "u1", name: "Ana", email: "a@x.com" }, orgId: "o1", role: "owner" });
+    expect(r.body).toEqual({
+      user: { id: "u1", name: "Ana", email: "a@x.com" }, orgId: "o1", role: "owner",
+      // a assinatura da conta vem junto (o detalhe está em me-subscription.test.ts); sem linha = grátis e sem uso
+      subscription: { tier: "free", plusUntil: null, source: null, willRenew: false, limits: { patients: 2, members: 2, historyDays: 30 }, usage: { patients: 0, members: 0 } },
+    });
   });
 
   test("sem conta: 403 no_organization", async () => {
