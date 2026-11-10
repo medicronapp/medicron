@@ -19,20 +19,18 @@ import { PlatformColor } from "react-native";
 import type { WidgetProps } from "@/lib/widget-data";
 
 /**
- * Widget do Medicron (médio e tela de bloqueio): anel do dia, as 2 próximas doses e as pendentes. Roda isolado na
+ * Widget do Medicron (médio): anel do dia, as 2 próximas doses e as pendentes. Roda isolado na
  * extensão do iOS: sem hooks, sem rede e sem acessar o app. Tudo que usa fica dentro da função ou vem por props (o app
  * calcula, ver `widget-data.ts`). Tipografia do sistema (estilos de texto, que acompanham o tamanho de texto do iPhone),
  * cores semânticas, SF Symbols, anel nativo e contagem regressiva calculada pelo sistema.
  */
 const MedicronWidget = (props: WidgetProps, environment: WidgetEnvironment) => {
   'widget';
-  const family = environment.widgetFamily;
   const accent = environment.colorScheme === "dark" ? "#2dd4bf" : "#0f766e"; // verde da marca, mais claro no escuro
   const red = PlatformColor("systemRed");
   const secondary = foregroundStyle({ type: "hierarchical", style: "secondary" });
   const root = [containerBackground(PlatformColor("systemBackground"), "widget"), widgetURL("medicron://")];
   const plural = (n: number) => (n === 1 ? "1 pendente" : `${n} pendentes`);
-  const next = props.upcoming[0];
 
   const message =
     props.status === "signedOut" ? "Entre no Medicron para ver suas doses"
@@ -45,7 +43,7 @@ const MedicronWidget = (props: WidgetProps, environment: WidgetEnvironment) => {
   // Anel do dia: o Gauge circular nativo. O estilo do iOS é pensado para a tela de bloqueio e se desenha pequeno (~52 pt)
   // mesmo num frame maior; por isso a medida do anel é `scale` vezes o frame do Gauge, e o espaço reservado no layout
   // (`size`) acompanha. O miolo tem o número feito grande e "de N" pequeno, que cabem dentro do traço.
-  const ring = (size: number, scale: number, numeral: ReturnType<typeof font>, caption: boolean) => {
+  const ring = (size: number, scale: number, numeral: ReturnType<typeof font>) => {
     const base = size / scale;
     return (
       <ZStack modifiers={[frame({ width: size, height: size })]}>
@@ -55,43 +53,11 @@ const MedicronWidget = (props: WidgetProps, environment: WidgetEnvironment) => {
         />
         <VStack spacing={0}>
           <Text modifiers={[numeral, minimumScaleFactor(0.6), lineLimit(1)]}>{String(props.resolved)}</Text>
-          {caption ? <Text modifiers={[font({ textStyle: "caption2" }), secondary, lineLimit(1)]}>{`de ${props.total}`}</Text> : null}
+          <Text modifiers={[font({ textStyle: "caption2" }), secondary, lineLimit(1)]}>{`de ${props.total}`}</Text>
         </VStack>
       </ZStack>
     );
   };
-
-  if (family === "accessoryInline") {
-    const line = message ?? (allDone ? "Tudo em dia" : [next ? `${next.time} ${next.item}` : "Sem próximas", props.pendingCount > 0 ? `${props.pendingCount} pend.` : ""].filter(Boolean).join(" · "));
-    return (
-      <HStack spacing={4} modifiers={root}>
-        <Image systemName="pills.fill" />
-        <Text>{line}</Text>
-      </HStack>
-    );
-  }
-
-  if (family === "accessoryRectangular") {
-    if (message || allDone) {
-      return (
-        <VStack alignment="leading" modifiers={root}>
-          <Text modifiers={[font({ textStyle: "subheadline", weight: "semibold" }), lineLimit(2)]}>{message ?? "Tudo em dia"}</Text>
-          {allDone ? <Text modifiers={[font({ textStyle: "caption" }), secondary]}>{`${props.resolved} de ${props.total} doses feitas`}</Text> : null}
-        </VStack>
-      );
-    }
-    return (
-      <HStack spacing={8} modifiers={root}>
-        {ring(40, 1, font({ textStyle: "footnote", weight: "bold", design: "rounded" }), false)}
-        <VStack alignment="leading" spacing={1}>
-          <Text modifiers={[font({ textStyle: "subheadline", weight: "semibold" }), lineLimit(1)]}>{next ? `${next.time} ${next.item}` : "Sem próximas"}</Text>
-          <Text modifiers={[font({ textStyle: "caption" }), secondary, lineLimit(1)]}>
-            {`${next ? `${next.patient} · ` : ""}${props.pendingCount > 0 ? plural(props.pendingCount) : "sem pendências"}`}
-          </Text>
-        </VStack>
-      </HStack>
-    );
-  }
 
   // Médio: anel do dia à esquerda; à direita as 2 próximas e o resumo de pendentes.
   if (message) {
@@ -118,7 +84,7 @@ const MedicronWidget = (props: WidgetProps, environment: WidgetEnvironment) => {
 
   return (
     <HStack spacing={14} modifiers={[...root, padding({ all: 16 })]}>
-      {ring(102, 1.95, font({ textStyle: "title", weight: "bold", design: "rounded" }), true)}
+      {ring(102, 1.95, font({ textStyle: "title", weight: "bold", design: "rounded" }))}
       <VStack alignment="leading" spacing={8}>
         {allDone ? (
           <Text modifiers={[font({ textStyle: "headline" })]}>Tudo em dia</Text>

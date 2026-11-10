@@ -77,14 +77,35 @@
             {
               "name": "MedicronWidget",
               "displayName": "Medicron",
-              "description": "Próximas doses e pendentes",
+              "description": "Anel do dia, próximas doses e pendentes",
               "ios": {
                 "supportedFamilies": [
-                  "systemMedium",
+                  "systemMedium"
+                ],
+                "initialLayout": "./src/widgets/medicron-widget.tsx"
+              }
+            },
+            {
+              "name": "MedicronAgoraWidget",
+              "displayName": "Medicron · Agora",
+              "description": "A próxima dose e as pendentes, em três linhas",
+              "ios": {
+                "supportedFamilies": [
                   "accessoryRectangular",
                   "accessoryInline"
                 ],
-                "initialLayout": "./src/widgets/medicron-widget.tsx"
+                "initialLayout": "./src/widgets/medicron-agora-widget.tsx"
+              }
+            },
+            {
+              "name": "MedicronProgressoWidget",
+              "displayName": "Medicron · Progresso",
+              "description": "Anel do dia, pendentes e a próxima dose",
+              "ios": {
+                "supportedFamilies": [
+                  "accessoryRectangular"
+                ],
+                "initialLayout": "./src/widgets/medicron-progresso-widget.tsx"
               }
             }
           ]

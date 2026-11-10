@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { ReactNode } from "react";
 import { signedOutProps, type WidgetProps } from "@/lib/widget-data";
 
 // Os módulos nativos viram elementos simples: o teste anda pela árvore devolvida pelo componente do widget.
@@ -12,50 +11,10 @@ jest.mock("@expo/ui/swift-ui/modifiers", () => ({}));
 
 import widget from "@/widgets/medicron-widget";
 
-// O Babel (preset do Expo) transforma o componente com a diretiva 'widget' no TEXTO de uma função, que a extensão do iOS
-// avalia com os componentes e modificadores do @expo/ui como globais. O teste a avalia do mesmo jeito, com globais simulados.
-const el = (type: unknown, props: Record<string, unknown>) => ({ type, props });
-const mod = (m: string) => (...a: unknown[]) => ({ m, a });
-const globalsFor = () => ({
-  _jsx: el, _jsxs: el, _Fragment: "Fragment",
-  Text: "Text", VStack: "VStack", HStack: "HStack", ZStack: "ZStack", Spacer: "Spacer", Divider: "Divider", Image: "Image", Gauge: "Gauge",
-  containerBackground: mod("containerBackground"), font: mod("font"), foregroundStyle: mod("foregroundStyle"), padding: mod("padding"),
-  lineLimit: mod("lineLimit"), monospacedDigit: mod("monospacedDigit"), widgetURL: mod("widgetURL"), gaugeStyle: mod("gaugeStyle"),
-  tint: mod("tint"), frame: mod("frame"), scaleEffect: mod("scaleEffect"), accessibilityLabel: mod("accessibilityLabel"), minimumScaleFactor: mod("minimumScaleFactor"),
-  PlatformColor: (...a: string[]) => ({ semantic: a }),
-});
-const source = (widget as unknown as { layout: unknown }).layout;
-if (typeof source !== "string") throw new Error("o Babel deveria ter transformado o componente 'widget' em texto");
-const globals = globalsFor();
-const layout = new Function(...Object.keys(globals), `return (${source});`)(...Object.values(globals)) as (p: WidgetProps, e: { widgetFamily: string; colorScheme?: string }) => El;
+import { helpers, loadLayout, AT, ok, type El } from "./widget-harness";
 
-type El = { type?: string; props?: { children?: ReactNode; modifiers?: { m: string; a: unknown[] }[]; [k: string]: unknown } };
-const walk = (node: unknown, out: El[] = []): El[] => {
-  if (node == null || typeof node !== "object") return out;
-  if (Array.isArray(node)) { node.forEach((n) => walk(n, out)); return out; }
-  const e = node as El;
-  if (e.type !== undefined) out.push(e);
-  walk(e.props?.children, out);
-  return out;
-};
-const texts = (node: unknown): string[] =>
-  node == null || typeof node === "boolean" ? []
-  : typeof node === "string" || typeof node === "number" ? [String(node)]
-  : Array.isArray(node) ? node.flatMap(texts)
-  : texts((node as El).props?.children);
-const render = (props: WidgetProps, family: string, colorScheme = "light") => layout(props, { widgetFamily: family, colorScheme });
-const text = (props: WidgetProps, family: string) => texts(render(props, family)).join(" | ");
-const all = (props: WidgetProps, family: string) => walk(render(props, family));
-const has = (props: WidgetProps, family: string, type: string, pred: (e: El) => boolean = () => true) => all(props, family).some((e) => e.type === type && pred(e));
-
-const AT = Date.UTC(2026, 10, 9, 15, 0);
-const ok = (over: Partial<WidgetProps> = {}): WidgetProps => ({
-  status: "ok", resolved: 3, total: 5, pendingCount: 3, pendingSince: "06:00",
-  upcoming: [{ time: "12:00", item: "Losartana", patient: "Mel", at: AT }, { time: "18:00", item: "Insulina", patient: "Tom", at: AT + 6 * 3_600_000 }],
-  ...over,
-});
-const FAMILIES = ["systemMedium", "accessoryRectangular", "accessoryInline"];
-
+const { render, text, all, has } = helpers(loadLayout(widget));
+const FAMILIES = ["systemMedium"];
 test("é registrado com o nome do plugin e um estado inicial sem dados (nada de paciente na galeria)", () => {
   expect((widget as unknown as { name: string }).name).toBe("MedicronWidget");
   expect((widget as unknown as { initialProps: WidgetProps }).initialProps).toEqual(signedOutProps()); // o literal do widget = o do app
@@ -127,22 +86,6 @@ describe("médio: anel do dia + próximas + pendentes", () => {
   });
 });
 
-describe("tela de bloqueio", () => {
-  test("retangular: mini anel + próxima dose + paciente e pendentes", () => {
-    const t = text(ok(), "accessoryRectangular");
-    expect(t).toContain("12:00 Losartana");
-    expect(t).toContain("Mel · 3 pendentes");
-    expect(has(ok(), "accessoryRectangular", "Gauge")).toBe(true);
-    expect(text(ok({ pendingCount: 1 }), "accessoryRectangular")).toContain("Mel · 1 pendente");
-    expect(text(ok({ pendingCount: 0 }), "accessoryRectangular")).toContain("Mel · sem pendências");
-  });
-  test("em linha: uma linha curta com símbolo", () => {
-    expect(text(ok(), "accessoryInline")).toBe("12:00 Losartana · 3 pend.");
-    expect(text(ok({ pendingCount: 0 }), "accessoryInline")).toBe("12:00 Losartana");
-    expect(has(ok(), "accessoryInline", "Image", (e) => e.props!.systemName === "pills.fill")).toBe(true);
-  });
-});
-
 describe("estados (todas as famílias)", () => {
   test.each(FAMILIES)("sem sessão (%s): ensina o que fazer e não mostra nada de paciente", (family) => {
     expect(text(signedOutProps(), family)).toContain("Entre no Medicron para ver suas doses");
@@ -202,4 +145,9 @@ describe("padrão Apple e contrato do runtime do widget", () => {
     expect(src).toMatch(/'widget';|"widget";/);
     expect(src).not.toMatch(/use(State|Effect|Memo|Ref|Callback)\(/);
   });
+});
+
+test("o widget médio não trata mais tela de bloqueio (agora são os widgets Agora e Progresso)", () => {
+  const src = fs.readFileSync(path.join(__dirname, "..", "src/widgets/medicron-widget.tsx"), "utf8");
+  expect(src).not.toContain("accessory");
 });

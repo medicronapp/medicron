@@ -6,26 +6,45 @@ import { buildWidgetTimeline, signedOutProps } from "@/lib/widget-data";
 
 type WidgetModule = { updateTimeline: (entries: { date: Date; props: unknown }[]) => void };
 
-/** O módulo do widget só existe no iOS: carrega sob demanda para Android e web nunca tocarem nele. */
-function widget(): WidgetModule | null {
-  if (Platform.OS !== "ios") return null;
-  try {
+/** Os widgets do Medicron: médio, "Agora" e "Progresso" (tela de bloqueio). Todos recebem a mesma timeline. */
+const WIDGET_FILES = ["medicron-widget", "medicron-agora-widget", "medicron-progresso-widget"] as const;
+
+/** Os módulos dos widgets só existem no iOS: carrega sob demanda para Android e web nunca tocarem neles. */
+function widgets(): WidgetModule[] {
+  if (Platform.OS !== "ios") return [];
+  const loaded: WidgetModule[] = [];
+  const load: Record<(typeof WIDGET_FILES)[number], () => WidgetModule> = {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require("@/widgets/medicron-widget").default as WidgetModule;
-  } catch (error) {
-    console.warn("[widget] módulo do widget indisponível", error);
-    return null;
+    "medicron-widget": () => require("@/widgets/medicron-widget").default,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    "medicron-agora-widget": () => require("@/widgets/medicron-agora-widget").default,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    "medicron-progresso-widget": () => require("@/widgets/medicron-progresso-widget").default,
+  };
+  for (const file of WIDGET_FILES) {
+    try {
+      loaded.push(load[file]());
+    } catch (error) {
+      console.warn(`[widget] módulo ${file} indisponível`, error);
+    }
+  }
+  return loaded;
+}
+
+/** Entrega a mesma timeline a cada widget; a falha de um não impede os outros (o widget é cortesia, nunca quebra o app). */
+function updateAll(entries: { date: Date; props: unknown }[]): void {
+  for (const widget of widgets()) {
+    try {
+      widget.updateTimeline(entries);
+    } catch (error) {
+      console.warn("[widget] não foi possível atualizar um widget", error);
+    }
   }
 }
 
-/** Esvazia o widget (sair da conta, excluir a conta): nome de paciente ou remédio não pode ficar na tela inicial. */
+/** Esvazia os widgets (sair da conta, excluir a conta): nome de paciente ou remédio não pode ficar na tela. */
 export function clearWidget(): void {
-  try {
-    widget()?.updateTimeline([{ date: new Date(), props: signedOutProps() }]);
-  } catch (error) {
-    // o widget é uma cortesia: nunca pode quebrar o app (mas o erro aparece no log do aparelho)
-    console.warn("[widget] não foi possível limpar o widget", error);
-  }
+  updateAll([{ date: new Date(), props: signedOutProps() }]);
 }
 
 /**
@@ -39,10 +58,6 @@ export function useWidgetSync(): void {
     if (Platform.OS !== "ios") return;
     if (status === "signedOut") return clearWidget();
     if (status !== "signedIn" || !data) return;
-    try {
-      widget()?.updateTimeline(buildWidgetTimeline(new Date(), data.home));
-    } catch (error) {
-      console.warn("[widget] não foi possível atualizar o widget", error);
-    }
+    updateAll(buildWidgetTimeline(new Date(), data.home));
   }, [status, data]);
 }
