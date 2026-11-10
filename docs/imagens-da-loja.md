@@ -2,7 +2,7 @@
 
 Como as imagens de divulgação do Medicron são geradas, os padrões visuais adotados e o que fazer para **alterar uma tela, criar uma nova ou gerar o conjunto do Android** (que ainda não foi feito). Complementa `docs/lojas.md` (fichas e requisitos das lojas).
 
-> Estado em 2026-11-10: **iPhone pronto** (7 imagens em 2 tamanhos). **Android ainda não gerado** (ver "Android" abaixo).
+> Estado em 2026-11-10: **iPhone pronto** (7 imagens em 2 tamanhos) e **Android pronto** (5 imagens de telefone 1080×1920 e o gráfico de destaque 1024×500). Os tablets (iPad / Android) não são usados (`supportsTablet: false`).
 
 ## O que existe hoje
 
@@ -12,6 +12,8 @@ Saída em `store-assets/ios/<tamanho>/NN-id.png`, PNG sem transparência:
 |---|---|---|
 | `store-assets/ios/6.9/` | 1320×2868 | iPhone 6,9" |
 | `store-assets/ios/6.5/` | 1284×2778 | iPhone 6,5" |
+| `store-assets/android/1080x1920/` | 1080×1920 | Google Play, capturas de telefone (só os slides 01 a 05) |
+| `store-assets/android/feature-graphic-1024x500.png` | 1024×500 | Google Play, gráfico de destaque |
 
 Sete slides, na ordem de exibição:
 
@@ -30,7 +32,7 @@ Os temas **alternam** (claro, escuro, claro...). Para refazer tudo:
 ```bash
 cd apps/app
 npx expo export -p web && node scripts/finalize-web.cli.ts   # só se o app mudou (gera dist/)
-npm run capture-store-shots                                   # grava store-assets/ios/*
+npm run capture-store-shots                                   # grava store-assets/ios/* e store-assets/android/*
 ```
 
 Precisa do Google Chrome em `/Applications/Google Chrome.app` (ou `CHROME_BIN`) e do `sharp` (já é devDependency). Leva ~1 minuto.
@@ -47,11 +49,12 @@ store-widgets.ts (widgets em HTML, com as props reais) ────────�
 |---|---|
 | `demo-data.ts` | Dados fictícios (Família Souza: Ana, Pedro, Mel, Carla, Luna), relógio congelado (terça 10/11/2026, 12:05), `WIDGET_DEMO_NOW` (11:40) e `DEMO_WIDGET_PROPS`. **Só `import type` de `@medicron/shared`** (o Node não importa o fonte do shared em tempo de execução). |
 | `demo-server.ts` | Servidor local que serve o app web real (`dist/`) com a API simulada (`demoApi`) e o relógio congelado; `shoot()` fotografa uma rota no tema pedido. Compartilhado com `capture-site-shots` (imagens do hotsite). |
-| `store-slides.ts` | **Roteiro** (`STORE_SLIDES`), **tamanhos** (`STORE_SIZES`) e `renderStoreSlide()`, que monta o HTML de um slide. É aqui que se muda texto, ordem, tema e layout. |
+| `store-slides.ts` | **Roteiro** (`STORE_SLIDES`), **tamanhos por plataforma** (`STORE_SIZES`, cada um com `platform`), `slidesFor(size)` (iPhone: 7 slides; Android: só os 5 de app) e `renderStoreSlide()`, que monta o HTML de um slide. É aqui que se muda texto, ordem, tema e layout. |
+| `store-feature.ts` | Gráfico de destaque da Google Play (1024×500): marca, a frase do site em 2 linhas com destaque e o celular com a tela Hoje. |
 | `store-widgets.ts` | Reprodução dos widgets do iOS (tela de bloqueio e tela inicial) a partir de `src/widgets/*`. |
-| `capture-store-shots.cli.ts` | Orquestra: captura as telas reais, monta cada slide em cada tamanho, fotografa no Chrome e grava o PNG (achata a transparência com `sharp`). |
+| `capture-store-shots.cli.ts` | Orquestra: captura as telas reais, monta cada slide em cada tamanho (`store-assets/<plataforma>/<tamanho>/`), fotografa no Chrome e grava o PNG (achata a transparência com `sharp`); também gera o gráfico de destaque. |
 
-Testes: `tests/store-slides.test.ts`, `tests/store-widgets.test.ts`, `tests/site-shots.test.ts` (dados e API simulada).
+Testes: `tests/store-slides.test.ts`, `tests/store-widgets.test.ts`, `tests/store-feature.test.ts`, `tests/site-shots.test.ts` (dados e API simulada).
 
 ## Padrões visuais (o "design system" das imagens)
 
@@ -93,19 +96,17 @@ Os widgets são nativos do iOS (SwiftUI via `expo-widgets`) e **não existem no 
 - **Foto de fundo**: `store-assets/source/lock-wallpaper.jpg` ("Misty mountain peaks at sunrise", Julien Riedel, Unsplash License; crédito em `docs/lojas.md`). O céu é claro, então há um escurecimento forte no topo (como o iOS faz) para o texto branco ler. Para trocar a foto, substitua o arquivo (use uma vertical, ≥ 1700 px de largura, de licença livre) e rode a captura.
 - **Quando houver build iOS instalado**: compare com uma captura real do aparelho antes de enviar à loja.
 
-## Android (ainda não feito): como fazer
+## Android (pronto)
 
-Requisitos do Google Play (conferir no console antes de enviar): capturas de telefone entre 320 e 3840 px, proporção entre 16:9 e 9:16, mínimo 2 (ideal 5-8); também ícone 512×512 e gráfico de destaque 1024×500 (esses dois não são slides de captura).
+Google Play: capturas de telefone entre 320 e 3840 px com proporção de até 2:1 (mínimo 2, ideal 5 a 8); ícone 512×512 e gráfico de destaque 1024×500. O que foi feito:
 
-Passos sugeridos:
-
-1. **Tamanho**: acrescentar a `STORE_SIZES` um tamanho do Android (por exemplo `{ id: "android", width: 1080, height: 1920 }`), com o campo `platform` ("ios" | "android") para separar as pastas: `store-assets/android/`. O layout usa medidas proporcionais à largura (referência 1320), então 1080×1920 vai precisar de **ajustes de altura**: a imagem é mais "gorda" (9:16 contra ~9:19,5 do iPhone), então o celular terá menos área abaixo do texto. Reveja `top` do celular e o tamanho do título para o tamanho novo; os testes de "texto não chega ao celular" avisam se não couber.
-2. **Moldura do celular**: no Android usar câmera em furo (círculo pequeno, sem a "ilha"), cantos menos arredondados e a barra de status/navegação de gestos. Criar uma variante do `.phone` por plataforma.
-3. **Telas**: as mesmas 5 capturas reais (Hoje, Pacientes, Rotina, Itens, Conta) servem. O app web reproduz a interface; se quiser fidelidade total do Android (fonte do sistema, barra de navegação), vale capturar do emulador/aparelho em vez do web.
-4. **Widgets**: o Medicron **não tem widgets no Android** (só no iOS). Portanto **não** fazer slides 06 e 07 para o Android, nem mencionar widgets na ficha da Google Play. Se um dia existirem, criar um renderer próprio (Glance/Material You).
-5. **Textos**: reaproveitar os de `STORE_SLIDES` para as 5 telas de app (são válidos nas duas lojas). Filtrar por `kind === "app"` para o Android.
-6. **Gráfico de destaque 1024×500**: não é um slide; é uma imagem horizontal. Pode reaproveitar o fundo/gradiente e o logo (`site/og.svg` serve de base, 1200×630, ajustar proporção).
-7. **Documentar** a saída no `docs/lojas.md` e acrescentar testes (tamanhos exatos, sem widgets, mesmas regras de texto).
+- **Tamanho** `1080x1920` (`platform: "android"`) em `STORE_SIZES`; os mesmos cálculos proporcionais à largura servem (o layout escala com `width / 1320`), e um teste confere que o texto não chega ao celular nessa proporção (9:16, mais "gorda" que a do iPhone).
+- **Só as 5 telas do app** (Hoje, Pacientes, Rotina, Itens, Conta): `slidesFor()` deixa de fora os slides de widgets, porque o Medicron **não tem widgets no Android**. Se um dia existirem, criar um renderer próprio (Glance/Material You) e incluí-los em `slidesFor`.
+- **Moldura de celular Android**: câmera em furo (círculo de 34 px), cantos menos arredondados (110 px contra 150 px do iPhone), borda mais fina (20 px) e barra de status com a hora 12:05 (a da demonstração) e a bateria. A barra de gestos fica fora da área visível (o celular sai pela base).
+- **Mesmos textos, cores e títulos** do iPhone (identidade única nas duas lojas).
+- **Gráfico de destaque** `feature-graphic-1024x500.png`: fundo verde-petróleo, marca, "Lembretes de remédio / para gente e pets" com destaque e o celular com a tela Hoje. Texto mínimo, sem preço, ranking ou promessa (a Google Play rejeita; um teste barra "grátis", "nº 1", "melhor", "baixe" e porcentagens).
+- **Ícone 512×512**: não é gerado aqui (é o ícone do app, `apps/app/assets`); exporte em 512×512 para o console.
+- **Fidelidade**: as telas são do app **web** no Chrome (fonte Geist, não a do sistema Android). Para fidelidade total (fonte e barra de navegação do Android), capture do emulador/aparelho e substitua o `<img>` do slide; o resto do pipeline não muda.
 
 ## Armadilhas já encontradas
 
