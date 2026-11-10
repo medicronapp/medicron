@@ -10,12 +10,12 @@ Documento de estratégia, **não** de implementação: nada aqui foi construído
 2. **Regra de ouro (inegociável):** lembretes e o registro de doses são **gratuitos para sempre**. Nunca cobrar para a pessoa ser avisada do remédio. É ético, protege a reputação e reduz o risco de reprovação e de avaliações ruins (a Medisafe recebeu muitas críticas, segundo relatos de terceiros, ao apertar o grátis em 2026).
 3. **Iscas e limites** ficam em **escala** (mais pacientes, mais pessoas na conta, histórico longo, relatório para o médico ou veterinário) e em **conforto** (alertar a família quando uma dose atrasa, controle de estoque), não na segurança básica.
 4. **Preço sugerido para começar:** **R$ 12,90 por mês** e **R$ 89,90 por ano** (equivale a R$ 7,49/mês; desconto de 42%). Destacar o anual.
-5. **Isca principal:** **teste reverso de 14 dias**, sem cartão: a conta nova começa com tudo liberado e, depois, cai para o plano grátis **sem perder dados nem parar lembretes já configurados**.
+5. **Isca principal:** **7 dias grátis da loja** (oferta introdutória da Apple e do Google, com cartão), no plano anual. Quem não assina continua no grátis **sem perder dados nem parar lembretes já configurados**.
 6. **Apple:** sim, **assinatura renovável automática pela App Store** (é obrigatória para destravar recursos digitais dentro do app iOS), operada por **RevenueCat** (grátis até US$ 2.500 de receita mensal), com o **servidor da API como fonte da verdade** dos limites.
 7. **Google Play:** a mesma assinatura via Play Billing (também pelo RevenueCat).
 8. **Web/Pix:** fica para a fase 2 (cobrança fora das lojas, com taxa muito menor). No iOS, as regras novas do Brasil (2026) permitem link para pagamento externo, com comissão; avaliar depois.
-9. **Não lançar o paywall já.** Lance a 1.0 **100% gratuita**, meça uso por 8 a 12 semanas com dados do próprio banco (sem rastreadores) e só então ligue a cobrança, com critérios claros (seção 9).
-10. **Expectativa honesta:** é um nicho. O cenário base (10 mil contas ativas, 3% pagantes) rende cerca de **R$ 21 mil por ano**; o otimista (40 mil contas, 4%) cerca de **R$ 110 mil**. Cobre custos e dá retorno modesto; só vira negócio grande com escala ou com um plano para equipes (cuidadores, clínicas), que é a fase 3.
+9. **Lançar já com as regras definitivas** (limites e Plus à venda), e não "tudo liberado, cobrar depois": ligar a cobrança em quem já usa sem limites **pega mal**. Como o app ainda não está nas lojas, nada precisa ser tirado de ninguém. Os limites só podem **afrouxar** depois, nunca apertar (seção 9).
+10. **Expectativa honesta:** é um nicho. O cenário base (10 mil contas ativas, 3% pagantes) rende cerca de **R$ 21 mil por ano**; o otimista (40 mil contas, 4%) cerca de **R$ 110 mil**. Cobre custos e dá retorno modesto; só vira negócio grande com escala ou com um plano para equipes (cuidadores, clínicas), que é a fase 3. **Antes de cobrar, converta a conta Apple para o seu CNPJ** (seção 6.1).
 
 ---
 
@@ -96,7 +96,7 @@ Depois, **impostos do seu regime** (MEI, Simples ou outro): fale com um contador
 
 ## 5. As iscas (como levar o usuário ao Plus sem forçar)
 
-1. **Teste reverso de 14 dias, sem cartão.** A conta nova começa com **tudo do Plus liberado**; no dia 14 volta ao grátis sem perder nada. Funciona melhor que o teste "pague depois": o usuário **cria os 3º e 4º pacientes, convida a família, usa o relatório**, e criou o hábito antes da cobrança. (É controlado no servidor: `plus_until` na conta; não depende da loja.)
+1. **7 dias grátis da loja (oferta introdutória), com cartão.** Configurada no App Store Connect e no Play Console, no **plano anual** (o mensal não tem teste, para empurrar para o anual). O cartão filtra quem tem intenção real e a loja cuida da renovação, do cancelamento e dos lembretes de cobrança. Por ser pago pela loja, **cada pessoa só tem um teste por grupo de assinatura** (regra da Apple). O trade-off: menos pessoas começam o teste do que num teste sem cartão, mas uma parte maior delas paga no fim. Como o teste exige cartão, o grátis precisa **deixar a pessoa sentir o valor antes do paywall** (a prévia do relatório, o limite que encosta no uso real) e o paywall precisa mostrar **claramente** o que acontece no 8º dia (preço, data da cobrança, como cancelar).
 2. **Paywall contextual, no momento do valor:**
    - ao tentar criar o **3º paciente**;
    - ao convidar a **3ª pessoa**;
@@ -108,7 +108,7 @@ Depois, **impostos do seu regime** (MEI, Simples ou outro): fale com um contador
 4. **Marcos de valor, uma vez só:** ao completar **7 dias seguidos**, uma faixa discreta "Sua sequência está ótima. Quer compartilhar o resumo com a família?" (leva ao Plus). Sem pop-up chato, sem notificação promocional (a Apple restringe push de marketing).
 5. **Oferta sazonal:** **Black Friday** e **Dia do Cuidador/Dia do Pet**: anual com 30% de desconto no 1º ano, usando as ofertas promocionais da Apple e do Google (não exigem criar sistema de cupom).
 6. **Indicação:** código de oferta ("1 mês de Plus") para quem convida uma família que ativa; as lojas têm **códigos de oferta** nativos.
-7. **Aviso de fim do teste, dentro do app:** no dia 12, uma faixa "Seu teste acaba em 2 dias: o que muda" (transparente, com a lista do que fica e do que sai).
+7. **Aviso de fim do teste, dentro do app:** no dia 5, uma faixa "Seu teste acaba em 2 dias" (transparente, com a data da cobrança e como cancelar). O RevenueCat informa a data de fim do teste ao app.
 
 **O que NÃO fazer:** anúncios (contradiz a promessa "sem anúncios" e a privacidade), esconder o botão de cancelar, cobrar para ver dados que a pessoa mesma cadastrou, parar lembretes de quem não pagou, "dark patterns" em contagem regressiva falsa. Num app de saúde isso gera denúncia, má avaliação e, no Brasil, problema com o CDC e a LGPD.
 
@@ -141,9 +141,30 @@ App (iOS/Android) ──compra──► App Store / Google Play
 
 - **Identidade:** usar o **id da organização (conta)** como `app_user_id` no RevenueCat. Assim a assinatura é da família, e qualquer membro que abre o app vê o Plus.
 - **Limites no servidor:** `POST /patients`, convites, histórico e relatório consultam o plano **na API** (o app só exibe mensagens). Um cliente alterado não consegue burlar.
-- **Tabela nova** (fase 1): `org_plan` (`organization_id`, `plan`, `plus_until`, `source` = `trial` | `apple` | `google` | `manual`, `updated_at`) e o webhook do RevenueCat que a atualiza. Tudo já é por `organization_id`, então encaixa sem refazer o banco.
+- **Tabela nova** (fase 1): `org_plan` (`organization_id`, `plan`, `plus_until`, `source` = `apple` | `google` | `manual`, `updated_at`; o teste de 7 dias vem da loja, então não há "trial" próprio, e `manual` serve para dar Plus aos testadores e fundadores) e o webhook do RevenueCat que a atualiza. Tudo já é por `organization_id`, então encaixa sem refazer o banco.
 - **Web (PWA):** na fase 1 a web **mostra o plano e os limites**, mas a compra acontece no app (quem assinou no celular vê o Plus no navegador). Cobrança direta na web (Pix e cartão, com Stripe ou Mercado Pago, taxas bem menores que as lojas) fica na fase 2.
 - **Privacidade e conformidade:** a compra adiciona dados à política: **identificador de compra e plano**. Atualizar a política, o "App Privacy" da Apple (tipo "Compras" e "ID de usuário") e a segurança de dados do Google. Se adicionar métricas de produto com SDK, também (hoje a política diz que não há análise).
+
+---
+
+### 6.1 Conta de desenvolvedor: pessoa física ou CNPJ? (a sua pergunta)
+
+**Recomendação:** assinar com o **CNPJ**. Para vender assinaturas, o ideal é a conta da Apple (e a do Google) em nome da empresa, com o banco e os impostos da empresa, e o nome da empresa como vendedor na loja. **Faça isso antes de enviar o primeiro build**, enquanto não existe app publicado, assinatura cadastrada nem histórico de vendas: depois, qualquer mudança vira um problema.
+
+**Condição importante:** o tipo do seu CNPJ.
+- A Apple exige, para organização, uma **empresa registrada com número D-U-N-S** (gratuito, pedido à Dun & Bradstreet; leva até 5 dias úteis mais até 2 para a Apple receber, [segundo a Apple](https://developer.apple.com/br/help/account/membership/D-U-N-S/)).
+- A mesma página diz que **"empresa individual" ou negócio de uma pessoa só deve se inscrever como pessoa física**. Isso pode valer para **MEI** e **empresário individual**; se o seu CNPJ for **sociedade limitada (inclusive unipessoal, SLU)**, a organização é o caminho normal. **Eu não consegui confirmar como a Apple trata MEI**: pergunte ao suporte da Apple (formulário "Contato" do programa de desenvolvedores) antes de pagar qualquer coisa.
+- **Converter uma conta pessoa física em organização é possível** (vários guias e relatos no fórum da Apple dizem que se pede ao suporte, a Apple liga para verificar e o processo leva de uma a duas semanas); evita criar outra conta e transferir o app. Essas fontes **não são oficiais**: confirme o processo atual com a Apple.
+
+**Passo a passo sugerido:**
+1. Descobrir o **tipo e a situação do seu CNPJ** (MEI, EI, LTDA, SLU, Simples) e se o CNAE permite desenvolvimento de software (peça ao contador).
+2. Conferir/pedir o **D-U-N-S** do CNPJ em `developer.apple.com/enroll/duns-lookup/` (com a conta Apple).
+3. Abrir chamado no suporte do programa: **converter** a conta pessoa física para organização (ou, se a Apple orientar, criar a conta da organização).
+4. Em **Contratos, impostos e dados bancários** do App Store Connect: preencher os dados do CNPJ e **uma conta bancária em nome da empresa** (o titular da conta bancária precisa bater com o do contrato; confirme as exigências no painel).
+5. Só depois: criar o app, o bundle ID `app.medicron` e as assinaturas.
+6. Fazer o mesmo no **Google Play** (a conta de desenvolvedor do Google exige escolher "pessoal" ou "organização" na criação e **não é conversível**: se ainda não criou, já crie como organização).
+
+**Se a Apple disser que MEI/EI deve ficar como pessoa física:** dá para seguir como pessoa física, mas o recebimento e a tributação passam a ser de CPF (imposto de renda progressivo), o que costuma sair mais caro que o regime da empresa quando a receita cresce. Peça ao contador para comparar **antes** de cobrar; se compensar, vale abrir uma empresa de tipo organização (ex.: SLU) em vez de forçar o MEI.
 
 ---
 
@@ -154,7 +175,7 @@ Esforços são **estimativas grossas** de uma pessoa, para ordenar, não prazos.
 | # | Funcionalidade | Valor | Esforço | Fase |
 |---|---|---|---|---|
 | 1 | Plano por conta + limites no servidor + telas de limite + paywall + restaurar compras + RevenueCat | libera a cobrança | 2 a 3 semanas | 1 |
-| 2 | Teste reverso de 14 dias e fim de teste "suave" | conversão | 3 a 5 dias | 1 |
+| 2 | Oferta de 7 dias grátis nas lojas, tela do paywall com os termos do teste e aviso de fim de teste | conversão | 2 a 4 dias | 1 |
 | 3 | Exportar CSV (grátis) e **relatório em PDF** (Plus) | valor claro para médico/veterinário | 1 a 2 semanas | 1 |
 | 4 | Histórico completo (corte de 30 dias no grátis) | simples | 2 a 4 dias | 1 |
 | 5 | **Avisar a família quando atrasa** (escalonamento por regra) | **o recurso mais "pagável"** para cuidadores | 1 a 2 semanas | 2 |
@@ -171,7 +192,7 @@ Esforços são **estimativas grossas** de uma pessoa, para ordenar, não prazos.
 
 ## 8. Projeção financeira (cenários, para calibrar expectativa)
 
-Hipóteses: **70% dos pagantes escolhem o anual** (líquido R$ 76,41 por ano) e 30% o mensal (permanência média de 5 meses: 5 × R$ 10,96 = R$ 54,80). Receita líquida do 1º ano por pagante ≈ **R$ 70**, antes de impostos. Taxa de conversão = % das **contas ativas** que pagam. **São hipóteses minhas, sem fonte**: calibre com os seus números reais da fase 0.
+Hipóteses: **70% dos pagantes escolhem o anual** (líquido R$ 76,41 por ano) e 30% o mensal (permanência média de 5 meses: 5 × R$ 10,96 = R$ 54,80). Receita líquida do 1º ano por pagante ≈ **R$ 70**, antes de impostos. Taxa de conversão = % das **contas ativas** que pagam. **São hipóteses minhas, sem fonte**: calibre com os seus números reais da fase 1.
 
 | Cenário | Contas ativas (12 meses) | Conversão | Pagantes | Receita líquida/ano (antes de impostos) | Por mês |
 |---|---|---|---|---|---|
@@ -187,12 +208,26 @@ Hipóteses: **70% dos pagantes escolhem o anual** (líquido R$ 76,41 por ano) e 
 
 ## 9. Plano em fases e critérios para avançar
 
+### Como evitar o problema de "ligar a cobrança depois" (a sua pergunta)
+
+Se o app fosse para as lojas **sem limites** e, meses depois, você passasse a limitar e cobrar, isso **pega mal de verdade**: quem já usa sente que algo foi tirado ("bait and switch"), a nota cai e, num app de saúde, o dano de confiança é grande. Por isso a recomendação mudou em relação à primeira versão deste documento:
+
+1. **Não lance ilimitado.** O app **ainda não está nas lojas**, então hoje não existe usuário a quem "tirar" nada. Esse é o momento mais barato para lançar **já com as regras definitivas**.
+2. **Construa a fase 1 antes do lançamento público** (3 a 4 semanas): limites no servidor, Plus à venda, paywall, relatório em PDF e histórico. Assim o 1º usuário já entra num produto com grátis claro e Plus claro.
+3. **Valide em TestFlight antes**, com 20 a 50 pessoas de confiança (família, grupos de cuidadores, tutores de pets), usando os limites reais, para checar se 2 pacientes e 2 pessoas fazem sentido. Esses testadores recebem **Plus manual** (`source = manual`) como "fundadores".
+4. **Regra de ouro dos limites: eles só podem afrouxar depois do lançamento, nunca apertar.** Se os números se mostrarem apertados demais, suba (de 2 para 3 pacientes, por exemplo): ninguém reclama de ganhar. Apertar é o que gera revolta.
+5. **O que já existe nunca é tirado:** mesmo depois do lançamento, uma conta que passar do limite (ex.: cancelou o Plus) **mantém e continua recebendo lembretes** do que já cadastrou; só não cria novos acima do limite.
+
+**Plano B, se mesmo assim você quiser lançar 100% grátis primeiro** (para crescer mais rápido): faça assim para não pegar mal: (a) **anuncie desde o primeiro dia**, na ficha da loja e dentro do app, que "recursos Plus chegam em [mês]"; (b) **cobre só recursos novos** (relatório, alerta à família, estoque) e deixe tudo o que já era grátis continuar grátis para as contas criadas antes da data; (c) os **limites de pacientes e pessoas valem só para contas criadas depois** da data (as antigas ficam "fundadoras" sem limite); (d) dê aos fundadores um **desconto vitalício ou de 50% no 1º ano**. Custa receita (as contas grandes antigas não pagam pelo volume), mas preserva a confiança.
+
+### As fases
+
 | Fase | Quando | O que fazer | Para avançar, precisa de |
 |---|---|---|---|
-| **0. Lançar 100% grátis** | agora a +12 semanas | Publicar a 1.0 (passos do usuário), sem cobrança. Medir **do próprio banco**: contas, pacientes por conta, convites enviados e aceitos, doses registradas, retenção em 7 e 30 dias. | **≥ 1.000 contas**, retenção D30 **≥ 25%**, e **≥ 15% das contas com 3+ pacientes ou 2+ pessoas** (prova de que o limite do grátis encosta no uso real) |
-| **1. Ligar a cobrança** | após a fase 0 | itens 1 a 4 da seção 7: plano por conta, limites, paywall, teste reverso, RevenueCat, relatório em PDF, Termos de uso | **≥ 2% de conversão** em 90 dias; reembolso e suporte controlados |
-| **2. Aprofundar** | 3 a 6 meses depois | itens 5 a 9: alerta à família, estoque, pet, anexos, cobrança na web | MRR crescendo; churn mensal **< 6%** |
-| **3. Escalar** | quando a base justificar | plano Equipe, Watch, integrações | demanda comprovada de cuidadores/clínicas |
+| **0. Preparar o lançamento com cobrança** | agora a ~4 semanas | **Converter a conta Apple para o CNPJ** (seção 6.1, em paralelo); criar os **Termos de uso**; construir os itens 1 a 4 da seção 7 (plano por conta, limites, paywall, histórico, relatório em PDF, oferta de 7 dias) e cadastrar as assinaturas nas lojas; **TestFlight** com 20 a 50 pessoas | testadores usando sem travar; assinatura de teste (sandbox) funcionando; contas e conta bancária da Apple/Google aprovadas |
+| **1. Lançar a 1.0 com Plus** | após a fase 0 | Publicar nas duas lojas com o grátis e o Plus à venda; medir **do próprio banco** (sem rastreadores): contas, pacientes por conta, % que bate em limite, convites, retenção em 7 e 30 dias; e no RevenueCat: paywall, início de teste, teste para pago | **≥ 2% de conversão** em 90 dias; **retenção D30 ≥ 25%**; reembolso e suporte controlados |
+| **2. Aprofundar** | 3 a 6 meses depois | itens 5 a 9 da seção 7: alerta à família, estoque, pet, anexos, cobrança na web | MRR crescendo; churn mensal **< 6%** |
+| **3. Escalar** | quando a base justificar | plano Equipe, Watch, integrações | demanda comprovada de cuidadores e clínicas |
 
 Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem rastreadores de terceiros** no app): contas novas por semana, ativas por semana, pacientes por conta, % de contas que bateram em um limite, visualizações de paywall, início de teste, **teste para pago**, MRR, churn, reembolsos, nota nas lojas.
 
@@ -206,22 +241,30 @@ Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem ra
 | **Reprovação na App Store** por assinatura mal explicada | Tela de preço e período claras, "Restaurar compras", Termos e Política, sem promessa clínica; seguir 3.1.2. A assinatura é enviada junto com a primeira versão que a usa. |
 | **Receita pequena** (nicho) | Foco em crescimento; plano Equipe; custos baixos (RevenueCat grátis, infra enxuta). |
 | **Comissões mudando** (2026 foi um ano de mudanças e as fontes divergem) | Planejar com 15%; conferir no App Store Connect e no Play Console; revisar o preço se a taxa for 26%. |
-| **Impostos e CNPJ** | A Apple e o Google pagam ao desenvolvedor líquido de comissão; o tratamento tributário depende do seu enquadramento (MEI, Simples, outro). Falar com contador **antes** de ligar a cobrança (ser pessoa física ou jurídica também define o nome que aparece como vendedor nas lojas e como os pagamentos são tributados). |
+| **Impostos e CNPJ** | Converter a conta Apple para o CNPJ **antes** do primeiro envio (seção 6.1) e falar com um contador **antes** de cobrar: o tratamento tributário depende do seu enquadramento. |
 | **Dados sensíveis (LGPD)** | Dados de saúde já estão cobertos na política; acrescentar compras e plano; manter exclusão e portabilidade (CSV grátis). |
-| **Quebra de confiança com contas existentes** | Quem entrar antes da cobrança recebe o **teste reverso** ao ligar a cobrança, com aviso com antecedência, e os limites valem só para criar coisas novas. |
+| **Quebra de confiança** ao limitar quem já usava tudo | Evitada por desenho: **lançar já com as regras** (seção 9); os limites só afrouxam depois; o que existe nunca é tirado; testadores viram "fundadores" com Plus manual. |
 | **Fraude de recibo / burla de limite** | Limites na API e webhook do RevenueCat; nunca confiar no cliente. |
 
 ---
 
-## 11. Decisões que precisam de você
+## 11. Decisões
 
-1. **Concorda com a regra de ouro** (lembrete e registro de doses sempre grátis) e com os limites do grátis (**2 pacientes, 2 pessoas, 30 dias de histórico**)? Quer outro número?
-2. **Preço:** começar com **R$ 12,90 / R$ 89,90**? Ou mais baixo (R$ 9,90 / R$ 79,90) para ganhar volume?
-3. **Teste reverso de 14 dias sem cartão** (recomendado) ou teste da loja (7 dias, pede cartão)?
-4. **Assinatura por conta (família)** como diferencial, confirmado?
-5. **Quando ligar a cobrança:** esperar os critérios da fase 0 (recomendado) ou já na 1.1?
-6. **Formalização:** você tem ou pretende abrir CNPJ (MEI/Simples)? Isso afeta a conta de desenvolvedor, o recebimento e os impostos.
-7. **Equipe/B2B** (cuidadores, clínicas): interessa explorar já ou só depois?
+**Tomadas (10/11/2026):**
+
+| # | Decisão |
+|---|---|
+| 1 | Regra de ouro (lembrete e registro de dose sempre grátis) e limites do grátis (**2 pacientes, 2 pessoas, 30 dias de histórico**): aprovados. |
+| 2 | Preços **R$ 12,90 por mês e R$ 89,90 por ano**: aprovados. |
+| 3 | Teste: **7 dias grátis da loja (com cartão)**, sem teste sem cartão. |
+| 4 | **Lançar já com as regras definitivas** (seção 9), em vez de lançar ilimitado e cobrar depois. |
+
+**Em aberto:**
+
+1. **Tipo do seu CNPJ** (MEI, empresário individual, LTDA, SLU, outro) e se você aceita converter a conta Apple para organização (seção 6.1).
+2. **Assinatura por conta (família)** como diferencial: confirmado? (implícito nas respostas; diga se quer mudar.)
+3. **Equipe/B2B** (cuidadores, clínicas): interessa explorar já ou só depois da fase 2?
+4. **Prazo do lançamento:** aceitar ~4 semanas a mais para entregar a fase 0 antes de enviar o app às lojas? (A alternativa é o plano B da seção 9.)
 
 ---
 
