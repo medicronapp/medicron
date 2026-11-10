@@ -1,7 +1,7 @@
 import {
-  index, pgTable, pgEnum, text, integer, boolean, numeric, date, timestamp, unique,
+  bigint, index, pgTable, pgEnum, text, integer, boolean, numeric, date, timestamp, unique,
 } from "drizzle-orm/pg-core";
-import { user } from "./auth-schema";
+import { organization, user } from "./auth-schema";
 
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -109,6 +109,20 @@ export const pushDevices = pgTable("push_devices", {
   createdAt: createdAt(),
 });
 
+/**
+ * Assinatura do Medicron Plus, uma linha por conta (organização). Sem linha = grátis. O Plus vale enquanto `plus_until` for
+ * futuro. Quem grava é o webhook do RevenueCat (e o script de concessão manual); `last_event_ms` evita aplicar evento fora de ordem.
+ */
+export const orgSubscriptions = pgTable("org_subscriptions", {
+  organizationId: text("organization_id").primaryKey().references(() => organization.id, { onDelete: "cascade" }),
+  plusUntil: tz("plus_until"),
+  source: text("source", { enum: ["apple", "google", "manual"] }),
+  productId: text("product_id"),
+  willRenew: boolean("will_renew").notNull().default(false),
+  lastEventMs: bigint("last_event_ms", { mode: "number" }).notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** Marcas de onboarding por usuário: ausência de linha ou de data = ainda não viu. */
 export const userOnboarding = pgTable("user_onboarding", {
   userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
@@ -123,4 +137,5 @@ export type CareSlot = typeof careSlots.$inferSelect;
 export type DoseLog = typeof doseLogs.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type PushDeviceRow = typeof pushDevices.$inferSelect;
+export type OrgSubscriptionRow = typeof orgSubscriptions.$inferSelect;
 export * from "./auth-schema";
