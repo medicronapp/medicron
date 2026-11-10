@@ -147,13 +147,22 @@ describe("leve e sem enfeite", () => {
     expect(phone).toMatch(/border-radius:\d+px \d+px 0 0/);
     expect(style).toMatch(/\.phone::before\{[^}]*border-radius:999px/);
   });
+  test("a ilustração é um quadrado 1:1 de cantos arredondados com fundo colorido próprio (var(--art)), diferente do cartão", () => {
+    const art = style.match(/\.fam-art\{[^}]*\}/)![0];
+    expect(art).toMatch(/aspect-ratio:1\s*\/\s*1/);
+    expect(art).toMatch(/border-radius:\d+px/);
+    expect(art).toMatch(/background:var\(--art\)/);
+    expect(style.match(/--art:/g)!.length).toBe(3); // claro, escuro (automático) e escuro (escolhido)
+    expect(style).toMatch(/\.row-fam\{[^}]*background:var\(--tint\)/);
+  });
   test("a fonte troca por fallback sem bloquear (font-display: swap) e há preload da principal", () => {
     expect(style.match(/font-display:swap/g)).toHaveLength(2);
     expect(html).toMatch(/<link rel="preload" href="\/landing\/fonts\/geist-400.woff2" as="font" type="font\/woff2" crossorigin>/);
   });
-  test("sem animação nem transição; degradê só no fundo do hero e sombra só na captura", () => {
+  test("sem animação nem transição; degradê só em variáveis de tema (--grad do hero e --art da ilustração) e sombra só na captura", () => {
     expect(style).not.toMatch(/animation|transition|@keyframes|filter/);
-    expect(style.match(/gradient/g)!.length).toBeLessThanOrEqual(3);
+    const semVariaveis = style.replace(/--(?:grad|art):[^;}]*/g, "");
+    expect(semVariaveis).not.toMatch(/gradient/);
     expect(style.match(/box-shadow/g)).toHaveLength(3); // claro, escuro (automático) e escuro (escolhido), todas em .hero-shot img
   });
   test("hero é uma caixa arredondada, com respiro antes de \"Em poucas palavras\"", () => {
