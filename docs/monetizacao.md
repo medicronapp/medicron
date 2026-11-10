@@ -151,20 +151,43 @@ App (iOS/Android) ──compra──► App Store / Google Play
 
 **Recomendação:** assinar com o **CNPJ**. Para vender assinaturas, o ideal é a conta da Apple (e a do Google) em nome da empresa, com o banco e os impostos da empresa, e o nome da empresa como vendedor na loja. **Faça isso antes de enviar o primeiro build**, enquanto não existe app publicado, assinatura cadastrada nem histórico de vendas: depois, qualquer mudança vira um problema.
 
-**Condição importante:** o tipo do seu CNPJ.
-- A Apple exige, para organização, uma **empresa registrada com número D-U-N-S** (gratuito, pedido à Dun & Bradstreet; leva até 5 dias úteis mais até 2 para a Apple receber, [segundo a Apple](https://developer.apple.com/br/help/account/membership/D-U-N-S/)).
-- A mesma página diz que **"empresa individual" ou negócio de uma pessoa só deve se inscrever como pessoa física**. Isso pode valer para **MEI** e **empresário individual**; se o seu CNPJ for **sociedade limitada (inclusive unipessoal, SLU)**, a organização é o caminho normal. **Eu não consegui confirmar como a Apple trata MEI**: pergunte ao suporte da Apple (formulário "Contato" do programa de desenvolvedores) antes de pagar qualquer coisa.
-- **Converter uma conta pessoa física em organização é possível** (vários guias e relatos no fórum da Apple dizem que se pede ao suporte, a Apple liga para verificar e o processo leva de uma a duas semanas); evita criar outra conta e transferir o app. Essas fontes **não são oficiais**: confirme o processo atual com a Apple.
+**Atualização (10/11/2026): o seu CNPJ é uma LTDA.** Isso resolve a dúvida de elegibilidade: a restrição da Apple vale para quem **não tem empresa constituída** (o "sole proprietor", como profissional autônomo ou MEI). Uma **LTDA, mesmo de um sócio só (SLU)**, é pessoa jurídica constituída e **pode** se inscrever como organização. Ser "uma empresa de uma pessoa só" não impede.
 
-**Passo a passo sugerido:**
-1. Descobrir o **tipo e a situação do seu CNPJ** (MEI, EI, LTDA, SLU, Simples) e se o CNAE permite desenvolvimento de software (peça ao contador).
-2. Conferir/pedir o **D-U-N-S** do CNPJ em `developer.apple.com/enroll/duns-lookup/` (com a conta Apple).
-3. Abrir chamado no suporte do programa: **converter** a conta pessoa física para organização (ou, se a Apple orientar, criar a conta da organização).
-4. Em **Contratos, impostos e dados bancários** do App Store Connect: preencher os dados do CNPJ e **uma conta bancária em nome da empresa** (o titular da conta bancária precisa bater com o do contrato; confirme as exigências no painel).
-5. Só depois: criar o app, o bundle ID `app.medicron` e as assinaturas.
-6. Fazer o mesmo no **Google Play** (a conta de desenvolvedor do Google exige escolher "pessoal" ou "organização" na criação e **não é conversível**: se ainda não criou, já crie como organização).
+### Ficar como pessoa física ou converter? (comparação)
 
-**Se a Apple disser que MEI/EI deve ficar como pessoa física:** dá para seguir como pessoa física, mas o recebimento e a tributação passam a ser de CPF (imposto de renda progressivo), o que costuma sair mais caro que o regime da empresa quando a receita cresce. Peça ao contador para comparar **antes** de cobrar; se compensar, vale abrir uma empresa de tipo organização (ex.: SLU) em vez de forçar o MEI.
+O app funciona **igual** nos dois casos; a diferença é jurídica, fiscal e de imagem. A decisão é sua; o que muda:
+
+| | **Continuar pessoa física (seu nome)** | **Converter para a LTDA** |
+|---|---|---|
+| **Nome do vendedor na App Store** | o **seu nome completo** (nome legal; a Apple não aceita nome fantasia no lugar), visível a qualquer pessoa na página do app | o **nome da empresa** (ou o da razão social) |
+| **Quem recebe o dinheiro** | **você, no CPF** (conta bancária pessoal) | **a LTDA**, em conta da empresa |
+| **Imposto** | receita de pessoa física (IRPF progressivo, até 27,5%), conforme o seu contador | tributação da LTDA (ex.: Simples Nacional), que costuma ser mais baixa quando a receita cresce; a LTDA já existe e o contador sabe tratar |
+| **Responsabilidade** | **pessoal** (seu patrimônio responde, p. ex., por um problema com dados de saúde) | **limitada à empresa** (regra geral; consulte o contador/advogado) |
+| **Controlador de dados (LGPD)** | você, como pessoa | a empresa |
+| **Google Play** | contas pessoais novas exigem **teste fechado com 12 pessoas por 14 dias** antes da produção (item 13 de `docs/passos-do-usuario.md`) | contas de **organização** não têm essa exigência (confirmar na regra atual do Google) |
+| **Custo** | US$ 99/ano (Apple) + US$ 25 uma vez (Google) | **o mesmo** |
+| **Esforço agora** | nenhum | D-U-N-S, conversão, ligação de verificação: 1 a 3 semanas, em paralelo à fase 0 |
+
+**Minha recomendação continua sendo converter**, principalmente por **três** motivos: (1) o **seu nome completo ficaria público** na página de um app de saúde e família; (2) **a receita iria para o seu CPF**, não para a LTDA que você já mantém (pior em imposto e sem a proteção de responsabilidade); (3) no Google, a conta de organização **dispensa o teste fechado de 14 dias**. **Mas funciona nos dois**, e se você preferir o seu nome, é uma escolha legítima: neste caso peça ao contador que confirme como declarar a receita das lojas na pessoa física.
+
+**O prazo importa:** decida **antes de criar o app** no App Store Connect. Há relato no fórum da Apple de **o nome do vendedor continuar sendo o pessoal depois de converter**, quando o app já existia ([discussão](https://developer.apple.com/forums/thread/813734); sem resposta conclusiva). Converter antes de existir app é o caminho mais seguro; mudar depois pode exigir suporte da Apple e, às vezes, transferência do app.
+
+### Custos e passos da conversão (se você escolher converter)
+
+**Custos:**
+- **Anuidade da Apple: US$ 99 por ano**, a mesma para pessoa física e organização (cobrada em reais, o valor varia com o câmbio e a loja). **Não encontrei cobrança extra pela conversão** (nenhuma fonte oficial confirma; os guias de terceiros não citam taxa).
+- **D-U-N-S: gratuito** (Dun & Bradstreet), mesmo que a LTDA ainda não tenha um.
+- Google Play: **US$ 25, uma só vez**, na criação da conta (como organização).
+- Contador: se você já tem, nada a mais; se não, é um custo mensal, mas **necessário para cobrar**.
+
+**Passo a passo:**
+1. **Dados da LTDA** em ordem: razão social e endereço **iguais** aos do cartão CNPJ; um **site** da empresa (o `medicron.com.br` serve) e, de preferência, um **e-mail no domínio da empresa**.
+2. **Descobrir ou pedir o D-U-N-S** em `developer.apple.com/enroll/duns-lookup/` (precisa entrar com a conta Apple). Se não existir, a própria ferramenta encaminha o pedido gratuito à Dun & Bradstreet; levam **até 5 dias úteis**, mais até 2 para a Apple receber os dados.
+3. **Abrir um chamado** no suporte do Apple Developer Program (Contato → Associação e conta) pedindo para **converter a conta de pessoa física em organização**, informando o D-U-N-S. Quem pede precisa ser **sócio ou administrador** com poder para obrigar a empresa.
+4. A Apple **liga para verificar** (tenha um telefone da empresa e um site) e, depois de uma a duas semanas, confirma por e-mail.
+5. No App Store Connect → **Contratos, impostos e dados bancários**: preencher os dados da LTDA (CNPJ) e **uma conta bancária em nome da empresa** (o titular precisa bater com o do contrato).
+6. **Só então** criar o app (`app.medicron`) e, na fase 0, as assinaturas.
+7. **Google Play:** se ainda não tem conta, criar já como **organização** (também pede o D-U-N-S); a conta pessoal do Google **não converte**.
 
 ---
 
@@ -261,7 +284,7 @@ Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem ra
 
 **Em aberto:**
 
-1. **Tipo do seu CNPJ** (MEI, empresário individual, LTDA, SLU, outro) e se você aceita converter a conta Apple para organização (seção 6.1).
+1. **Conta de desenvolvedor: pessoa física (seu nome) ou converter para a LTDA?** Seu CNPJ é uma LTDA, então a organização é possível. Decida **antes de criar o app** no App Store Connect (seção 6.1).
 2. **Assinatura por conta (família)** como diferencial: confirmado? (implícito nas respostas; diga se quer mudar.)
 3. **Equipe/B2B** (cuidadores, clínicas): interessa explorar já ou só depois da fase 2?
 4. **Prazo do lançamento:** aceitar ~4 semanas a mais para entregar a fase 0 antes de enviar o app às lojas? (A alternativa é o plano B da seção 9.)
@@ -276,3 +299,4 @@ Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem ra
 - Regras novas no Brasil (CADE, 2026): [ETV Bharat](https://www.etvbharat.com/en/technology/apple-unveils-new-app-store-rules-in-brazil-following-regulator-agreement-enn26061904464), [Appcharge](https://appcharge.com/blog/apple-brazil-framework-is-now-live-what-publishers-need-to-know), [Jornal de Brasília](https://jornaldebrasilia.com.br/noticias/economia/apple-libera-sistema-de-pagamentos-em-aplicativos-no-brasil-apos-acordo-com-o-cade/).
 - Google Play (taxas e cobrança alternativa, 2026): [Android Developers Blog](https://android-developers.googleblog.com/2026/06/play-expanded-billing.html).
 - RevenueCat e Expo: [Expo](https://expo.dev/blog/expo-revenuecat-in-app-purchase-tutorial), [documentação](https://www.revenuecat.com/docs/getting-started/installation/expo), [preços](https://costbench.com/software/subscription-billing/revenuecat/).
+- Conta de desenvolvedor (pessoa física × organização, D-U-N-S, conversão, nome do vendedor): [Apple, D-U-N-S](https://developer.apple.com/br/help/account/membership/D-U-N-S/), [conversão (vendor)](https://median.co/blog/how-to-change-your-apple-developer-account-from-individual-to-organization), [nome do vendedor após converter (fórum da Apple)](https://developer.apple.com/forums/thread/813734). Fontes de terceiros e de fórum: confirme com o suporte da Apple.
