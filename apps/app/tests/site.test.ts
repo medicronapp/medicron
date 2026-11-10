@@ -77,6 +77,20 @@ describe("disponibilidade: só afirma o que existe", () => {
   });
 });
 
+describe("a linha 'No iPhone' não afirma o que ainda não existe", () => {
+  const iphone = (h: string) => h.match(/<dt>No iPhone<\/dt><dd>([^<]*)<\/dd>/)![1];
+  test("sem a URL da App Store: 'em breve', no futuro", () => {
+    const t = iphone(html());
+    expect(t).toMatch(/^Em breve/);
+    expect(t).not.toMatch(/mostram/);
+  });
+  test("com a URL da App Store: no presente", () => {
+    const t = iphone(html({ appStoreUrl: "https://apps.apple.com/app/id1" }));
+    expect(t).toContain("widgets na tela inicial e na de bloqueio mostram a próxima dose sem abrir o app");
+    expect(t).not.toMatch(/^Em breve/);
+  });
+});
+
 describe("contato", () => {
   test("só aparece com o e-mail configurado", () => {
     expect(links(html()).some((x) => x.text === "Contato")).toBe(false);

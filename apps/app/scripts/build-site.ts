@@ -76,6 +76,13 @@ export const robotsTxt = (origin: string) =>
 export const sitemapXml = (origin: string) =>
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["/", "/privacidade"].map((p) => `  <url><loc>${origin}${p}</loc></url>`).join("\n")}\n</urlset>\n`;
 
+/** O que o app para iPhone faz (widgets) só é afirmado no presente quando ele já está na App Store. */
+function iphoneLine(published: boolean): string {
+  return published
+    ? "No app para iPhone, widgets na tela inicial e na de bloqueio mostram a próxima dose sem abrir o app."
+    : "Em breve, no app para iPhone: widgets na tela inicial e na de bloqueio vão mostrar a próxima dose sem abrir o app.";
+}
+
 export function renderSite(env: SiteEnv, src: SiteSources): string {
   const { line, stores } = availability(env);
   const contact = env.contactEmail ? `<a href="mailto:${escapeHtml(env.contactEmail)}">Contato</a>` : "";
@@ -86,6 +93,7 @@ export function renderSite(env: SiteEnv, src: SiteSources): string {
     .replace("{{AVAILABILITY}}", () => line)
     .replace("{{STORES}}", () => stores)
     .replace("{{CONTACT}}", () => contact)
+    .replace("{{IPHONE}}", () => iphoneLine(!!env.appStoreUrl))
     .replace("{{JSONLD}}", () => jsonLd(env.origin ?? DEFAULT_ORIGIN))
     .replaceAll("{{ORIGIN}}", () => escapeHtml(env.origin ?? DEFAULT_ORIGIN));
 }

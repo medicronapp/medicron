@@ -82,16 +82,30 @@ describe("tema (trecho de JavaScript)", () => {
     expect(head).toMatch(/<script>try\{/);
     expect(js).toContain('setAttribute("data-theme"');
   });
+  type Env = { stored?: string | null; blocked?: boolean; standalone?: boolean; navStandalone?: boolean; matchMediaThrows?: boolean };
+  const exec = ({ stored = null, blocked = false, standalone = false, navStandalone = false, matchMediaThrows = false }: Env) => {
+    const attrs: Record<string, string> = {};
+    const replaced: string[] = [];
+    new Function("localStorage", "document", "matchMedia", "navigator", "location", js)(
+      { getItem: () => { if (blocked) throw new Error("bloqueado"); return stored; } },
+      { documentElement: { setAttribute: (k: string, v: string) => { attrs[k] = v; } } },
+      () => { if (matchMediaThrows) throw new Error("sem matchMedia"); return { matches: standalone }; },
+      { standalone: navStandalone },
+      { replace: (u: string) => replaced.push(u) },
+    );
+    return { attrs, replaced };
+  };
+  test("app instalado (PWA) com sessão expirada vai para a tela de entrada do app, não para o hotsite", () => {
+    expect(exec({ standalone: true }).replaced).toEqual(["/?source=pwa"]);
+    expect(exec({ navStandalone: true }).replaced).toEqual(["/?source=pwa"]); // iOS antigo
+    expect(exec({}).replaced).toEqual([]); // navegador comum: fica no hotsite
+  });
+  test("sem matchMedia ou com storage bloqueado, a página segue normal (e o tema ainda é aplicado)", () => {
+    expect(exec({ matchMediaThrows: true }).replaced).toEqual([]);
+    expect(exec({ stored: "dark", blocked: false, matchMediaThrows: true }).attrs).toEqual({ "data-theme": "dark" });
+  });
   test("executado de verdade: escolha escura vira data-theme; valor estranho e storage bloqueado são ignorados", () => {
-    const run = (stored: string | null, blocked = false) => {
-      const attrs: Record<string, string> = {};
-      const g = {
-        localStorage: { getItem: () => { if (blocked) throw new Error("bloqueado"); return stored; } },
-        document: { documentElement: { setAttribute: (k: string, v: string) => { attrs[k] = v; } } },
-      };
-      new Function("localStorage", "document", js)(g.localStorage, g.document);
-      return attrs;
-    };
+    const run = (stored: string | null, blocked = false) => exec({ stored, blocked }).attrs;
     expect(run("dark")).toEqual({ "data-theme": "dark" });
     expect(run("light")).toEqual({ "data-theme": "light" });
     expect(run("roxo")).toEqual({});
