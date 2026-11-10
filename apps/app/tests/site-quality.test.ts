@@ -137,7 +137,7 @@ describe("leve e sem enfeite", () => {
 
   test("a ilustração é quadrada e recortada, com moldura de celular (borda grossa escura, ilha de câmera) e sem sombra extra", () => {
     expect(style).toMatch(/\.fam-art,\.hero-shot\{[^}]*aspect-ratio:1\s*\/\s*1[^}]*overflow:hidden/);
-    const phone = style.match(/\.phone\{[^}]*\}/)![0];
+    const phone = style.match(/(?:^|\n)\.phone\{[^}]*\}/)![0];
     expect(phone).toMatch(/border:\d+px solid/);
     expect(phone).toMatch(/border-radius:\d+px \d+px 0 0/);
     expect(style).toMatch(/\.phone::before\{[^}]*border-radius:999px/);
@@ -184,7 +184,7 @@ describe("leve e sem enfeite", () => {
   });
   test("largura: página larga (até 1160 px), hero em duas colunas no computador e em uma só no celular", () => {
     expect(style).toMatch(/\.top,main,\.foot\{max-width:1160px;margin:0 auto/);
-    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 440px/);
+    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 380px/);
     expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero\{grid-template-columns:1fr/);
     expect(style).not.toMatch(/body\{[^}]*max-width:640px/);
   });
