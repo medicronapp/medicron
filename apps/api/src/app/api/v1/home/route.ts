@@ -7,6 +7,7 @@ import { json, route } from "@/lib/api/route";
 import { getHome } from "@/lib/services/home";
 import { getOnboarding } from "@/lib/services/onboarding";
 import { listPatients } from "@/lib/services/patients";
+import { assertCanViewDay } from "@/lib/services/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export const GET = route(async (req) => {
   const db = getDb();
   const now = new Date();
   const selected = dia.parse(new URL(req.url).searchParams.get("dia") ?? undefined);
+  if (selected !== undefined) await assertCanViewDay(db, orgId, selected, now); // o histórico longo é do Plus; Hoje nunca é barrado
   const [home, patients, onboarding] = await Promise.all([
     getHome(db, orgId, now, selected), listPatients(db, orgId), getOnboarding(db, userId, orgId),
   ]);

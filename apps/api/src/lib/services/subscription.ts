@@ -1,7 +1,8 @@
 import { and, count, eq, isNull } from "drizzle-orm";
-import { limitsFor, type SubscriptionDto, type Tier } from "@medicron/shared";
+import { dayKey, historyCutoffKey, limitsFor, type SubscriptionDto, type Tier } from "@medicron/shared";
 import type { Db } from "@/lib/db";
 import { member, orgSubscriptions, patients } from "@/lib/db/schema";
+import { ApiError } from "@/lib/api/errors";
 
 type Source = "apple" | "google" | "manual";
 
@@ -39,4 +40,23 @@ export async function grantPlus(
     target: orgSubscriptions.organizationId,
     set: { plusUntil: values.plusUntil, source, productId: values.productId, willRenew: values.willRenew, lastEventMs: values.lastEventMs, updatedAt: values.updatedAt },
   });
+}
+
+const planLimit = (limit: "patients" | "members" | "history", message: string) => new ApiError(402, "plan_limit", message, { limit });
+
+/** Criar paciente novo respeita o limite do plano. O que já existe nunca é tirado: só o **novo** é barrado. */
+export async function assertCanCreatePatient(db: Db, orgId: string, now: Date): Promise<void> {
+  const { limits, usage } = await getSubscription(db, orgId, now);
+  if (limits.patients !== null && usage.patients >= limits.patients) {
+    throw planLimit("patients", `Você chegou ao limite de ${limits.patients} pacientes do plano grátis. Com o Medicron Plus você cadastra quantos precisar.`);
+  }
+}
+
+/** Ver um dia mais antigo que o histórico do plano. Hoje e os últimos dias nunca são barrados. */
+export async function assertCanViewDay(db: Db, orgId: string, day: string, now: Date): Promise<void> {
+  const { tier, limits } = await getSubscription(db, orgId, now);
+  const cutoff = historyCutoffKey(dayKey(now), tier);
+  if (cutoff !== null && day < cutoff) {
+    throw planLimit("history", `O plano grátis mostra os últimos ${limits.historyDays} dias. Com o Medicron Plus você vê todo o histórico.`);
+  }
 }
