@@ -14,6 +14,9 @@ a:focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radiu
 .mark svg{width:26px;height:26px;display:block}
 .lnk{font-weight:400;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px;text-decoration-color:var(--border);display:inline-flex;align-items:center;min-height:44px}
 .lnk:hover{text-decoration-color:currentColor}
+.enter{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px 0 16px;border-radius:999px;border:1px solid color-mix(in oklab,var(--foreground) 22%,transparent);background:var(--background);color:var(--foreground);font-weight:600;font-size:15px;text-decoration:none}
+.enter svg{width:18px;height:18px;display:block;color:var(--primary)}
+.enter:hover{border-color:var(--primary);color:var(--primary)}
 .hero{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:64px;align-items:center;padding:64px 72px 84px;margin:8px 0 72px;border-radius:32px;overflow:hidden;background:linear-gradient(110deg,oklch(0.955 0.03 195) 0%,oklch(0.975 0.01 95) 48%,oklch(0.95 0.03 235) 100%)}
 .hero-text{position:relative;z-index:2}
 h1{font-size:52px;line-height:1.06;letter-spacing:-.03em;font-weight:600;margin:0 0 28px;text-wrap:balance}

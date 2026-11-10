@@ -12,7 +12,7 @@ describe("conteúdo (texto exato da spec)", () => {
   const h = html();
   test("título, texto e rótulos", () => {
     for (const t of [
-      "Lembretes de remédio para quem cuida de gente e de bicho.",
+      "Lembretes de remédio para quem cuida de gente e de pets.",
       "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir.",
       "Criar conta", "Já tenho conta →", "Em poucas palavras",
       "O Medicron é um organizador de lembretes. Não faz diagnóstico nem indica doses ou tratamentos: siga a orientação do seu médico ou veterinário.",
@@ -173,5 +173,15 @@ describe("buildSite", () => {
       expect(fs.statSync(file).size).toBeGreaterThan(1000);
       expect(fs.statSync(file).size).toBeLessThanOrEqual(40 * 1024);
     }
+  });
+});
+
+describe("texto e botão do topo", () => {
+  const h = renderSite({}, loadSources(path.resolve(__dirname, "..")));
+  test("não usa a palavra \"bicho\" em lugar nenhum", () => {
+    expect(h.toLowerCase()).not.toContain("bicho");
+  });
+  test("Entrar é um botão de contorno com ícone, não um link simples", () => {
+    expect(h).toMatch(/<a class="enter" href="\/entrar"><svg[^>]*aria-hidden="true"[\s\S]*?<\/svg><span>Entrar<\/span><\/a>/);
   });
 });

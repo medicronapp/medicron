@@ -59,7 +59,7 @@ function jsonLd(origin: string): string {
     inLanguage: "pt-BR",
     applicationCategory: "HealthApplication",
     operatingSystem: "Web",
-    description: "Lembretes de remédio, vacina e cuidado para quem cuida de gente e de bicho, com a família na mesma conta.",
+    description: "Lembretes de remédio, vacina e cuidado para quem cuida de gente e de pets, com a família na mesma conta.",
     offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
   }).replace(/</g, "\\u003c");
 }

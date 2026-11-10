@@ -36,7 +36,7 @@ describe("alvos de toque (≥ 44 px)", () => {
     const m = style.match(new RegExp(`(?:^|[}\\s,])${selector.replace(/[.]/g, "\\.")}\\{[^}]*min-height:(\\d+)px`));
     return m ? Number(m[1]) : 0;
   };
-  test.each([".btn", ".lnk", ".mark", ".links a"])("%s", (sel) => {
+  test.each([".btn", ".lnk", ".enter", ".mark", ".links a"])("%s", (sel) => {
     expect(minHeight(sel)).toBeGreaterThanOrEqual(44);
   });
 });

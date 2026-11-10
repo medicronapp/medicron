@@ -32,7 +32,7 @@ Serve também como a "URL de marketing" exigida pela App Store e como porta de e
 ## Estrutura da página (largura máxima de 1080 px, margens de 32 px; hero em duas colunas)
 
 1. **Topo:** logo pequeno (o do app) e "Medicron", à esquerda; "Entrar" em texto, à direita. Sem barra, sem menu.
-2. **Título e texto** (alinhados à esquerda, bastante respiro acima): "Lembretes de remédio para quem cuida de gente e de bicho." / "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir."
+2. **Título e texto** (alinhados à esquerda, bastante respiro acima): "Lembretes de remédio para quem cuida de gente e de pets." / "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir."
 3. **Ação:** botão **Criar conta** (`/cadastrar`, o único elemento sólido da página) e link **Já tenho conta →** (`/entrar`). Abaixo, uma linha pequena e **verdadeira** sobre onde funciona (ver "Disponibilidade").
 4. **A tela do app:** a tela Hoje, com a legenda "A tela Hoje: o que falta e o que atrasou." Exemplo: conta "Família Souza", "3 de 5 doses feitas hoje", Vermífugo · Mel · 07:00 (Feita), Vitamina D · Pedro · 08:00 (Atrasada), Losartana · Ana · 12:00 (Agora), em ordem de horário.
 5. **"Em poucas palavras":** lista de definições (termo à esquerda, explicação à direita, filete entre as linhas): Lembretes; Gente e pets; Em família; No iPhone (widgets na tela inicial e de bloqueio); Seus dados (apagar a conta e tudo o que cadastrou, no app).
