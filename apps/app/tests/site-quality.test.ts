@@ -116,9 +116,9 @@ describe("leve e sem enfeite", () => {
   test("HTML com CSS embutido ≤ 25 KB", () => {
     expect(Buffer.byteLength(html)).toBeLessThanOrEqual(25 * 1024);
   });
-  test("no máximo 2 arquivos de fonte; imagens só as 2 capturas do app (uma por tema), sem fundo em imagem", () => {
+  test("no máximo 2 arquivos de fonte; imagens só as 4 capturas do app (duas telas, uma por tema), sem fundo em imagem", () => {
     expect(style.match(/url\(\/landing\/fonts\//g)).toHaveLength(2);
-    expect(body.match(/<img /g)).toHaveLength(2);
+    expect(body.match(/<img /g)).toHaveLength(4);
     expect(body).not.toMatch(/<picture|background-image/);
     expect(style).not.toMatch(/background-image/);
   });
@@ -135,6 +135,18 @@ describe("leve e sem enfeite", () => {
     expect(hide.cls).toBeGreaterThan(show.cls);
   });
 
+  test("na moldura do cartão 'Em família' só a captura do tema em uso aparece, e a regra que esconde vence a que mostra", () => {
+    expect(style).toMatch(/\.phone \.fam-d\{display:none\}/);
+    expect(style).toMatch(/@media \(prefers-color-scheme:dark\)\{[^@]*:root:not\(\[data-theme="light"\]\) \.phone \.fam-l\{display:none\}:root:not\(\[data-theme="light"\]\) \.phone \.fam-d\{display:block\}/);
+    expect(style).toMatch(/:root\[data-theme="dark"\] \.phone \.fam-l\{display:none\}:root\[data-theme="dark"\] \.phone \.fam-d\{display:block\}/);
+  });
+  test("a ilustração é quadrada e recortada, com moldura de celular (borda grossa escura, ilha de câmera) e sem sombra extra", () => {
+    expect(style).toMatch(/\.fam-art\{[^}]*aspect-ratio:1\s*\/\s*1[^}]*overflow:hidden/);
+    const phone = style.match(/\.phone\{[^}]*\}/)![0];
+    expect(phone).toMatch(/border:\d+px solid/);
+    expect(phone).toMatch(/border-radius:\d+px \d+px 0 0/);
+    expect(style).toMatch(/\.phone::before\{[^}]*border-radius:999px/);
+  });
   test("a fonte troca por fallback sem bloquear (font-display: swap) e há preload da principal", () => {
     expect(style.match(/font-display:swap/g)).toHaveLength(2);
     expect(html).toMatch(/<link rel="preload" href="\/landing\/fonts\/geist-400.woff2" as="font" type="font\/woff2" crossorigin>/);

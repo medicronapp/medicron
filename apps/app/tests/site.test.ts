@@ -44,11 +44,13 @@ describe("links", () => {
 
 describe("a tela do app é a captura REAL (não um desenho em HTML)", () => {
   const h = html();
-  test("duas imagens (claro e escuro), com tamanho declarado, texto alternativo e carregamento preguiçoso", () => {
+  test("quatro imagens (Hoje e Conta, cada uma em claro e escuro), com tamanho declarado, texto alternativo e carregamento preguiçoso", () => {
     const imgs = [...h.matchAll(/<img [^>]*>/g)].map((m) => m[0]);
-    expect(imgs).toHaveLength(2);
+    expect(imgs).toHaveLength(4);
     expect(imgs[0]).toContain('src="/landing/hoje-claro.webp"');
     expect(imgs[1]).toContain('src="/landing/hoje-escuro.webp"');
+    expect(imgs[2]).toContain('src="/landing/familia-claro.webp"');
+    expect(imgs[3]).toContain('src="/landing/familia-escuro.webp"');
     for (const i of imgs) {
       expect(i).toContain('width="390"');
       expect(i).toContain('height="760"');
@@ -61,6 +63,14 @@ describe("a tela do app é a captura REAL (não um desenho em HTML)", () => {
     const alt = h.match(/<img [^>]*alt="([^"]+)"/)![1];
     for (const t of ["Hoje", "3 de 5", "Pedro", "Vitamina D", "Ana", "Losartana"]) expect(alt).toContain(t);
     expect(h).not.toMatch(/Vov[óo]/);
+  });
+  test("o cartão 'Em família' mostra a tela Conta real dentro de uma moldura de celular, antes do texto", () => {
+    const row = h.match(/<div class="row row-fam">[\s\S]*?<\/dd><\/div>/)![0];
+    expect(row.indexOf('class="phone"')).toBeGreaterThan(-1);
+    expect(row.indexOf('class="phone"')).toBeLessThan(row.indexOf("<dt>"));
+    const alts = [...row.matchAll(/alt="([^"]+)"/g)].map((m) => m[1]);
+    expect(alts).toHaveLength(2);
+    for (const a of alts) for (const t of ["Conta", "Família Souza", "Ana Souza", "Pedro Souza", "Carla Souza", "Convidar alguém"]) expect(a).toContain(t);
   });
   test("o desenho em HTML da tela saiu (a fidelidade vem da captura)", () => {
     expect(h).not.toContain('class="shot"');
@@ -154,10 +164,10 @@ describe("sem terceiros e sem decoração", () => {
 });
 
 describe("buildSite", () => {
-  test("copia as duas capturas reais do app (≤ 80 KB cada)", () => {
+  test("copia as quatro capturas reais do app (≤ 80 KB cada)", () => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), "site-shots-"));
     buildSite({}, appRoot, out);
-    for (const f of ["hoje-claro.webp", "hoje-escuro.webp"]) {
+    for (const f of ["hoje-claro.webp", "hoje-escuro.webp", "familia-claro.webp", "familia-escuro.webp"]) {
       const file = path.join(out, "landing", f);
       expect(fs.statSync(file).size).toBeGreaterThan(5000);
       expect(fs.statSync(file).size).toBeLessThanOrEqual(80 * 1024);

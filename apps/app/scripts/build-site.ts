@@ -117,7 +117,7 @@ export function buildSite(env: SiteEnv, appRoot: string, outRoot: string = path.
   for (const w of ["400", "600"]) fs.copyFileSync(path.join(from, `geist-latin-${w}-normal.woff2`), path.join(landing, "fonts", `geist-${w}.woff2`));
   fs.copyFileSync(path.join(appRoot, "site/og.png"), path.join(landing, "og.png"));
   // Capturas reais do app (geradas por `npm run capture-site-shots`), uma por tema.
-  for (const f of ["hoje-claro.webp", "hoje-escuro.webp"]) fs.copyFileSync(path.join(appRoot, "site", f), path.join(landing, f));
+  for (const f of ["hoje-claro.webp", "hoje-escuro.webp", "familia-claro.webp", "familia-escuro.webp"]) fs.copyFileSync(path.join(appRoot, "site", f), path.join(landing, f));
   const origin = env.origin ?? DEFAULT_ORIGIN;
   fs.writeFileSync(path.join(outRoot, "robots.txt"), robotsTxt(origin));
   fs.writeFileSync(path.join(outRoot, "sitemap.xml"), sitemapXml(origin));
