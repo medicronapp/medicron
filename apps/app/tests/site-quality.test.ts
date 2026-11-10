@@ -184,7 +184,7 @@ describe("leve e sem enfeite", () => {
   });
   test("largura: página larga (até 1160 px), hero em duas colunas no computador e em uma só no celular", () => {
     expect(style).toMatch(/\.top,main,\.foot\{max-width:1160px;margin:0 auto/);
-    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 380px/);
+    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 400px/);
     expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero\{grid-template-columns:1fr/);
     expect(style).not.toMatch(/body\{[^}]*max-width:640px/);
   });
