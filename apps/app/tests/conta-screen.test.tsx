@@ -133,3 +133,10 @@ test("puxar para atualizar refaz organização e papel", async () => {
   expect(mockOrg.value.refetch).toHaveBeenCalledTimes(1);
   expect(mockMe.value.refetch).toHaveBeenCalledTimes(1);
 });
+
+test("a tela Conta traz o aviso de que não é dispositivo médico e o link da política de privacidade (exigência da App Store)", async () => {
+  ready(org(), "member");
+  await renderApp(<Conta />);
+  expect(screen.getByText(/não faz diagnóstico nem indica doses/i)).toBeOnTheScreen();
+  expect(screen.getByRole("link", { name: "Política de privacidade" })).toBeOnTheScreen();
+});

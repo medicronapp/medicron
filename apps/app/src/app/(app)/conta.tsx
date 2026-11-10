@@ -7,6 +7,7 @@ import { EnableNotifications } from "@/components/enable-notifications";
 import { ErrorView } from "@/components/error-view";
 import { InvitationRow } from "@/components/invitation-row";
 import { InviteForm } from "@/components/invite-form";
+import { LegalNote } from "@/components/legal-note";
 import { MemberRow } from "@/components/member-row";
 import { PageHeader } from "@/components/page-header";
 import { Screen } from "@/components/screen";
@@ -92,6 +93,8 @@ export default function Conta() {
       </Card>
 
       <DeleteAccount />
+
+      <LegalNote />
     </Screen>
   );
 }

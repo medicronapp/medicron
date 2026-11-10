@@ -30,7 +30,7 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 11. **Build iOS:** `cd apps/app && npx eas-cli build --platform ios --profile production`; depois `npx eas-cli submit --platform ios` (vai para o TestFlight). Teste no TestFlight antes de enviar para revisão.
 12. **Build Android:** `npx eas-cli build --platform android --profile production`; envie o `.aab` na faixa de teste interno do Google Play (`eas submit --platform android`). Pegue a impressão SHA-256 e volte ao item 8.
 13. **Teste fechado do Google:** contas pessoais novas exigem 12 testadores por 14 dias seguidos antes de liberar a produção — **se** o console pedir.
-14. **Fichas e revisão:** cole textos, questionários e notas de `docs/lojas.md`; crie a conta de demonstração; envie as capturas de tela e os ícones (**já prontos**, veja a seção I); informe a política `https://medicron.com.br/privacidade`; envie para revisão.
+14. **Fichas e revisão:** (App Store: siga `docs/app-store-connect.md`, campo a campo, com os riscos de aprovação e a lista "Antes de enviar") cole textos, questionários e notas de `docs/lojas.md`; crie a conta de demonstração; envie as capturas de tela e os ícones (**já prontos**, veja a seção I); informe a política `https://medicron.com.br/privacidade`; envie para revisão.
 15. **Conferir exclusão de conta** pelo app antes de enviar (Conta → Excluir conta) e remover `EXTRA_TRUSTED_ORIGINS` (item 6).
 
 ## F. Virada da web — feita em 2026-11-09
