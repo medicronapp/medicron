@@ -1,0 +1,180 @@
+import { renderStoreSlide, STORE_SIZES, STORE_SLIDES } from "../scripts/store-slides";
+
+const PIXEL = "data:image/png;base64,iVBORw0KGgo=";
+
+describe("imagens da App Store: tamanhos e roteiro", () => {
+  test("tamanhos exigidos pela Apple para iPhone: 6,9\" (1320×2868) e 6,5\" (1284×2778)", () => {
+    expect(STORE_SIZES).toEqual([
+      { id: "6.9", width: 1320, height: 2868 },
+      { id: "6.5", width: 1284, height: 2778 },
+    ]);
+  });
+  test("as 5 telas de docs/lojas.md, na ordem (Hoje, Pacientes, Rotina, Itens, Conta), mais os 2 slides de widgets", () => {
+    expect(STORE_SLIDES.map((s) => s.id)).toEqual(["hoje", "pacientes", "rotina", "itens", "conta", "bloqueio", "widget"]);
+    const app = STORE_SLIDES.filter((s) => s.kind === "app");
+    expect(app.map((s) => s.route)).toEqual(["/", "/pacientes", "/pacientes/pa_ana", "/itens", "/conta"]);
+  });
+  test("textos curtos, em português e sem promessa médica nem superlativo", () => {
+    for (const s of STORE_SLIDES) {
+      expect(s.title.length).toBeGreaterThan(8);
+      expect(s.title.length).toBeLessThanOrEqual(42);
+      expect(s.subtitle.length).toBeLessThanOrEqual(70);
+      expect(`${s.title} ${s.subtitle}`).not.toMatch(/\b(cura|curar|trata|tratamento|diagn[óo]stic|dose certa|melhor|n[ºo]\s?1|garant|sempre|nunca)\w*/i);
+    }
+  });
+});
+
+describe("tema das telas: algumas no claro, outras no escuro", () => {
+  test("alterna claro e escuro, começando pelo claro", () => {
+    expect(STORE_SLIDES.map((s) => s.theme)).toEqual(["light", "dark", "light", "dark", "light", "dark", "light"]);
+  });
+  test("a moldura e a faixa de status acompanham o tema da tela", () => {
+    const light = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+    const dark = renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "");
+    expect(light).toContain("--bezel:#141a1b");
+    expect(light).toContain("--screen:#fbfaf7");
+    expect(dark).toContain("--bezel:#2b3436");
+    expect(dark).toContain("--screen:#0b1314");
+  });
+});
+
+describe("estilo: tema escuro e claro do site, tipografia do hero", () => {
+  const light = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+  const dark = renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "");
+  const stops = (html: string) => [...html.match(/linear-gradient\(170deg,([^;]*)\)\}/)![1].matchAll(/oklch\(([\d.]+) /g)].map((m) => Number(m[1]));
+  test("telas escuras: degradê que começa e termina escuro (luminosidade ≤ 0,34 em OKLCH), texto branco, subtítulo a ≤ 72%", () => {
+    const st = stops(dark);
+    expect(st.length).toBe(2);
+    for (const l of st) expect(l).toBeLessThanOrEqual(0.34);
+    expect(dark).toMatch(/body\{[^}]*color:#fff/);
+    expect(Number(dark.match(/p\{[^}]*color:rgba\(255,255,255,([\d.]+)\)/)![1])).toBeLessThanOrEqual(0.72);
+  });
+  test("telas claras: o degradê pálido do hero do site (luminosidade ≥ 0,94), texto escuro do site e subtítulo no cinza do site", () => {
+    const st = stops(light);
+    expect(st.length).toBe(3);
+    for (const l of st) expect(l).toBeGreaterThanOrEqual(0.94);
+    expect(light).toMatch(/body\{[^}]*color:oklch\(0\.21 0\.015 200\)/);
+    expect(light).toMatch(/p\{[^}]*color:oklch\(0\.5 0\.015 200\)/);
+  });
+  test("título como no hero: peso 600, entrelinha justa e letras apertadas; subtítulo peso 400", () => {
+    for (const html of [light, dark]) {
+      expect(html).toMatch(/h1\{[^}]*font-weight:600/);
+      expect(html).toMatch(/h1\{[^}]*letter-spacing:-\.028em/);
+      expect(html).toMatch(/h1\{[^}]*line-height:1\.1[;}]/);
+      expect(html).toMatch(/p\{[^}]*font-weight:400/);
+    }
+  });
+  test("o texto é grande e começa perto do topo: título ≥ 9,5% da largura, subtítulo ≥ 4% e margem de cima ≤ 12% da largura", () => {
+    const px = (re: RegExp) => Number(light.match(re)![1]);
+    expect(px(/h1\{[^}]*font-size:([\d.]+)px/)).toBeGreaterThanOrEqual(1320 * 0.095);
+    expect(px(/p\{[^}]*font-size:([\d.]+)px/)).toBeGreaterThanOrEqual(1320 * 0.04);
+    expect(px(/\.copy\{[^}]*top:([\d.]+)px/)).toBeLessThanOrEqual(1320 * 0.12);
+  });
+  test("o texto não chega ao celular: o bloco de texto termina antes do topo da moldura (para o pior título, 3 linhas)", () => {
+    const px = (re: RegExp) => Number(light.match(re)![1]);
+    const top = px(/\.copy\{[^}]*top:([\d.]+)px/);
+    const h1 = px(/h1\{[^}]*font-size:([\d.]+)px/);
+    const p = px(/p\{[^}]*font-size:([\d.]+)px/);
+    const gap = px(/p\{margin:([\d.]+)px/);
+    const worst = top + 3 * h1 * 1.1 + gap + 2 * p * 1.45;
+    expect(worst).toBeLessThanOrEqual(px(/\.phone\{[^}]*?;top:([\d.]+)px/) - 20);
+  });
+});
+
+const h1Text = (html: string) => html.match(/<h1>([\s\S]*?)<\/h1>/)![1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+
+describe("títulos: sempre 2 linhas, com a palavra-chave em destaque", () => {
+  test("cada slide define exatamente 2 linhas (quebra explícita), curtas o bastante para a fonte ficar grande (≤ 18 letras)", () => {
+    for (const s of STORE_SLIDES) {
+      expect(s.lines).toHaveLength(2);
+      for (const l of s.lines) { expect(l.length).toBeGreaterThanOrEqual(6); expect(l.length).toBeLessThanOrEqual(18); }
+      expect(s.title).toBe(s.lines.join(" "));
+    }
+  });
+  test("o destaque é um trecho de uma das linhas", () => {
+    for (const s of STORE_SLIDES) expect(s.lines.some((l) => l.includes(s.highlight))).toBe(true);
+  });
+  test("o HTML tem 2 linhas (.ln) dentro do h1, o texto lido é o título inteiro e o destaque está em <em>", () => {
+    for (const s of STORE_SLIDES) {
+      const html = renderStoreSlide(s, STORE_SIZES[0], PIXEL, "");
+      expect(html.match(/<span class="ln">/g)).toHaveLength(2);
+      expect(h1Text(html)).toBe(s.title);
+      expect(html).toContain(`<em>${s.highlight}</em>`);
+    }
+  });
+  test("o destaque usa a cor da marca: verde-menta no escuro, verde do site no claro", () => {
+    expect(renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "")).toMatch(/h1 em\{[^}]*color:#7ee7d3/);
+    expect(renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "")).toMatch(/h1 em\{[^}]*color:#0f766e/);
+  });
+  test("as linhas não quebram (nowrap) e um script reduz a fonte até a mais larga caber na caixa, depois que a fonte carrega", () => {
+    const html = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+    expect(html).toMatch(/\.ln\{[^}]*white-space:nowrap/);
+    expect(html).toContain("document.fonts.ready");
+    expect(html).toContain("scrollWidth");
+  });
+});
+
+describe("cartão arredondado como o hero do site", () => {
+  const light = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+  const dark = renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "");
+  test("texto e celular ficam dentro de um .box de cantos grandes, que recorta o celular", () => {
+    expect(light).toMatch(/<div class="box">[\s\S]*<div class="copy">[\s\S]*<div class="phone[\s\S]*<\/div><\/div>\s*<script>[\s\S]*<\/script>\s*<\/body>/);
+    const box = light.match(/\.box\{[^}]*\}/)![0];
+    expect(Number(box.match(/border-radius:([\d.]+)px/)![1])).toBeGreaterThanOrEqual(100);
+    expect(box).toMatch(/overflow:hidden/);
+  });
+  test("o degradê do tema fica no cartão e a página em volta é a cor de fundo do site (claro #fbfaf7, escuro #0b1314)", () => {
+    expect(light).toMatch(/body\{[^}]*background:#fbfaf7/);
+    expect(dark).toMatch(/body\{[^}]*background:#0b1314/);
+    expect(light).toMatch(/\.box\{[^}]*linear-gradient\(170deg,oklch\(0\.955/);
+    expect(dark).toMatch(/\.box\{[^}]*linear-gradient\(170deg,oklch\(0\.3 /);
+  });
+  test("o texto (2 linhas de título + subtítulo de até 2 linhas) termina antes do topo do celular", () => {
+    const px = (re: RegExp) => Number(light.match(re)![1]);
+    const top = px(/\.copy\{[^}]*top:([\d.]+)px/);
+    const h1 = px(/h1\{[^}]*font-size:([\d.]+)px/);
+    const p = px(/p\{[^}]*font-size:([\d.]+)px/);
+    const gap = px(/p\{margin:([\d.]+)px/);
+    expect(top + 2 * h1 * 1.1 + gap + 2 * p * 1.45).toBeLessThanOrEqual(px(/\.phone\{[^}]*?;top:([\d.]+)px/) - 20);
+  });
+});
+
+describe("foto de fundo da tela de bloqueio", () => {
+  test("o slide de bloqueio recebe a foto (5º argumento) e os outros slides ignoram", () => {
+    const lock = STORE_SLIDES.find((x) => x.kind === "lock")!;
+    expect(renderStoreSlide(lock, STORE_SIZES[0], "", "", "data:image/jpeg;base64,QUJD")).toContain("url(data:image/jpeg;base64,QUJD)");
+    expect(renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "", "data:image/jpeg;base64,QUJD")).not.toContain("QUJD");
+  });
+});
+
+describe("renderStoreSlide", () => {
+  const slide = STORE_SLIDES[0];
+  const size = STORE_SIZES[0];
+  const html = renderStoreSlide(slide, size, PIXEL, "@font-face{font-family:Geist}");
+  test("página do tamanho exato, em pt-BR, com título, subtítulo e a captura embutida", () => {
+    expect(html).toContain('<html lang="pt-BR">');
+    expect(html).toContain("width:1320px;height:2868px");
+    expect(h1Text(html)).toBe(slide.title);
+    expect(html).toContain(slide.subtitle);
+    expect(html).toContain(`<img src="${PIXEL}"`);
+  });
+  test("não carrega nada de fora (sem http) e usa a fonte recebida", () => {
+    expect(html).not.toMatch(/https?:\/\//);
+    expect(html).toContain("@font-face{font-family:Geist}");
+  });
+  test("escapa HTML no título (nada de marcação injetada)", () => {
+    const h = renderStoreSlide({ ...slide, lines: ["A <b>&", "</b> B"], highlight: "<b>&" }, size, PIXEL, "");
+    expect(h).toContain("A <em>&lt;b&gt;&amp;</em>");
+    expect(h).toContain("&lt;/b&gt; B");
+    expect(h).not.toContain("<b>");
+  });
+  test("o celular sangra pela base (recortado), como no site", () => {
+    expect(html).toMatch(/\.phone\{[^}]*border-bottom:0/);
+    expect(html).toMatch(/body\{[^}]*overflow:hidden/);
+  });
+  test("a escala acompanha a largura (6,5\" gera medidas proporcionais, não as do 6,9\")", () => {
+    const small = renderStoreSlide(slide, STORE_SIZES[1], PIXEL, "");
+    expect(small).toContain("width:1284px;height:2778px");
+    expect(small).not.toContain("width:1320px");
+  });
+});
