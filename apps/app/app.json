@@ -100,7 +100,7 @@
             {
               "name": "MedicronProgressoWidget",
               "displayName": "Medicron · Progresso",
-              "description": "Anel do dia, pendentes e a próxima dose",
+              "description": "A próxima dose e a barra do dia, com as pendentes",
               "ios": {
                 "supportedFamilies": [
                   "accessoryRectangular"
