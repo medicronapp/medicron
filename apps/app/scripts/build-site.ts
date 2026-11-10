@@ -52,6 +52,30 @@ function availability(env: SiteEnv): { line: string; stores: string } {
   return { line, stores: links.length ? `\n    <p class="stores">${links.join("")}</p>` : "" };
 }
 
+/** Dados estruturados; o `<` vai escapado para o JSON nunca fechar o `<script>`. */
+function jsonLd(origin: string): string {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Medicron",
+    url: `${origin}/`,
+    inLanguage: "pt-BR",
+    applicationCategory: "HealthApplication",
+    operatingSystem: "Web",
+    description: "Lembretes de remédio, vacina e cuidado para quem cuida de gente e de bicho, com a família na mesma conta.",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
+  }).replace(/</g, "\\u003c");
+}
+
+/** Rotas privadas do app (o app web responde com o mesmo HTML para qualquer caminho): fora dos buscadores. */
+const PRIVATE_PATHS = ["/api/", "/pacientes", "/itens", "/conta", "/convite/", "/nova-conta"];
+
+export const robotsTxt = (origin: string) =>
+  `User-agent: *\nAllow: /\n${PRIVATE_PATHS.map((p) => `Disallow: ${p}`).join("\n")}\n\nSitemap: ${origin}/sitemap.xml\n`;
+
+export const sitemapXml = (origin: string) =>
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["/", "/privacidade"].map((p) => `  <url><loc>${origin}${p}</loc></url>`).join("\n")}\n</urlset>\n`;
+
 export function renderSite(env: SiteEnv, src: SiteSources): string {
   const { line, stores } = availability(env);
   const contact = env.contactEmail ? `<a href="mailto:${escapeHtml(env.contactEmail)}">Contato</a>` : "";
@@ -62,6 +86,7 @@ export function renderSite(env: SiteEnv, src: SiteSources): string {
     .replace("{{AVAILABILITY}}", () => line)
     .replace("{{STORES}}", () => stores)
     .replace("{{CONTACT}}", () => contact)
+    .replace("{{JSONLD}}", () => jsonLd(env.origin ?? DEFAULT_ORIGIN))
     .replaceAll("{{ORIGIN}}", () => escapeHtml(env.origin ?? DEFAULT_ORIGIN));
 }
 
@@ -85,4 +110,8 @@ export function buildSite(env: SiteEnv, appRoot: string, outRoot: string = path.
   fs.writeFileSync(path.join(landing, "index.html"), renderSite(env, loadSources(appRoot)));
   const from = fontsDir(appRoot);
   for (const w of ["400", "600"]) fs.copyFileSync(path.join(from, `geist-latin-${w}-normal.woff2`), path.join(landing, "fonts", `geist-${w}.woff2`));
+  fs.copyFileSync(path.join(appRoot, "site/og.png"), path.join(landing, "og.png"));
+  const origin = env.origin ?? DEFAULT_ORIGIN;
+  fs.writeFileSync(path.join(outRoot, "robots.txt"), robotsTxt(origin));
+  fs.writeFileSync(path.join(outRoot, "sitemap.xml"), sitemapXml(origin));
 }

@@ -104,7 +104,8 @@ describe("tokens extraídos do app", () => {
 });
 
 describe("sem terceiros e sem decoração", () => {
-  const h = html();
+  // O JSON-LD cita o vocabulário schema.org como identificador (não faz requisição); o resto da página não pode ter nenhum.
+  const h = html().replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, "");
   test("nenhuma requisição a outro domínio", () => {
     expect(h).not.toMatch(/<script[^>]+src=/);
     expect(h).not.toMatch(/<link(?![^>]*rel="canonical")[^>]+href="https?:/);

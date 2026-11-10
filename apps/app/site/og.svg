@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#fbfaf7"/>
+  <g transform="translate(80 80)">
+    <rect width="88" height="88" rx="22" fill="#0f766e"/>
+    <g transform="scale(1.375)"><circle cx="32" cy="32" r="17" fill="none" stroke="#f3fbfa" stroke-width="5.5" stroke-linecap="round" stroke-dasharray="89 18" transform="rotate(-90 32 32)"/><circle cx="23.5" cy="17.5" r="4.2" fill="#99f6e4"/></g>
+  </g>
+  <text x="192" y="142" font-family="Geist" font-weight="600" font-size="44" fill="#1a2526">Medicron</text>
+  <text x="80" y="330" font-family="Geist" font-weight="600" font-size="76" fill="#1a2526" letter-spacing="-2">Lembretes de remédio</text>
+  <text x="80" y="418" font-family="Geist" font-weight="600" font-size="76" fill="#1a2526" letter-spacing="-2">para quem cuida de gente</text>
+  <text x="80" y="506" font-family="Geist" font-weight="600" font-size="76" fill="#1a2526" letter-spacing="-2">e de bicho.</text>
+  <text x="80" y="580" font-family="Geist" font-weight="400" font-size="30" fill="#6b7677">medicron.com.br</text>
+</svg>
