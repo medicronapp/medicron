@@ -48,6 +48,11 @@ describe("exemplo da tela do app", () => {
     for (const t of ["Família Souza", "3 de 5", "Vitamina D", "Pedro", "Losartana", "Ana", "Vermífugo", "Mel", "Atrasada", "Agora", "Feita"]) expect(h).toContain(t);
     expect(h).not.toMatch(/Vov[óo]/);
   });
+  test("os horários seguem a ordem do dia e os estados fazem sentido (feita antes, atrasada, agora)", () => {
+    const rows = [...h.matchAll(/<b>([^<]+)<\/b><span>[^·]+· (\d\d:\d\d)<\/span><\/div><span class="t (\w+)">/g)].map((m) => ({ item: m[1], time: m[2], state: m[3] }));
+    expect(rows.map((r) => r.time)).toEqual([...rows.map((r) => r.time)].sort());
+    expect(rows.map((r) => r.state)).toEqual(["done", "late", "now"]);
+  });
   test("é uma imagem para leitores de tela (rótulo), com o conteúdo interno escondido", () => {
     expect(h).toMatch(/role="img"\s+aria-label="[^"]*tela Hoje[^"]*"/);
     expect(h).toMatch(/aria-hidden="true"/);

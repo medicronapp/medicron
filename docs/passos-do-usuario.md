@@ -47,3 +47,10 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 22. **O que esperar:** o widget médio mostra o anel do dia (doses feitas de hoje), as 2 próximas doses (com a contagem "em 3 h" que o próprio iOS atualiza) e o resumo de pendentes ("3 pendentes desde 06:00"). Tocar abre a tela Hoje. O app o atualiza ao abrir e ao registrar uma dose; entre aberturas, o horário avança sozinho (a dose entra em "agora" 15 min antes e vira atrasada 15 min depois). Se alguém marcar uma dose em outro aparelho, o widget só sabe quando você abrir o app. Sair da conta ou excluí-la esvazia o widget.
 23. **Liquid Glass:** a barra inferior vira um painel de vidro flutuante no iOS 26 (ou superior). Em iOS antigo, com "Reduzir transparência" ligado, no Android e na web continua a barra de sempre. Confira também em modo claro e escuro.
 
+## H. Hotsite (Plano 10)
+
+24. **E-mail de contato no hotsite:** `cd apps/app && vercel env add CONTACT_EMAIL production` (no projeto `medicron-web`) e republicar. Sem isso, o rodapé do hotsite não mostra "Contato".
+25. **Quando as lojas publicarem o app:** definir `LANDING_APP_STORE_URL` e `LANDING_PLAY_URL` no `medicron-web` e republicar: a linha de disponibilidade passa a dizer "No iPhone, no Android e no navegador" e os links aparecem. Até lá o hotsite diz que os aplicativos estão "em breve".
+26. **Republicar o site** (da raiz do repositório): `VERCEL_ORG_ID=team_LQIw6FRi4hvzyz0FewKkMWES VERCEL_PROJECT_ID=prj_6tLxVdRNAEA8x391X6yPrlCxGalV vercel deploy --prod --yes`. A build gera o hotsite, exporta o app e renomeia o `index.html` do app para `app.html`.
+27. **Como conferir:** numa janela anônima, `https://medicron.com.br` mostra o hotsite; logado, abre direto o app. O app instalado (PWA) abre sempre o app.
+
