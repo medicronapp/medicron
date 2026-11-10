@@ -19,3 +19,12 @@ jest.mock("expo-glass-effect", () => {
     GlassContainer: (props: Record<string, unknown>) => React.createElement(View, props),
   };
 });
+
+// O SDK do RevenueCat é nativo: nos testes ele fica simulado (os testes de compra trocam por um mock próprio).
+jest.mock("react-native-purchases", () => ({
+  __esModule: true,
+  default: {
+    configure: jest.fn(), logIn: jest.fn(async () => ({})), logOut: jest.fn(async () => ({})),
+    getOfferings: jest.fn(async () => ({ current: null })), purchasePackage: jest.fn(), restorePurchases: jest.fn(async () => ({ entitlements: { active: {} } })),
+  },
+}));
