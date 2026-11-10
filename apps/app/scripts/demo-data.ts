@@ -55,7 +55,7 @@ export function demoHome(): HomeResponse {
 
 /** A conta de demonstração é Plus (tem 5 pacientes e 3 pessoas, acima do limite do grátis). Literais: este arquivo só importa tipos do shared. */
 export const demoSubscription = (): SubscriptionDto => ({
-  tier: "plus", plusUntil: "2027-11-10T15:05:00.000Z", source: "manual", willRenew: false,
+  tier: "plus", plusUntil: "2027-11-10T15:05:00.000Z", source: "apple", willRenew: true,
   limits: { patients: null, members: 8, historyDays: null }, usage: { patients: 5, members: 3 },
 });
 

@@ -61,7 +61,7 @@ export type DoseBody = z.infer<typeof doseBody>;
 
 // ---------- Respostas ----------
 
-export type ErrorDto = { error: string; message?: string; issues?: unknown[]; minAppVersion?: string };
+export type ErrorDto = { error: string; message?: string; issues?: unknown[]; minAppVersion?: string; limit?: "patients" | "members" | "history" };
 
 export type PatientDto = {
   id: string; name: string; species: z.infer<typeof species>;

@@ -2,7 +2,9 @@ import { useRef, useState } from "react";
 import { View } from "react-native";
 import { inviteLink } from "@medicron/shared";
 import { inviteBase } from "@/lib/api-url";
+import { useRouter } from "expo-router";
 import { errorMessage } from "@/lib/api/errors";
+import { isPlanLimit } from "@/lib/plan-limit";
 import { inviteMember } from "@/lib/org";
 import { CopyLink } from "@/components/copy-link";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,7 @@ const ROLES = [
 
 /** Gera um convite por e-mail e mostra o link para enviar. */
 export function InviteForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "member">("admin");
   const [emailError, setEmailError] = useState("");
@@ -38,7 +41,9 @@ export function InviteForm() {
       setLink(inviteLink(id, inviteBase()));
       setEmail("");
     } catch (err) {
-      toast.error(errorMessage(err));
+      const limit = isPlanLimit(err);
+      if (limit) router.push(`/plus?motivo=${limit.limit}` as never);
+      else toast.error(errorMessage(err));
     } finally {
       sending.current = false;
       setBusy(false);

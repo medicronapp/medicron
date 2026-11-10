@@ -114,3 +114,17 @@ describe("novo paciente", () => {
     expect(screen.getByRole("button", { name: "Salvar" })).toBeEnabled();
   });
 });
+
+describe("limite de pacientes do plano grátis", () => {
+  test("o 3º paciente (API responde 402 plan_limit) abre o paywall com o motivo, sem toast de erro", async () => {
+    const { ApiClientError } = require("@/lib/api/errors") as typeof import("@/lib/api/errors");
+    mockCreate.mockRejectedValue(new ApiClientError(402, "plan_limit", "Limite", undefined, "patients"));
+    await renderApp(<Novo />);
+    await fireEvent.changeText(screen.getByLabelText("Nome"), "Terceiro");
+    await fireEvent.press(screen.getByRole("button", { name: "Tipo" }));
+    await fireEvent.press(await screen.findByRole("button", { name: "Gato" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/plus?motivo=patients"));
+    expect(mockToast.error).not.toHaveBeenCalled();
+  });
+});

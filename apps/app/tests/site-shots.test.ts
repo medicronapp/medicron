@@ -66,6 +66,8 @@ describe("dados de demonstração das capturas do hotsite", () => {
     const sub = demoMe().subscription;
     expect(sub.tier).toBe("plus");
     expect(new Date(sub.plusUntil!).getTime()).toBeGreaterThan(DEMO_NOW.getTime());
+    expect(sub.source).toBe("apple"); // assinatura de loja que renova: o cartão da Conta mostra "Gerenciar assinatura"
+    expect(sub.willRenew).toBe(true);
     expect(sub.limits.patients).toBeNull();
     expect(sub.usage.patients).toBe(demoPatients().length);
     expect(sub.usage.members).toBe(demoFullOrg().members.length);

@@ -7,6 +7,7 @@ import { Screen } from "@/components/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { NETWORK_MESSAGE } from "@/lib/api/errors";
+import { isPlanLimit } from "@/lib/plan-limit";
 import { useHome } from "@/lib/home-queries";
 
 export default function Hoje() {
@@ -15,6 +16,14 @@ export default function Hoje() {
   const dia = typeof params.dia === "string" ? params.dia : undefined;
   const query = useHome(dia);
   const staleError = query.isError && !!query.data;
+  const historyLimit = isPlanLimit(query.error)?.limit === "history";
+
+  // Dia além do histórico do plano grátis: volta para Hoje (que nunca é barrado) e mostra o paywall.
+  useEffect(() => {
+    if (!historyLimit) return;
+    router.setParams({ dia: undefined });
+    router.push("/plus?motivo=history" as never);
+  }, [historyLimit, router]);
 
   // Falha ao atualizar com dados já na tela: mantém a tela e avisa (não troca tudo por uma tela de erro).
   useEffect(() => {
@@ -35,7 +44,7 @@ export default function Hoje() {
     );
   }
   if (!query.data) {
-    if (!query.isError) return null;
+    if (!query.isError || historyLimit) return null; // o paywall já foi aberto; nada de "Algo deu errado"
     return (
       <Screen>
         <ErrorView onRetry={() => void query.refetch()} />

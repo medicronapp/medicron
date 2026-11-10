@@ -40,7 +40,7 @@ export function createApiClient({ baseUrl, getCookie, appVersion, credentials = 
     const dto = (data ?? {}) as Partial<ErrorDto>;
     if (res.status === 426) throw new AppOutdatedError(dto.minAppVersion ?? "", dto.message);
     if (res.status === 401) throw new UnauthorizedError(dto.message);
-    throw new ApiClientError(res.status, dto.error ?? "unknown", dto.message ?? "Algo deu errado. Tente de novo.", dto.issues);
+    throw new ApiClientError(res.status, dto.error ?? "unknown", dto.message ?? "Algo deu errado. Tente de novo.", dto.issues, dto.limit);
   }
   return { request };
 }

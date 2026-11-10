@@ -9,6 +9,7 @@ import { InvitationRow } from "@/components/invitation-row";
 import { InviteForm } from "@/components/invite-form";
 import { LegalNote } from "@/components/legal-note";
 import { MemberRow } from "@/components/member-row";
+import { PlusCard } from "@/components/plus-card";
 import { PageHeader } from "@/components/page-header";
 import { Screen } from "@/components/screen";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,6 +83,8 @@ export default function Conta() {
           </CardContent>
         </Card>
       ) : null}
+
+      <PlusCard />
 
       <Card>
         <CardHeader>

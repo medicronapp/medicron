@@ -1,6 +1,8 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { renderApp } from "./helpers";
 
+const mockRouter = { push: jest.fn() };
+jest.mock("expo-router", () => ({ useRouter: () => mockRouter }));
 jest.mock("expo-clipboard", () => ({ setStringAsync: jest.fn(async () => true) }));
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
 jest.mock("@/lib/api-url", () => ({ API_URL: "https://medicron.com.br", inviteBase: () => "https://medicron.com.br" }));
@@ -132,5 +134,16 @@ describe("InvitationRow", () => {
     await fireEvent.press(await screen.findByRole("button", { name: "Cancelar convite" }));
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("Não foi possível cancelar o convite."));
     expect(screen.getByText("Cancelar convite?")).toBeOnTheScreen();
+  });
+});
+
+describe("InviteForm: limite de pessoas do plano grátis", () => {
+  test("convidar além do limite (código do better-auth) abre o paywall com motivo 'members', sem toast de erro", async () => {
+    mockInvite.mockRejectedValue(Object.assign(new Error("Invitation limit reached"), { code: "INVITATION_LIMIT_REACHED" }));
+    await renderApp(<InviteForm />);
+    await fireEvent.changeText(screen.getByLabelText("E-mail da pessoa"), "nova@x.com");
+    await fireEvent.press(screen.getByRole("button", { name: "Gerar link de convite" }));
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith("/plus?motivo=members"));
+    expect(mockToast.error).not.toHaveBeenCalled();
   });
 });
