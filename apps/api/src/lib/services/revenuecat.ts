@@ -8,8 +8,8 @@ import type { SubscriptionDto } from "@medicron/shared";
 export type RevenueCatEvent = {
   id: string;
   type: string;
-  /** No Medicron é o id da organização (conta). Anônimos vêm como `$RCAnonymousID:...`. */
-  app_user_id: string;
+  /** No Medicron é o id da organização (conta). Anônimos vêm como `$RCAnonymousID:...`. O evento TRANSFER **não** traz (só transferred_from/to). */
+  app_user_id?: string;
   product_id?: string | null;
   store?: string | null;
   environment?: string | null;
@@ -32,13 +32,17 @@ const sourceOf = (store?: string | null): Source =>
  * organização existente, de tipos que não interessam (TEST, BILLING_ISSUE, TRANSFER...) ou sem validade são ignorados.
  */
 export async function applyRevenueCatEvent(db: Db, event: RevenueCatEvent, now: Date): Promise<"applied" | "ignored"> {
+  if (!event.app_user_id) return "ignored"; // ex.: TRANSFER (só transferred_from/to): nada a aplicar
   const [org] = await db.select({ id: organization.id }).from(organization).where(eq(organization.id, event.app_user_id)).limit(1);
   if (!org) return "ignored";
   const [row] = await db.select().from(orgSubscriptions).where(eq(orgSubscriptions.organizationId, org.id)).limit(1);
   if (row && event.event_timestamp_ms <= row.lastEventMs) return "ignored";
+  // Plus manual (testador/fundador) ainda vigente: eventos da loja não o derrubam nem o encurtam. Só uma validade MAIOR da loja assume.
+  const manualUntil = row?.source === "manual" && row.plusUntil && row.plusUntil.getTime() > now.getTime() ? row.plusUntil.getTime() : null;
 
   if (GRANTING.has(event.type)) {
     if (event.expiration_at_ms == null) return "ignored";
+    if (manualUntil !== null && event.expiration_at_ms <= manualUntil) return "ignored";
     await grantPlus(db, org.id, new Date(event.expiration_at_ms), sourceOf(event.store), {
       productId: event.product_id ?? undefined, willRenew: event.type !== "NON_RENEWING_PURCHASE", eventMs: event.event_timestamp_ms,
     });
@@ -46,7 +50,7 @@ export async function applyRevenueCatEvent(db: Db, event: RevenueCatEvent, now: 
   }
 
   if (event.type === "CANCELLATION" || event.type === "EXPIRATION") {
-    if (!row) return "ignored"; // nada a cancelar
+    if (!row || manualUntil !== null) return "ignored"; // nada a cancelar, ou o Plus vigente é manual (não é da loja)
     const until = event.type === "EXPIRATION"
       ? new Date(Math.min(event.expiration_at_ms ?? now.getTime(), now.getTime()))
       : event.expiration_at_ms != null ? new Date(event.expiration_at_ms) : row.plusUntil;

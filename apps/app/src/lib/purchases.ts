@@ -50,7 +50,28 @@ function trialOf(pkg: PurchasesPackage): Pkg["trial"] {
   return perUnit ? { days: intro.periodNumberOfUnits * perUnit } : null;
 }
 
-const toPkg = (pkg: PurchasesPackage, period: Pkg["period"]): Pkg => ({ id: pkg.identifier, priceString: pkg.product.priceString, period, trial: trialOf(pkg) });
+const ELIGIBLE = 2; // INTRO_ELIGIBILITY_STATUS_ELIGIBLE do RevenueCat
+
+/**
+ * Produtos para os quais a pessoa ainda pode usar o teste grátis. **Só iOS**: o `introPrice` existe mesmo para quem já usou
+ * o teste, então sem checar a tela prometeria 7 dias grátis e a loja cobraria na hora. Na dúvida (desconhecido ou falha da
+ * checagem) NÃO promete. No Android quem decide a oferta é o Google (`null` = não filtra).
+ */
+async function trialEligible(pkgs: PurchasesPackage[]): Promise<Set<string> | null> {
+  if (Platform.OS !== "ios") return null;
+  const ids = pkgs.map((p) => p.product.identifier);
+  try {
+    const result = await Purchases.checkTrialOrIntroductoryPriceEligibility(ids);
+    return new Set(ids.filter((id) => result[id]?.status === ELIGIBLE));
+  } catch {
+    return new Set();
+  }
+}
+
+const toPkg = (pkg: PurchasesPackage, period: Pkg["period"], eligible: Set<string> | null): Pkg => ({
+  id: pkg.identifier, priceString: pkg.product.priceString, period,
+  trial: eligible === null || eligible.has(pkg.product.identifier) ? trialOf(pkg) : null,
+});
 
 /** Os planos da oferta atual do RevenueCat (mensal e anual). `null` = indisponível. Erros de rede sobem. */
 export async function getOffer(): Promise<Offer | null> {
@@ -60,13 +81,30 @@ export async function getOffer(): Promise<Offer | null> {
   if (!monthly || !annual) return null;
   nativePackages.set(monthly.identifier, monthly);
   nativePackages.set(annual.identifier, annual);
-  return { monthly: toPkg(monthly, "month"), annual: toPkg(annual, "year") };
+  const eligible = await trialEligible([monthly, annual]);
+  return { monthly: toPkg(monthly, "month", eligible), annual: toPkg(annual, "year", eligible) };
 }
 
-/** Abre a compra na loja. O usuário cancelar a folha **não** é erro (`"cancelled"`); os demais erros sobem. */
-export async function purchase(pkg: Pkg): Promise<PurchaseResult> {
+/**
+ * Garante que o SDK está com a conta (`orgId`) ANTES de comprar ou restaurar: se o `logIn` da troca de conta falhou antes,
+ * a compra iria para a conta errada (a pessoa paga e a conta certa não vira Plus). Se não consegue confirmar, falha.
+ */
+async function ensureAccount(orgId: string): Promise<void> {
+  try {
+    if ((await Purchases.getAppUserID()) !== orgId) {
+      await Purchases.logIn(orgId);
+      currentOrg = orgId;
+    }
+  } catch {
+    throw new Error("Não foi possível confirmar a sua conta. Tente de novo.");
+  }
+}
+
+/** Abre a compra na loja para a conta `orgId`. O usuário cancelar a folha **não** é erro (`"cancelled"`); os demais erros sobem. */
+export async function purchase(pkg: Pkg, orgId: string): Promise<PurchaseResult> {
   const native = nativePackages.get(pkg.id);
   if (!native) throw new Error("Plano indisponível. Feche e abra a tela de novo.");
+  await ensureAccount(orgId);
   try {
     await Purchases.purchasePackage(native);
     return "purchased";
@@ -76,9 +114,10 @@ export async function purchase(pkg: Pkg): Promise<PurchaseResult> {
   }
 }
 
-/** Restaura compras (exigido pela App Store): `true` se o entitlement `plus` está ativo. */
-export async function restore(): Promise<boolean> {
+/** Restaura compras (exigido pela App Store) na conta `orgId`: `true` se o entitlement `plus` está ativo. */
+export async function restore(orgId: string): Promise<boolean> {
   if (!purchasesAvailable || !configured) return false;
+  await ensureAccount(orgId);
   const info = await Purchases.restorePurchases();
   return Boolean(info.entitlements.active?.[PLUS_ENTITLEMENT]);
 }

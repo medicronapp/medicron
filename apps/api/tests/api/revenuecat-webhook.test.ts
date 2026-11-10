@@ -63,6 +63,12 @@ describe("POST /api/webhooks/revenuecat", () => {
     expect(r.body).toEqual({ result: "ignored" });
   });
 
+  test("TRANSFER real não traz app_user_id (só transferred_from/to): 200 'ignored', nunca 400 (senão o RevenueCat reenvia)", async () => {
+    const r = await post({ api_version: "1.0", event: { id: "t1", type: "TRANSFER", event_timestamp_ms: Date.now(), transferred_from: ["o1"], transferred_to: ["o2"] } }, SECRET);
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ result: "ignored" });
+  });
+
   test("não exige sessão nem versão do app (é chamada pelo RevenueCat)", async () => {
     env.fail = new ApiError(401, "unauthorized");
     expect((await post(body(), SECRET)).status).toBe(200);

@@ -124,9 +124,46 @@ describe("applyRevenueCatEvent: idempotência, ordem e eventos que não interess
     expect((await sub()).tier).toBe("free");
   });
 
+  test("evento sem app_user_id (TRANSFER) é ignorado", async () => {
+    const e = { ...ev("TRANSFER") } as Partial<RevenueCatEvent>;
+    delete e.app_user_id;
+    expect(await applyRevenueCatEvent(db, e as RevenueCatEvent, NOW)).toBe("ignored");
+  });
+
   test("não derruba Plus manual (fundador) com um evento antigo de outra origem: a ordem pelo instante vale", async () => {
     await grantPlus(db, "o1", new Date(NOW.getTime() + 365 * DAY), "manual", { eventMs: NOW.getTime() + 999_999 });
     expect(await applyRevenueCatEvent(db, ev("EXPIRATION", { expiration_at_ms: NOW.getTime() - 1000 }), NOW)).toBe("ignored");
     expect((await sub()).tier).toBe("plus");
   });
 });
+
+describe("Plus manual (testador/fundador) não é derrubado nem encurtado por evento da loja", () => {
+  // o script grant-plus grava eventMs = 0 (como no uso real)
+  const manual = (days: number) => grantPlus(db, "o1", new Date(NOW.getTime() + days * DAY), "manual");
+
+  test("RENEWAL da loja com validade MENOR que a manual é ignorado: continua manual, na data manual", async () => {
+    await manual(365);
+    expect(await applyRevenueCatEvent(db, ev("RENEWAL", { expiration_at_ms: NOW.getTime() + 30 * DAY }), NOW)).toBe("ignored");
+    expect(await sub()).toMatchObject({ tier: "plus", source: "manual", plusUntil: new Date(NOW.getTime() + 365 * DAY).toISOString() });
+  });
+
+  test("EXPIRATION e CANCELLATION da loja não derrubam o Plus manual (são da assinatura da loja, não da concessão)", async () => {
+    await manual(365);
+    expect(await applyRevenueCatEvent(db, ev("EXPIRATION", { expiration_at_ms: NOW.getTime() - 1000 }), NOW)).toBe("ignored");
+    expect(await applyRevenueCatEvent(db, ev("CANCELLATION", { expiration_at_ms: NOW.getTime() - 1000 }), NOW)).toBe("ignored");
+    expect((await sub()).tier).toBe("plus");
+  });
+
+  test("loja com validade MAIOR que a manual passa a valer (a pessoa pagou por mais tempo)", async () => {
+    await manual(10);
+    expect(await applyRevenueCatEvent(db, ev("INITIAL_PURCHASE", { expiration_at_ms: NOW.getTime() + 40 * DAY }), NOW)).toBe("applied");
+    expect(await sub()).toMatchObject({ source: "apple", plusUntil: new Date(NOW.getTime() + 40 * DAY).toISOString() });
+  });
+
+  test("manual já vencido não protege nada: a loja volta a mandar", async () => {
+    await grantPlus(db, "o1", new Date(NOW.getTime() - DAY), "manual");
+    expect(await applyRevenueCatEvent(db, ev("INITIAL_PURCHASE", { expiration_at_ms: NOW.getTime() + 30 * DAY }), NOW)).toBe("applied");
+    expect((await sub()).source).toBe("apple");
+  });
+});
+

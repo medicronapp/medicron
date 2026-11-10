@@ -29,6 +29,7 @@ export default function Plus() {
   const me = useMe();
   const { subscription, isPlus } = useSubscription();
   const role = me.data?.role;
+  const orgId = me.data?.orgId;
   const isAdmin = role === "owner" || role === "admin";
   const native = Platform.OS !== "web" && purchasesAvailable;
   const canBuy = !isPlus && isAdmin && native;
@@ -53,11 +54,11 @@ export default function Plus() {
     : null;
 
   async function buy() {
-    if (!offer || busy) return;
+    if (!offer || !orgId || busy) return;
     setBusy(true);
     setError("");
     try {
-      if ((await purchase(offer[choice])) === "purchased") {
+      if ((await purchase(offer[choice], orgId)) === "purchased") {
         if (await afterPurchase()) toast.success("Medicron Plus ativado");
         else toast.info("Compra concluída. O Plus será ativado em instantes.");
         router.back();
@@ -70,10 +71,10 @@ export default function Plus() {
   }
 
   async function restorePurchases() {
-    if (busy) return;
+    if (busy || !orgId) return;
     setBusy(true);
     try {
-      if (await restore()) {
+      if (await restore(orgId)) {
         await afterPurchase();
         toast.success("Assinatura restaurada");
       } else {

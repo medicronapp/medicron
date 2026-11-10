@@ -11,7 +11,7 @@ const body = z.object({
   event: z.object({
     id: z.string().min(1),
     type: z.string().min(1),
-    app_user_id: z.string().min(1),
+    app_user_id: z.string().min(1).optional(), // o TRANSFER não traz
     product_id: z.string().nullish(),
     store: z.string().nullish(),
     environment: z.string().nullish(),

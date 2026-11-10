@@ -12,7 +12,7 @@ const FREE: SubscriptionDto = { tier: "free", plusUntil: null, source: null, wil
 const PLUS: SubscriptionDto = { tier: "plus", plusUntil: "2027-03-15T12:00:00.000Z", source: "apple", willRenew: true, limits: { patients: null, members: 8, historyDays: null }, usage: { patients: 5, members: 3 } };
 const mockSub: { value: SubscriptionDto | null } = { value: FREE };
 const mockRole: { value: "owner" | "admin" | "member" } = { value: "owner" };
-jest.mock("@/lib/me-query", () => ({ useMe: () => ({ data: { role: mockRole.value }, isPending: false }) }));
+jest.mock("@/lib/me-query", () => ({ useMe: () => ({ data: { role: mockRole.value, orgId: "o1" }, isPending: false }) }));
 const mockAfter = jest.fn();
 jest.mock("@/lib/subscription-queries", () => ({
   useSubscription: () => ({ subscription: mockSub.value, isPlus: mockSub.value?.tier === "plus", limits: mockSub.value?.limits, isPending: false, refetch: jest.fn() }),
@@ -86,7 +86,7 @@ describe("tela do Medicron Plus", () => {
     await renderApp(<Plus />);
     await fireEvent.press(await screen.findByRole("button", { name: "Começar 7 dias grátis" }));
     await waitFor(() => expect(mockAfter).toHaveBeenCalled());
-    expect(mockPurchases.purchase).toHaveBeenCalledWith(OFFER.annual);
+    expect(mockPurchases.purchase).toHaveBeenCalledWith(OFFER.annual, "o1");
     expect(mockToast.success).toHaveBeenCalledWith("Medicron Plus ativado");
     expect(mockRouter.back).toHaveBeenCalled();
   });
@@ -124,6 +124,7 @@ describe("tela do Medicron Plus", () => {
     mockPurchases.restore.mockResolvedValue(true);
     await fireEvent.press(screen.getByRole("button", { name: "Restaurar compras" }));
     await waitFor(() => expect(mockAfter).toHaveBeenCalled());
+    expect(mockPurchases.restore).toHaveBeenLastCalledWith("o1");
   });
 
   test("links de Termos de uso e Política de privacidade abrem as páginas do site", async () => {

@@ -6,6 +6,6 @@ export type { Offer, Pkg, PurchaseResult };
 export const purchasesAvailable = false;
 export async function configurePurchases(_orgId: string | null): Promise<void> {}
 export async function getOffer(): Promise<Offer | null> { return null; }
-export async function purchase(_pkg: Pkg): Promise<PurchaseResult> { throw new Error("A assinatura é feita pelo aplicativo no celular."); }
-export async function restore(): Promise<boolean> { return false; }
+export async function purchase(_pkg: Pkg, _orgId: string): Promise<PurchaseResult> { throw new Error("A assinatura é feita pelo aplicativo no celular."); }
+export async function restore(_orgId: string): Promise<boolean> { return false; }
 export const manageUrl = (): string => "";
