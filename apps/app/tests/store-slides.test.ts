@@ -81,6 +81,64 @@ describe("estilo: tema escuro e claro do site, tipografia do hero", () => {
   });
 });
 
+const h1Text = (html: string) => html.match(/<h1>([\s\S]*?)<\/h1>/)![1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+
+describe("títulos: sempre 2 linhas, com a palavra-chave em destaque", () => {
+  test("cada slide define exatamente 2 linhas (quebra explícita), curtas o bastante para a fonte ficar grande (≤ 18 letras)", () => {
+    for (const s of STORE_SLIDES) {
+      expect(s.lines).toHaveLength(2);
+      for (const l of s.lines) { expect(l.length).toBeGreaterThanOrEqual(6); expect(l.length).toBeLessThanOrEqual(18); }
+      expect(s.title).toBe(s.lines.join(" "));
+    }
+  });
+  test("o destaque é um trecho de uma das linhas", () => {
+    for (const s of STORE_SLIDES) expect(s.lines.some((l) => l.includes(s.highlight))).toBe(true);
+  });
+  test("o HTML tem 2 linhas (.ln) dentro do h1, o texto lido é o título inteiro e o destaque está em <em>", () => {
+    for (const s of STORE_SLIDES) {
+      const html = renderStoreSlide(s, STORE_SIZES[0], PIXEL, "");
+      expect(html.match(/<span class="ln">/g)).toHaveLength(2);
+      expect(h1Text(html)).toBe(s.title);
+      expect(html).toContain(`<em>${s.highlight}</em>`);
+    }
+  });
+  test("o destaque usa a cor da marca: verde-menta no escuro, verde do site no claro", () => {
+    expect(renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "")).toMatch(/h1 em\{[^}]*color:#7ee7d3/);
+    expect(renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "")).toMatch(/h1 em\{[^}]*color:#0f766e/);
+  });
+  test("as linhas não quebram (nowrap) e um script reduz a fonte até a mais larga caber na caixa, depois que a fonte carrega", () => {
+    const html = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+    expect(html).toMatch(/\.ln\{[^}]*white-space:nowrap/);
+    expect(html).toContain("document.fonts.ready");
+    expect(html).toContain("scrollWidth");
+  });
+});
+
+describe("cartão arredondado como o hero do site", () => {
+  const light = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+  const dark = renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "");
+  test("texto e celular ficam dentro de um .box de cantos grandes, que recorta o celular", () => {
+    expect(light).toMatch(/<div class="box">[\s\S]*<div class="copy">[\s\S]*<div class="phone[\s\S]*<\/div><\/div>\s*<script>[\s\S]*<\/script>\s*<\/body>/);
+    const box = light.match(/\.box\{[^}]*\}/)![0];
+    expect(Number(box.match(/border-radius:([\d.]+)px/)![1])).toBeGreaterThanOrEqual(100);
+    expect(box).toMatch(/overflow:hidden/);
+  });
+  test("o degradê do tema fica no cartão e a página em volta é a cor de fundo do site (claro #fbfaf7, escuro #0b1314)", () => {
+    expect(light).toMatch(/body\{[^}]*background:#fbfaf7/);
+    expect(dark).toMatch(/body\{[^}]*background:#0b1314/);
+    expect(light).toMatch(/\.box\{[^}]*linear-gradient\(170deg,oklch\(0\.955/);
+    expect(dark).toMatch(/\.box\{[^}]*linear-gradient\(170deg,oklch\(0\.3 /);
+  });
+  test("o texto (2 linhas de título + subtítulo de até 2 linhas) termina antes do topo do celular", () => {
+    const px = (re: RegExp) => Number(light.match(re)![1]);
+    const top = px(/\.copy\{[^}]*top:([\d.]+)px/);
+    const h1 = px(/h1\{[^}]*font-size:([\d.]+)px/);
+    const p = px(/p\{[^}]*font-size:([\d.]+)px/);
+    const gap = px(/p\{margin:([\d.]+)px/);
+    expect(top + 2 * h1 * 1.1 + gap + 2 * p * 1.45).toBeLessThanOrEqual(px(/\.phone\{[^}]*?;top:([\d.]+)px/) - 20);
+  });
+});
+
 describe("foto de fundo da tela de bloqueio", () => {
   test("o slide de bloqueio recebe a foto (5º argumento) e os outros slides ignoram", () => {
     const lock = STORE_SLIDES.find((x) => x.kind === "lock")!;
@@ -96,7 +154,7 @@ describe("renderStoreSlide", () => {
   test("página do tamanho exato, em pt-BR, com título, subtítulo e a captura embutida", () => {
     expect(html).toContain('<html lang="pt-BR">');
     expect(html).toContain("width:1320px;height:2868px");
-    expect(html).toContain(slide.title);
+    expect(h1Text(html)).toBe(slide.title);
     expect(html).toContain(slide.subtitle);
     expect(html).toContain(`<img src="${PIXEL}"`);
   });
@@ -105,8 +163,10 @@ describe("renderStoreSlide", () => {
     expect(html).toContain("@font-face{font-family:Geist}");
   });
   test("escapa HTML no título (nada de marcação injetada)", () => {
-    const h = renderStoreSlide({ ...slide, title: "A <b>&</b> B" }, size, PIXEL, "");
-    expect(h).toContain("A &lt;b&gt;&amp;&lt;/b&gt; B");
+    const h = renderStoreSlide({ ...slide, lines: ["A <b>&", "</b> B"], highlight: "<b>&" }, size, PIXEL, "");
+    expect(h).toContain("A <em>&lt;b&gt;&amp;</em>");
+    expect(h).toContain("&lt;/b&gt; B");
+    expect(h).not.toContain("<b>");
   });
   test("o celular sangra pela base (recortado), como no site", () => {
     expect(html).toMatch(/\.phone\{[^}]*border-bottom:0/);

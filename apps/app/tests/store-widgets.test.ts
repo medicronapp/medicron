@@ -114,7 +114,7 @@ describe("slides de widgets no roteiro", () => {
   test("o HTML do slide traz o título, as medidas do tamanho pedido, nenhuma imagem de captura e nada de fora", () => {
     for (const s of STORE_SLIDES.slice(5)) {
       const html = renderStoreSlide(s, STORE_SIZES[1], "", "");
-      expect(html).toContain(s.title);
+      expect(html.replace(/<[^>]+>/g, "")).toContain(s.lines[0]);
       expect(html).toContain("width:1284px;height:2778px");
       expect(html).not.toContain("<img");
       expect(html).not.toMatch(/https?:\/\//);
