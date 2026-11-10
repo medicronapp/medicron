@@ -29,6 +29,12 @@ export function renderStoreSlide(slide: StoreSlide, size: StoreSize, screenDataU
   const k = size.width / 1320;
   const px = (n: number) => `${Math.round(n * k * 10) / 10}px`;
   const dark = slide.theme === "dark";
+  // tema escuro: degradê fundo-escuro do site, texto branco; tema claro: o degradê pálido do hero e as cores de texto do site
+  const bg = dark
+    ? "radial-gradient(90% 38% at 6% 100%,oklch(0.5 0.1 190 / 0.9) 0%,transparent 62%),radial-gradient(70% 28% at 100% 56%,oklch(0.55 0.09 190 / 0.45) 0%,transparent 66%),linear-gradient(170deg,oklch(0.3 0.07 205) 0%,oklch(0.2 0.055 235) 100%)"
+    : "linear-gradient(170deg,oklch(0.955 0.03 195) 0%,oklch(0.975 0.01 95) 48%,oklch(0.95 0.03 235) 100%)";
+  const fg = dark ? "#fff" : "oklch(0.21 0.015 200)";
+  const sub = dark ? "rgba(255,255,255,.7)" : "oklch(0.5 0.015 200)";
   const frame = dark ? "--bezel:#2b3436;--screen:#0b1314" : "--bezel:#141a1b;--screen:#fbfaf7";
   return `<!doctype html>
 <html lang="pt-BR">
@@ -37,12 +43,12 @@ export function renderStoreSlide(slide: StoreSlide, size: StoreSize, screenDataU
 <style>${fontCss}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{position:relative;width:${size.width}px;height:${size.height}px;overflow:hidden;font-family:Geist,ui-sans-serif,system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased;
-background:radial-gradient(90% 38% at 6% 100%,oklch(0.5 0.1 190 / 0.9) 0%,transparent 62%),radial-gradient(70% 28% at 100% 56%,oklch(0.55 0.09 190 / 0.45) 0%,transparent 66%),linear-gradient(170deg,oklch(0.3 0.07 205) 0%,oklch(0.2 0.055 235) 100%)}
-.copy{position:absolute;left:${px(96)};right:${px(96)};top:${px(210)}}
-h1{margin:0;font-size:${px(104)};line-height:1.1;letter-spacing:-.028em;font-weight:600;text-wrap:balance}
-p{margin:${px(36)} 0 0;font-size:${px(46)};line-height:1.45;font-weight:400;color:rgba(255,255,255,.7);text-wrap:balance}
-.phone{${frame};position:absolute;left:50%;top:${px(900)};width:${px(1000)};margin-left:${px(-500)};overflow:hidden;border:${px(26)} solid var(--bezel);border-bottom:0;border-radius:${px(150)} ${px(150)} 0 0;outline:${px(3)} solid rgba(255,255,255,.28);background:var(--screen);padding-top:${px(78)}}
+body{position:relative;width:${size.width}px;height:${size.height}px;overflow:hidden;font-family:Geist,ui-sans-serif,system-ui,sans-serif;color:${fg};-webkit-font-smoothing:antialiased;
+background:${bg}}
+.copy{position:absolute;left:${px(96)};right:${px(96)};top:${px(140)}}
+h1{margin:0;font-size:${px(128)};line-height:1.1;letter-spacing:-.028em;font-weight:600;text-wrap:balance}
+p{margin:${px(34)} 0 0;font-size:${px(54)};line-height:1.45;font-weight:400;color:${sub};text-wrap:balance}
+.phone{${frame};position:absolute;left:50%;top:${px(830)};width:${px(1000)};margin-left:${px(-500)};overflow:hidden;border:${px(26)} solid var(--bezel);border-bottom:0;border-radius:${px(150)} ${px(150)} 0 0;outline:${px(3)} solid ${dark ? "rgba(255,255,255,.28)" : "rgba(20,26,27,.18)"};background:var(--screen);padding-top:${px(78)}}
 .phone::before{content:"";position:absolute;z-index:2;top:${px(26)};left:50%;width:${px(290)};height:${px(62)};margin-left:${px(-145)};border-radius:999px;background:var(--bezel)}
 .phone img{display:block;width:100%;height:auto}
 </style>

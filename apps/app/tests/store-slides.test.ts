@@ -37,20 +37,46 @@ describe("tema das telas: algumas no claro, outras no escuro", () => {
   });
 });
 
-describe("estilo: fundo escuro e tipografia do hero do site", () => {
-  const html = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
-  test("o degradê de fundo começa e termina escuro (luminosidade ≤ 0,34 em OKLCH)", () => {
-    const stops = [...html.match(/linear-gradient\(170deg,([^;]*)\)\}/)![1].matchAll(/oklch\(([\d.]+) /g)].map((m) => Number(m[1]));
-    expect(stops.length).toBe(2);
-    for (const l of stops) expect(l).toBeLessThanOrEqual(0.34);
+describe("estilo: tema escuro e claro do site, tipografia do hero", () => {
+  const light = renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "");
+  const dark = renderStoreSlide(STORE_SLIDES[1], STORE_SIZES[0], PIXEL, "");
+  const stops = (html: string) => [...html.match(/linear-gradient\(170deg,([^;]*)\)\}/)![1].matchAll(/oklch\(([\d.]+) /g)].map((m) => Number(m[1]));
+  test("telas escuras: degradê que começa e termina escuro (luminosidade ≤ 0,34 em OKLCH), texto branco, subtítulo a ≤ 72%", () => {
+    const st = stops(dark);
+    expect(st.length).toBe(2);
+    for (const l of st) expect(l).toBeLessThanOrEqual(0.34);
+    expect(dark).toMatch(/body\{[^}]*color:#fff/);
+    expect(Number(dark.match(/p\{[^}]*color:rgba\(255,255,255,([\d.]+)\)/)![1])).toBeLessThanOrEqual(0.72);
   });
-  test("título como no hero: peso 600, entrelinha justa e letras apertadas; subtítulo mais discreto (peso 400, branco a ≤ 72%)", () => {
-    expect(html).toMatch(/h1\{[^}]*font-weight:600/);
-    expect(html).toMatch(/h1\{[^}]*letter-spacing:-\.028em/);
-    expect(html).toMatch(/h1\{[^}]*line-height:1\.1[;}]/);
-    const alpha = Number(html.match(/p\{[^}]*color:rgba\(255,255,255,([\d.]+)\)/)![1]);
-    expect(alpha).toBeLessThanOrEqual(0.72);
-    expect(html).toMatch(/p\{[^}]*font-weight:400/);
+  test("telas claras: o degradê pálido do hero do site (luminosidade ≥ 0,94), texto escuro do site e subtítulo no cinza do site", () => {
+    const st = stops(light);
+    expect(st.length).toBe(3);
+    for (const l of st) expect(l).toBeGreaterThanOrEqual(0.94);
+    expect(light).toMatch(/body\{[^}]*color:oklch\(0\.21 0\.015 200\)/);
+    expect(light).toMatch(/p\{[^}]*color:oklch\(0\.5 0\.015 200\)/);
+  });
+  test("título como no hero: peso 600, entrelinha justa e letras apertadas; subtítulo peso 400", () => {
+    for (const html of [light, dark]) {
+      expect(html).toMatch(/h1\{[^}]*font-weight:600/);
+      expect(html).toMatch(/h1\{[^}]*letter-spacing:-\.028em/);
+      expect(html).toMatch(/h1\{[^}]*line-height:1\.1[;}]/);
+      expect(html).toMatch(/p\{[^}]*font-weight:400/);
+    }
+  });
+  test("o texto é grande e começa perto do topo: título ≥ 9,5% da largura, subtítulo ≥ 4% e margem de cima ≤ 12% da largura", () => {
+    const px = (re: RegExp) => Number(light.match(re)![1]);
+    expect(px(/h1\{[^}]*font-size:([\d.]+)px/)).toBeGreaterThanOrEqual(1320 * 0.095);
+    expect(px(/p\{[^}]*font-size:([\d.]+)px/)).toBeGreaterThanOrEqual(1320 * 0.04);
+    expect(px(/\.copy\{[^}]*top:([\d.]+)px/)).toBeLessThanOrEqual(1320 * 0.12);
+  });
+  test("o texto não chega ao celular: o bloco de texto termina antes do topo da moldura (para o pior título, 3 linhas)", () => {
+    const px = (re: RegExp) => Number(light.match(re)![1]);
+    const top = px(/\.copy\{[^}]*top:([\d.]+)px/);
+    const h1 = px(/h1\{[^}]*font-size:([\d.]+)px/);
+    const p = px(/p\{[^}]*font-size:([\d.]+)px/);
+    const gap = px(/p\{margin:([\d.]+)px/);
+    const worst = top + 3 * h1 * 1.1 + gap + 2 * p * 1.45;
+    expect(worst).toBeLessThanOrEqual(px(/\.phone\{[^}]*?;top:([\d.]+)px/) - 20);
   });
 });
 
