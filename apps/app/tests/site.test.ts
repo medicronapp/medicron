@@ -14,7 +14,7 @@ describe("conteúdo (texto exato da spec)", () => {
     for (const t of [
       "Lembretes de remédio para quem cuida de gente e de bicho.",
       "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir.",
-      "Criar conta", "Já tenho conta →", "Em poucas palavras", "A tela Hoje: o que falta e o que atrasou.",
+      "Criar conta", "Já tenho conta →", "Em poucas palavras", "A tela Hoje do app: o que falta e o que atrasou.",
       "O Medicron é um organizador de lembretes. Não faz diagnóstico nem indica doses ou tratamentos: siga a orientação do seu médico ou veterinário.",
     ]) expect(h).toContain(t);
   });
@@ -42,20 +42,32 @@ describe("links", () => {
   });
 });
 
-describe("exemplo da tela do app", () => {
+describe("a tela do app é a captura REAL (não um desenho em HTML)", () => {
   const h = html();
-  test("Família Souza, Pedro, Ana e Mel, e nenhuma Vovó", () => {
-    for (const t of ["Família Souza", "3 de 5", "Vitamina D", "Pedro", "Losartana", "Ana", "Vermífugo", "Mel", "Atrasada", "Agora", "Feita"]) expect(h).toContain(t);
+  test("duas imagens (claro e escuro), com tamanho declarado, texto alternativo e carregamento preguiçoso", () => {
+    const imgs = [...h.matchAll(/<img [^>]*>/g)].map((m) => m[0]);
+    expect(imgs).toHaveLength(2);
+    expect(imgs[0]).toContain('src="/landing/hoje-claro.webp"');
+    expect(imgs[1]).toContain('src="/landing/hoje-escuro.webp"');
+    for (const i of imgs) {
+      expect(i).toContain('width="390"');
+      expect(i).toContain('height="760"');
+      expect(i).toContain('loading="lazy"');
+      expect(i).toContain('decoding="async"');
+      expect(i).toMatch(/alt="[^"]{40,}"/);
+    }
+  });
+  test("o texto alternativo descreve a tela e usa os nomes do exemplo (sem Vovó)", () => {
+    const alt = h.match(/<img [^>]*alt="([^"]+)"/)![1];
+    for (const t of ["Hoje", "3 de 5", "Pedro", "Vitamina D", "Ana", "Losartana"]) expect(alt).toContain(t);
     expect(h).not.toMatch(/Vov[óo]/);
   });
-  test("os horários seguem a ordem do dia e os estados fazem sentido (feita antes, atrasada, agora)", () => {
-    const rows = [...h.matchAll(/<b>([^<]+)<\/b><span>[^·]+· (\d\d:\d\d)<\/span><\/div><span class="t (\w+)">/g)].map((m) => ({ item: m[1], time: m[2], state: m[3] }));
-    expect(rows.map((r) => r.time)).toEqual([...rows.map((r) => r.time)].sort());
-    expect(rows.map((r) => r.state)).toEqual(["done", "late", "now"]);
+  test("o desenho em HTML da tela saiu (a fidelidade vem da captura)", () => {
+    expect(h).not.toContain('class="shot"');
+    expect(h).not.toContain("Família Souza</span>");
   });
-  test("é uma imagem para leitores de tela (rótulo), com o conteúdo interno escondido", () => {
-    expect(h).toMatch(/role="img"\s+aria-label="[^"]*tela Hoje[^"]*"/);
-    expect(h).toMatch(/aria-hidden="true"/);
+  test("legenda da figura", () => {
+    expect(h).toContain("A tela Hoje do app: o que falta e o que atrasou.");
   });
 });
 
@@ -116,9 +128,13 @@ describe("tokens extraídos do app", () => {
     expect(css).toContain('@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){');
     expect(css).toContain(':root[data-theme="dark"]{');
   });
-  test("só as variáveis que a página usa", () => {
+  test("só as variáveis que a página usa (cada uma aparece no CSS da página)", () => {
     expect(css).not.toContain("--chart-1");
     expect(css).not.toContain("--sidebar");
+    const used = [...css.matchAll(/--([\w-]+):/g)].map((m) => m[1]);
+    const rules = fs.readFileSync(path.join(appRoot, "site/site.css"), "utf8") + fs.readFileSync(path.join(appRoot, "site/index.template.html"), "utf8");
+    const unused = [...new Set(used)].filter((v) => !rules.includes(`var(--${v})`));
+    expect(unused).toEqual([]);
   });
 });
 
@@ -138,6 +154,16 @@ describe("sem terceiros e sem decoração", () => {
 });
 
 describe("buildSite", () => {
+  test("copia as duas capturas reais do app (≤ 80 KB cada)", () => {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), "site-shots-"));
+    buildSite({}, appRoot, out);
+    for (const f of ["hoje-claro.webp", "hoje-escuro.webp"]) {
+      const file = path.join(out, "landing", f);
+      expect(fs.statSync(file).size).toBeGreaterThan(5000);
+      expect(fs.statSync(file).size).toBeLessThanOrEqual(80 * 1024);
+      expect(fs.readFileSync(file).subarray(8, 12).toString()).toBe("WEBP");
+    }
+  });
   test("escreve a página e as duas fontes (≤ 40 KB cada)", () => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), "site-"));
     buildSite({ contactEmail: "oi@medicron.com.br" }, appRoot, out);

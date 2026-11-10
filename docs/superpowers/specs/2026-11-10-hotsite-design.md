@@ -1,5 +1,7 @@
 # Hotsite do Medicron: design
 
+> **Ajuste de 2026-11-10 (feedback do usuário):** a página ficou mais larga (1080 px) e a captura do app foi para o **lado direito do título** (hero em duas colunas no computador; uma coluna no celular). O desenho em HTML da tela foi trocado por **capturas reais do app** (claro e escuro), geradas por `npm run capture-site-shots` (o app web real contra uma API simulada, relógio congelado em 10/11/2026 12:05).
+
 Data: 2026-11-10. Autor do pedido: usuário. Status: **implementado** (Plano 10); publicação em produção conforme `docs/passos-do-usuario.md`, seção H.
 
 > **Direção visual escolhida (2026-11-10): minimalista, coluna única.** Descartadas: a proposta de molde de site de produto (parecia gerada por IA) e os conceitos "Bula", "Cartela" e "Um dia" (forçados). Regra: nenhum recurso decorativo (sem degradê, sombra pesada, ícone em círculo, pílula de rótulo, faixa de CTA, herói centralizado); texto específico; uma só cor de ação; filetes finos; a tela do app como imagem.
@@ -27,7 +29,7 @@ Serve também como a "URL de marketing" exigida pela App Store e como porta de e
 7. **Tema:** segue o sistema (`prefers-color-scheme`) e, se existir, a escolha da pessoa no app (`localStorage["medicron.theme"]`, mesma origem), com o mesmo mecanismo `data-theme` do app.
 8. **Zero terceiros:** nenhuma fonte, script, imagem ou métrica de outro domínio. Fonte: a do sistema (SF/Roboto/Segoe), no mesmo espírito do app nativo.
 
-## Estrutura da página (coluna única de 640 px, margens de 28 px)
+## Estrutura da página (largura máxima de 1080 px, margens de 32 px; hero em duas colunas)
 
 1. **Topo:** logo pequeno (o do app) e "Medicron", à esquerda; "Entrar" em texto, à direita. Sem barra, sem menu.
 2. **Título e texto** (alinhados à esquerda, bastante respiro acima): "Lembretes de remédio para quem cuida de gente e de bicho." / "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir."
@@ -40,7 +42,7 @@ Serve também como a "URL de marketing" exigida pela App Store e como porta de e
 
 **Disponibilidade (não prometer o que não existe):** a linha pequena abaixo do botão e o texto "No iPhone" dependem do que já foi publicado. Hoje: "Grátis, sem anúncios. Funciona no navegador; aplicativos para iPhone e Android em breve." Com as URLs das lojas definidas na build (`LANDING_APP_STORE_URL`, `LANDING_PLAY_URL`), a linha vira "Grátis, sem anúncios. No iPhone, no Android e no navegador." e aparecem os links das lojas.
 
-**A tela do app como imagem:** por padrão, a própria tela desenhada em HTML/CSS com os tokens (nítida, troca claro e escuro sozinha, não envelhece em relação às cores). Se o usuário fornecer capturas reais (claro e escuro), entram no lugar com `<picture>` por esquema de cor.
+**A tela do app como imagem:** capturas **reais** do app (`site/hoje-claro.webp` e `site/hoje-escuro.webp`, 390×760 pt a 2x, ~50 KB cada), uma por tema; só a do tema em uso é exibida e baixada (`loading="lazy"`). Para atualizar depois de mudar a tela Hoje: `npm run build:web`-equivalente (`expo export -p web` + `finalize-web`) e `npm run capture-site-shots`.
 
 ## Conteúdo, fatos e limites
 
