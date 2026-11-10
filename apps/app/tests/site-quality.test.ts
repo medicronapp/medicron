@@ -151,6 +151,23 @@ describe("leve e sem enfeite", () => {
     expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero\{grid-template-columns:1fr/);
     expect(style).not.toMatch(/body\{[^}]*max-width:640px/);
   });
+  test("o texto da esquerda acompanha a altura da captura: a coluna estica e distribui os blocos (topo, ação, rodapé)", () => {
+    expect(style).toMatch(/\.hero\{[^}]*align-items:stretch/);
+    expect(style).toMatch(/\.hero-text\{display:flex;flex-direction:column;justify-content:space-between;gap:\d+px\}/);
+  });
+  test("três blocos na ordem: título e texto, botões, e a linha de disponibilidade no pé (alinhada à legenda da captura)", () => {
+    const text = body.slice(body.indexOf('<div class="hero-text">'), body.indexOf("</figure>"));
+    const iTop = text.indexOf('class="hero-top"'), iAct = text.indexOf('class="actions"'), iFoot = text.indexOf('class="hero-foot"');
+    expect(iTop).toBeGreaterThan(-1);
+    expect(iTop).toBeLessThan(iAct);
+    expect(iAct).toBeLessThan(iFoot);
+    expect(text.slice(iTop, iAct)).toContain("<h1");
+    expect(text.slice(iTop, iAct)).toContain('class="lead"');
+    expect(text.slice(iFoot, text.indexOf("</div>", iFoot))).toContain('class="small"');
+  });
+  test("no celular o texto volta a empilhar normalmente (sem esticar)", () => {
+    expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero-text\{justify-content:flex-start/);
+  });
   test("a captura nunca estoura a coluna (largura máxima 100% e altura automática)", () => {
     expect(style).toMatch(/\.hero-shot img\{[^}]*max-width:100%[^}]*height:auto/);
   });
