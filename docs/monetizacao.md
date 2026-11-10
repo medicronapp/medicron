@@ -15,7 +15,7 @@ Documento de estratégia, **não** de implementação: nada aqui foi construído
 7. **Google Play:** a mesma assinatura via Play Billing (também pelo RevenueCat).
 8. **Web/Pix:** fica para a fase 2 (cobrança fora das lojas, com taxa muito menor). No iOS, as regras novas do Brasil (2026) permitem link para pagamento externo, com comissão; avaliar depois.
 9. **Lançar já com as regras definitivas** (limites e Plus à venda), e não "tudo liberado, cobrar depois": ligar a cobrança em quem já usa sem limites **pega mal**. Como o app ainda não está nas lojas, nada precisa ser tirado de ninguém. Os limites só podem **afrouxar** depois, nunca apertar (seção 9).
-10. **Expectativa honesta:** é um nicho. O cenário base (10 mil contas ativas, 3% pagantes) rende cerca de **R$ 21 mil por ano**; o otimista (40 mil contas, 4%) cerca de **R$ 110 mil**. Cobre custos e dá retorno modesto; só vira negócio grande com escala ou com um plano para equipes (cuidadores, clínicas), que é a fase 3. **Antes de cobrar, converta a conta Apple para o seu CNPJ** (seção 6.1).
+10. **Expectativa honesta:** é um nicho. O cenário base (10 mil contas ativas, 3% pagantes) rende cerca de **R$ 21 mil por ano**; o otimista (40 mil contas, 4%) cerca de **R$ 110 mil**. Cobre custos e dá retorno modesto; só vira negócio grande com escala ou com um plano para equipes (cuidadores, clínicas), que é a fase 3. **Conta Apple: pessoa física (decisão de 10/11)**, com a porta aberta para converter para a LTDA depois (seção 6.1).
 
 ---
 
@@ -149,6 +149,8 @@ App (iOS/Android) ──compra──► App Store / Google Play
 
 ### 6.1 Conta de desenvolvedor: pessoa física ou CNPJ? (a sua pergunta)
 
+> **Decisão (10/11/2026): continuar como pessoa física.** Vale o que está abaixo para quem quiser converter depois; para o caminho escolhido, veja "Se você ficar como pessoa física" no fim desta seção.
+
 **Recomendação:** assinar com o **CNPJ**. Para vender assinaturas, o ideal é a conta da Apple (e a do Google) em nome da empresa, com o banco e os impostos da empresa, e o nome da empresa como vendedor na loja. **Faça isso antes de enviar o primeiro build**, enquanto não existe app publicado, assinatura cadastrada nem histórico de vendas: depois, qualquer mudança vira um problema.
 
 **Atualização (10/11/2026): o seu CNPJ é uma LTDA.** Isso resolve a dúvida de elegibilidade: a restrição da Apple vale para quem **não tem empresa constituída** (o "sole proprietor", como profissional autônomo ou MEI). Uma **LTDA, mesmo de um sócio só (SLU)**, é pessoa jurídica constituída e **pode** se inscrever como organização. Ser "uma empresa de uma pessoa só" não impede.
@@ -188,6 +190,19 @@ O app funciona **igual** nos dois casos; a diferença é jurídica, fiscal e de 
 5. No App Store Connect → **Contratos, impostos e dados bancários**: preencher os dados da LTDA (CNPJ) e **uma conta bancária em nome da empresa** (o titular precisa bater com o do contrato).
 6. **Só então** criar o app (`app.medicron`) e, na fase 0, as assinaturas.
 7. **Google Play:** se ainda não tem conta, criar já como **organização** (também pede o D-U-N-S); a conta pessoal do Google **não converte**.
+
+---
+
+### Se você ficar como pessoa física (caminho escolhido): o que preparar
+
+**Não atrasa nada**: ficar como pessoa física **não acrescenta** passos ao calendário e dispensa a conversão (que, de todo modo, rodaria em paralelo). O que preparar, em ordem:
+
+1. **Apple Developer Program** (US$ 99/ano) com a sua conta pessoal, se ainda não estiver ativa.
+2. No App Store Connect → **Contratos, impostos e dados bancários**: assinar o **contrato de apps pagos** (**obrigatório para vender assinaturas**, mesmo o app sendo grátis) e preencher **CPF, dados fiscais e uma conta bancária em seu nome**. Faça logo: a aprovação leva alguns dias e **bloqueia o teste de compras** se faltar.
+3. **Google Play Console** (US$ 25, uma vez), conta **pessoal**: lembre que contas pessoais novas exigem **teste fechado com 12 pessoas por 14 dias** antes da produção. **Comece esse teste agora**, com o build atual do app, para ele **não virar o gargalo** do lançamento Android (14 dias correm em paralelo à fase 0).
+4. **Contador**: peça para confirmar como declarar a receita das lojas na pessoa física (carnê-leão/IRPF) **antes da primeira venda**.
+5. **Política de privacidade**: o controlador dos dados passa a ser **você, pessoa física**, com o seu e-mail de contato (`CONTACT_EMAIL`); confira se o texto da política reflete isso.
+6. **O seu nome completo será público** como vendedor na App Store e no Google Play. Se isso um dia incomodar, dá para converter para a LTDA depois (a Apple permite); o risco é o nome do vendedor continuar o pessoal para apps já existentes (seção acima), então **não conte com isso como atalho**.
 
 ---
 
@@ -236,18 +251,34 @@ Hipóteses: **70% dos pagantes escolhem o anual** (líquido R$ 76,41 por ano) e 
 Se o app fosse para as lojas **sem limites** e, meses depois, você passasse a limitar e cobrar, isso **pega mal de verdade**: quem já usa sente que algo foi tirado ("bait and switch"), a nota cai e, num app de saúde, o dano de confiança é grande. Por isso a recomendação mudou em relação à primeira versão deste documento:
 
 1. **Não lance ilimitado.** O app **ainda não está nas lojas**, então hoje não existe usuário a quem "tirar" nada. Esse é o momento mais barato para lançar **já com as regras definitivas**.
-2. **Construa a fase 1 antes do lançamento público** (3 a 4 semanas): limites no servidor, Plus à venda, paywall, relatório em PDF e histórico. Assim o 1º usuário já entra num produto com grátis claro e Plus claro.
+2. **Construa a fase 1 antes do lançamento público** (**3 a 6 semanas de trabalho, conforme o escopo**, veja a tabela abaixo): limites no servidor, Plus à venda, paywall, histórico e (conforme o escopo) o relatório em PDF. Assim o 1º usuário já entra num produto com grátis claro e Plus claro.
 3. **Valide em TestFlight antes**, com 20 a 50 pessoas de confiança (família, grupos de cuidadores, tutores de pets), usando os limites reais, para checar se 2 pacientes e 2 pessoas fazem sentido. Esses testadores recebem **Plus manual** (`source = manual`) como "fundadores".
 4. **Regra de ouro dos limites: eles só podem afrouxar depois do lançamento, nunca apertar.** Se os números se mostrarem apertados demais, suba (de 2 para 3 pacientes, por exemplo): ninguém reclama de ganhar. Apertar é o que gera revolta.
 5. **O que já existe nunca é tirado:** mesmo depois do lançamento, uma conta que passar do limite (ex.: cancelou o Plus) **mantém e continua recebendo lembretes** do que já cadastrou; só não cria novos acima do limite.
 
 **Plano B, se mesmo assim você quiser lançar 100% grátis primeiro** (para crescer mais rápido): faça assim para não pegar mal: (a) **anuncie desde o primeiro dia**, na ficha da loja e dentro do app, que "recursos Plus chegam em [mês]"; (b) **cobre só recursos novos** (relatório, alerta à família, estoque) e deixe tudo o que já era grátis continuar grátis para as contas criadas antes da data; (c) os **limites de pacientes e pessoas valem só para contas criadas depois** da data (as antigas ficam "fundadoras" sem limite); (d) dê aos fundadores um **desconto vitalício ou de 50% no 1º ano**. Custa receita (as contas grandes antigas não pagam pelo volume), mas preserva a confiança.
 
+### Quanto tempo leva (a sua pergunta sobre o prazo)
+
+Esse tempo **não vem da conta de desenvolvedor** (pessoa física ou LTDA dá no mesmo): vem de **construir** o que precisa existir antes de lançar. A conversão da conta, se você tivesse escolhido a LTDA, **rodaria em paralelo** a essa construção e não alongaria o prazo; então ficar como pessoa física só **tira uma burocracia**, não encurta o calendário.
+
+Estimativa de uma pessoa (a mesma da seção 7: itens 1, 2, 3 e 4):
+
+| Escopo antes do lançamento | O que entra | Trabalho |
+|---|---|---|
+| **A. Completo** (recomendado) | limites no servidor, assinatura (RevenueCat), paywall com os termos, oferta de 7 dias, histórico completo, **relatório em PDF** | **4 a 6 semanas** |
+| **B. Mínimo viável** | tudo acima **sem o PDF**: o Plus vende "mais pacientes, mais pessoas e histórico completo"; o relatório entra na 1.1 | **~3 semanas** |
+| **C. Plano B (grátis primeiro)** | lançar como está, **anunciando** o Plus futuro e protegendo as contas antigas (ver acima) | **0 semana**, mas com custo de receita e de confiança |
+
+O que **corre em paralelo** e não alonga o escopo A ou B: a **aprovação do contrato de apps pagos e dos dados bancários** (alguns dias), o **teste fechado do Google** (14 dias), o **TestFlight** com o build atual para validar o fluxo básico com testadores, a criação dos **Termos de uso** e o cadastro das assinaturas nas duas lojas. O que **depois** do código ainda soma: **revisão da Apple** (a 1ª com assinatura costuma levar de 1 a 3 dias, às vezes mais) e o ajuste de qualquer rejeição.
+
+**Minha sugestão:** escopo **B** se a pressa for grande (lança em ~3 a 4 semanas com a revisão) e **A** se você preferir o Plus já "cheio" para justificar o preço de R$ 89,90 no primeiro dia. Em ambos, **o teste fechado do Google começa já**.
+
 ### As fases
 
 | Fase | Quando | O que fazer | Para avançar, precisa de |
 |---|---|---|---|
-| **0. Preparar o lançamento com cobrança** | agora a ~4 semanas | **Converter a conta Apple para o CNPJ** (seção 6.1, em paralelo); criar os **Termos de uso**; construir os itens 1 a 4 da seção 7 (plano por conta, limites, paywall, histórico, relatório em PDF, oferta de 7 dias) e cadastrar as assinaturas nas lojas; **TestFlight** com 20 a 50 pessoas | testadores usando sem travar; assinatura de teste (sandbox) funcionando; contas e conta bancária da Apple/Google aprovadas |
+| **0. Preparar o lançamento com cobrança** | agora a 3 a 6 semanas (escopo A ou B) | **Preparar a conta pessoa física** (contrato de apps pagos, CPF e banco, seção 6.1) e **iniciar o teste fechado do Google**; criar os **Termos de uso**; construir os itens 1 a 4 da seção 7 (plano por conta, limites, paywall, histórico, oferta de 7 dias e, no escopo A, o relatório em PDF) e cadastrar as assinaturas nas lojas; **TestFlight** com 20 a 50 pessoas | testadores usando sem travar; assinatura de teste (sandbox) funcionando; contas e conta bancária da Apple/Google aprovadas |
 | **1. Lançar a 1.0 com Plus** | após a fase 0 | Publicar nas duas lojas com o grátis e o Plus à venda; medir **do próprio banco** (sem rastreadores): contas, pacientes por conta, % que bate em limite, convites, retenção em 7 e 30 dias; e no RevenueCat: paywall, início de teste, teste para pago | **≥ 2% de conversão** em 90 dias; **retenção D30 ≥ 25%**; reembolso e suporte controlados |
 | **2. Aprofundar** | 3 a 6 meses depois | itens 5 a 9 da seção 7: alerta à família, estoque, pet, anexos, cobrança na web | MRR crescendo; churn mensal **< 6%** |
 | **3. Escalar** | quando a base justificar | plano Equipe, Watch, integrações | demanda comprovada de cuidadores e clínicas |
@@ -264,7 +295,7 @@ Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem ra
 | **Reprovação na App Store** por assinatura mal explicada | Tela de preço e período claras, "Restaurar compras", Termos e Política, sem promessa clínica; seguir 3.1.2. A assinatura é enviada junto com a primeira versão que a usa. |
 | **Receita pequena** (nicho) | Foco em crescimento; plano Equipe; custos baixos (RevenueCat grátis, infra enxuta). |
 | **Comissões mudando** (2026 foi um ano de mudanças e as fontes divergem) | Planejar com 15%; conferir no App Store Connect e no Play Console; revisar o preço se a taxa for 26%. |
-| **Impostos e CNPJ** | Converter a conta Apple para o CNPJ **antes** do primeiro envio (seção 6.1) e falar com um contador **antes** de cobrar: o tratamento tributário depende do seu enquadramento. |
+| **Impostos e conta pessoa física** | Conta no seu nome: a receita é de pessoa física e o seu nome fica público como vendedor. Falar com o contador **antes da primeira venda** (carnê-leão/IRPF); se a receita crescer, considerar converter para a LTDA (seção 6.1). |
 | **Dados sensíveis (LGPD)** | Dados de saúde já estão cobertos na política; acrescentar compras e plano; manter exclusão e portabilidade (CSV grátis). |
 | **Quebra de confiança** ao limitar quem já usava tudo | Evitada por desenho: **lançar já com as regras** (seção 9); os limites só afrouxam depois; o que existe nunca é tirado; testadores viram "fundadores" com Plus manual. |
 | **Fraude de recibo / burla de limite** | Limites na API e webhook do RevenueCat; nunca confiar no cliente. |
@@ -281,13 +312,14 @@ Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem ra
 | 2 | Preços **R$ 12,90 por mês e R$ 89,90 por ano**: aprovados. |
 | 3 | Teste: **7 dias grátis da loja (com cartão)**, sem teste sem cartão. |
 | 4 | **Lançar já com as regras definitivas** (seção 9), em vez de lançar ilimitado e cobrar depois. |
+| 5 | **Conta de desenvolvedor: pessoa física** (nome público do vendedor, receita no CPF); a LTDA fica como opção futura (seção 6.1). |
 
 **Em aberto:**
 
-1. **Conta de desenvolvedor: pessoa física (seu nome) ou converter para a LTDA?** Seu CNPJ é uma LTDA, então a organização é possível. Decida **antes de criar o app** no App Store Connect (seção 6.1).
+1. **Escopo antes do lançamento:** **A** (completo, com relatório em PDF, 4 a 6 semanas), **B** (mínimo, sem o PDF, ~3 semanas) ou **C** (plano B, grátis primeiro)? Veja a tabela da seção 9.
 2. **Assinatura por conta (família)** como diferencial: confirmado? (implícito nas respostas; diga se quer mudar.)
 3. **Equipe/B2B** (cuidadores, clínicas): interessa explorar já ou só depois da fase 2?
-4. **Prazo do lançamento:** aceitar ~4 semanas a mais para entregar a fase 0 antes de enviar o app às lojas? (A alternativa é o plano B da seção 9.)
+4. **Começar já o teste fechado do Google** (12 pessoas por 14 dias) com o build atual, para não travar o lançamento Android?
 
 ---
 
