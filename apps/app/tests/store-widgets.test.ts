@@ -29,9 +29,30 @@ describe("relativeIn (a contagem do sistema, 'em 20 min')", () => {
 
 describe("tela de bloqueio", () => {
   const html = renderWidgetScreen("lock", DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW, 1);
-  test("hora e data de Brasília, no formato do iOS", () => {
+  test("hora de Brasília e, como no iOS, a data abreviada e o widget em linha NA MESMA linha, acima do relógio", () => {
     expect(html).toContain("11:40");
-    expect(html).toContain("terça-feira, 10 de novembro");
+    const line = html.match(/<div class="topline">([\s\S]*?)<\/div><div class="time">/)![1];
+    expect(line).toContain("ter 10");
+    expect(line).toContain("12:00 Losartana · 1 pend.");
+    expect(html.indexOf('class="topline"')).toBeLessThan(html.indexOf('class="time"'));
+  });
+  test("os widgets retangulares ficam logo abaixo do relógio (como no iOS), não no fim da tela", () => {
+    const top = (sel: string) => Number(html.match(new RegExp(`\\.ws-lock \\${sel}\\{[^}]*?top:([\\d.]+)px`))![1]) / (948 / 430);
+    const timeTop = top(".time"), widgetsTop = top(".widgets");
+    expect(widgetsTop).toBeGreaterThan(timeTop + 80);   // abaixo dos números
+    expect(widgetsTop).toBeLessThan(timeTop + 130);     // e colados neles (≈ 12 pt de folga)
+    expect(widgetsTop).toBeLessThan(300);               // no terço de cima da tela de 932 pt
+  });
+  test("com foto de fundo: a foto cobre a tela e um escurecimento forte no topo garante a leitura do texto branco", () => {
+    const withPhoto = renderWidgetScreen("lock", DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW, 1, "data:image/jpeg;base64,AAAA");
+    expect(withPhoto).toContain("url(data:image/jpeg;base64,AAAA)");
+    expect(withPhoto).toMatch(/\.ws-lock \.wall\{[^}]*background-size:cover/);
+    const alpha = Number(withPhoto.match(/\.ws-lock \.shade\{[^}]*linear-gradient\(180deg,rgba\(\d+,\d+,\d+,([\d.]+)\)/)![1]);
+    expect(alpha).toBeGreaterThanOrEqual(0.5);
+  });
+  test("sem foto, cai no fundo em degradê (o slide não quebra)", () => {
+    expect(html).not.toContain("url(data:");
+    expect(html).toContain('class="wall"');
   });
   test("widget 'Agora': remédio, horário · paciente · contagem, e as pendentes (os textos do código do widget)", () => {
     expect(html).toContain("Losartana");

@@ -31,7 +31,7 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
  * HTML de um slide. As medidas são proporcionais à largura (referência: 1320), então o 6,5" sai igual ao 6,9" em escala.
  * `fontCss` traz as @font-face (Geist) já embutidas; `screenDataUri` é a captura da tela (PNG/WebP em data URI).
  */
-export function renderStoreSlide(slide: StoreSlide, size: StoreSize, screenDataUri: string, fontCss: string): string {
+export function renderStoreSlide(slide: StoreSlide, size: StoreSize, screenDataUri: string, fontCss: string, lockWallpaper?: string): string {
   const k = size.width / 1320;
   const px = (n: number) => `${Math.round(n * k * 10) / 10}px`;
   const dark = slide.theme === "dark";
@@ -62,7 +62,7 @@ p{margin:${px(34)} 0 0;font-size:${px(54)};line-height:1.45;font-weight:400;colo
 </head>
 <body>
 <div class="copy"><h1>${escapeHtml(slide.title)}</h1><p>${escapeHtml(slide.subtitle)}</p></div>
-<div class="phone${slide.kind === "app" ? "" : " raw"}">${slide.kind === "app" ? `<img src="${screenDataUri}" alt="">` : renderWidgetScreen(slide.kind, DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW, k)}</div>
+<div class="phone${slide.kind === "app" ? "" : " raw"}">${slide.kind === "app" ? `<img src="${screenDataUri}" alt="">` : renderWidgetScreen(slide.kind, DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW, k, lockWallpaper)}</div>
 </body>
 </html>
 `;

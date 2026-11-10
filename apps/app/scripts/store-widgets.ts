@@ -73,35 +73,41 @@ function mediumWidget(p: WidgetProps, now: Date): string {
 }
 
 const clock = (now: Date) => new Intl.DateTimeFormat("pt-BR", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
-const dateLine = (now: Date) => new Intl.DateTimeFormat("pt-BR", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" }).format(now);
+/** "ter 10": a data abreviada que o iOS mostra ao lado do widget em linha. */
+const dateShort = (now: Date) => {
+  const f = new Intl.DateTimeFormat("pt-BR", { timeZone: TZ, weekday: "short", day: "numeric" }).formatToParts(now);
+  const get = (t: string) => f.find((x) => x.type === t)?.value ?? "";
+  return `${get("weekday").replace(".", "")} ${get("day")}`;
+};
 
 /**
  * O conteúdo da tela do celular: `lock` = tela de bloqueio (data, widget em linha, hora, widgets "Agora" e "Progresso");
- * `home` = tela inicial (widget médio e ícones). `k` é a escala do slide (1 = 1320 px de largura).
+ * `home` = tela inicial (widget médio e ícones). `k` é a escala do slide (1 = 1320 px de largura). `wallpaper` = foto de
+ * fundo da tela de bloqueio (data URI); sem ela, um degradê.
  */
-export function renderWidgetScreen(kind: "lock" | "home", props: WidgetProps, now: Date, k: number): string {
+export function renderWidgetScreen(kind: "lock" | "home", props: WidgetProps, now: Date, k: number, wallpaper?: string): string {
   const u = PT * k;
   const n = (v: number) => `${Math.round(v * u * 10) / 10}px`;
+  const gradient = "radial-gradient(90% 40% at 0% 100%,oklch(0.55 0.1 190 / .9) 0%,transparent 65%),linear-gradient(165deg,oklch(0.36 0.08 200) 0%,oklch(0.22 0.06 238) 100%)";
+  const wall = wallpaper ? `url(${wallpaper})` : gradient;
   const css = `<style>
 .ws{position:relative;width:100%;height:${n(932)};overflow:hidden;font-family:-apple-system,"SF Pro Text","SF Pro Display",Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .ws svg{display:block}.ws .mono{font-variant-numeric:tabular-nums}
-.ws-lock{background:radial-gradient(90% 40% at 0% 100%,oklch(0.55 0.1 190 / .9) 0%,transparent 65%),radial-gradient(80% 36% at 100% 30%,oklch(0.5 0.1 215 / .7) 0%,transparent 70%),linear-gradient(165deg,oklch(0.36 0.08 200) 0%,oklch(0.22 0.06 238) 100%);color:#fff;text-align:center;--cut:rgba(40,60,66,.9)}
-.ws-lock .lk{position:absolute;left:50%;top:${n(66)};width:${n(16)};margin-left:${n(-8)};color:rgba(255,255,255,.9)}
-.ws-lock .date{position:absolute;left:0;right:0;top:${n(96)};font-size:${n(21)};font-weight:600;color:rgba(255,255,255,.88)}
-.ws-lock .inline{position:absolute;left:0;right:0;top:${n(126)};display:flex;justify-content:center;align-items:center;gap:${n(5)};font-size:${n(17)};font-weight:500;color:rgba(255,255,255,.92)}
-.ws-lock .inline svg{width:${n(17)};height:${n(17)}}
-.ws-lock .time{position:absolute;left:0;right:0;top:${n(150)};font-size:${n(104)};line-height:1.05;font-weight:600;letter-spacing:-.025em;color:rgba(255,255,255,.93)}
-.ws-lock .widgets{position:absolute;left:0;right:0;top:${n(290)};display:flex;justify-content:center;gap:${n(12)}}
+.ws-lock{color:#fff;text-align:center;--cut:rgba(40,60,66,.9)}
+.ws-lock .wall{position:absolute;inset:0;background-image:${wall};background-size:cover;background-position:center 30%}
+.ws-lock .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,22,30,.66) 0%,rgba(6,22,30,.4) 34%,rgba(6,22,30,.12) 60%,rgba(6,22,30,.38) 100%)}
+.ws-lock .lk{position:absolute;left:50%;top:${n(56)};width:${n(16)};margin-left:${n(-8)};color:rgba(255,255,255,.92)}
+.ws-lock .topline{position:absolute;left:0;right:0;top:${n(96)};display:flex;justify-content:center;align-items:center;gap:${n(9)};font-size:${n(20)};font-weight:600;color:rgba(255,255,255,.92)}
+.ws-lock .inline{display:flex;align-items:center;gap:${n(5)};font-weight:500}
+.ws-lock .inline svg{width:${n(18)};height:${n(18)}}
+.ws-lock .time{position:absolute;left:0;right:0;top:${n(118)};font-size:${n(100)};line-height:1;font-weight:600;letter-spacing:-.025em;color:rgba(255,255,255,.94)}
+.ws-lock .widgets{position:absolute;left:0;right:0;top:${n(232)};display:flex;justify-content:center;gap:${n(12)}}
 .ws-lock .rect{width:${n(160)};height:${n(72)};padding:${n(8)} ${n(11)};border-radius:${n(18)};background:rgba(255,255,255,.17);text-align:left;display:flex;flex-direction:column;justify-content:center;gap:${n(1)};overflow:hidden}
 .ws-lock .rect .l1{font-size:${n(15)};font-weight:600;line-height:1.15;white-space:nowrap}
 .ws-lock .rect .l2{display:flex;gap:${n(3)};font-size:${n(12)};line-height:1.2;white-space:nowrap}
 .ws-lock .rect .l3{display:flex;align-items:center;gap:${n(3)};font-size:${n(11.5)};line-height:1.2;white-space:nowrap}
 .ws-lock .rect .l3 svg{width:${n(12)};height:${n(12)}}
 .ws-lock .sec{color:rgba(255,255,255,.62)}
-.ws-lock .deco{position:absolute;left:50%;border-radius:50%;border:${n(1.5)} solid rgba(255,255,255,.1)}
-.ws-lock .d1{top:${n(440)};width:${n(430)};height:${n(430)};margin:0 0 0 ${n(-215)}}
-.ws-lock .d2{top:${n(500)};width:${n(310)};height:${n(310)};margin:0 0 0 ${n(-155)}}
-.ws-lock .d3{top:${n(560)};width:${n(190)};height:${n(190)};margin:0 0 0 ${n(-95)};background:rgba(255,255,255,.04)}
 .ws-lock .btns{position:absolute;left:${n(46)};right:${n(46)};bottom:${n(52)};display:flex;justify-content:space-between}
 .ws-lock .btns span{width:${n(50)};height:${n(50)};border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff}
 .ws-lock .btns svg{width:${n(24)};height:${n(24)}}
@@ -138,7 +144,7 @@ export function renderWidgetScreen(kind: "lock" | "home", props: WidgetProps, no
 .ws-home .dock .ph{width:${n(62)};height:${n(62)};border-radius:${n(15)};background:rgba(255,255,255,.55)}
 </style>`;
   if (kind === "lock") {
-    return `${css}<div class="ws ws-lock"><div class="lk">${symbol.lock}</div><div class="date">${esc(dateLine(now))}</div>${inlineLine(props)}<div class="time">${clock(now)}</div><div class="deco d1"></div><div class="deco d2"></div><div class="deco d3"></div><div class="widgets">${agoraRect(props, now)}${progressoRect(props)}</div><div class="btns"><span>${torch}</span><span>${camera}</span></div><div class="homebar"></div></div>`;
+    return `${css}<div class="ws ws-lock"><div class="wall"></div><div class="shade"></div><div class="lk">${symbol.lock}</div><div class="topline"><span>${esc(dateShort(now))}</span>${inlineLine(props)}</div><div class="time">${clock(now)}</div><div class="widgets">${agoraRect(props, now)}${progressoRect(props)}</div><div class="btns"><span>${torch}</span><span>${camera}</span></div><div class="homebar"></div></div>`;
   }
   const ph = '<div class="app"><div class="ph"></div></div>';
   return `${css}<div class="ws ws-home"><div class="sb"><span>${clock(now)}</span><span class="batt"><i></i></span></div>${mediumWidget(props, now)}<div class="grid"><div class="app">${mark}Medicron</div>${ph.repeat(19)}</div><div class="dock"><div class="ph"></div><div class="ph"></div><div class="ph"></div><div class="ph"></div></div></div>`;

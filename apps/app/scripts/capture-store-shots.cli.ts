@@ -12,6 +12,7 @@ import { renderStoreSlide, STORE_SIZES, STORE_SLIDES } from "./store-slides.ts";
 const appRoot = path.resolve(import.meta.dirname, "..");
 const outRoot = path.resolve(appRoot, "../../store-assets/ios");
 const CHROME = process.env.CHROME_BIN ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const wallpaper = `data:image/jpeg;base64,${fs.readFileSync(path.resolve(appRoot, "../../store-assets/source/lock-wallpaper.jpg")).toString("base64")}`;
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "medicron-store-"));
 
 const fontFile = (weight: 400 | 600) => path.resolve(appRoot, `../../node_modules/@fontsource/geist/files/geist-latin-${weight}-normal.woff2`);
@@ -37,7 +38,7 @@ try {
     for (const [i, s] of STORE_SLIDES.entries()) {
       const html = path.join(tmp, `${size.id}-${s.id}.html`);
       const shot = path.join(tmp, `${size.id}-${s.id}.png`);
-      fs.writeFileSync(html, renderStoreSlide(s, size, raws.get(s.id) ?? "", fontCss));
+      fs.writeFileSync(html, renderStoreSlide(s, size, raws.get(s.id) ?? "", fontCss, wallpaper));
       const r = await runChrome(CHROME, ["--headless=new", "--disable-gpu", "--hide-scrollbars", `--window-size=${size.width},${size.height}`, "--force-device-scale-factor=1", "--virtual-time-budget=5000", `--screenshot=${shot}`, `file://${html}`]);
       if (r.code !== 0 || !fs.existsSync(shot)) throw new Error(`Chrome falhou em ${size.id}/${s.id}: ${r.stderr.slice(-200)}`);
       const out = path.join(dir, `${String(i + 1).padStart(2, "0")}-${s.id}.png`);

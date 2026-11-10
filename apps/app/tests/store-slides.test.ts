@@ -81,6 +81,14 @@ describe("estilo: tema escuro e claro do site, tipografia do hero", () => {
   });
 });
 
+describe("foto de fundo da tela de bloqueio", () => {
+  test("o slide de bloqueio recebe a foto (5º argumento) e os outros slides ignoram", () => {
+    const lock = STORE_SLIDES.find((x) => x.kind === "lock")!;
+    expect(renderStoreSlide(lock, STORE_SIZES[0], "", "", "data:image/jpeg;base64,QUJD")).toContain("url(data:image/jpeg;base64,QUJD)");
+    expect(renderStoreSlide(STORE_SLIDES[0], STORE_SIZES[0], PIXEL, "", "data:image/jpeg;base64,QUJD")).not.toContain("QUJD");
+  });
+});
+
 describe("renderStoreSlide", () => {
   const slide = STORE_SLIDES[0];
   const size = STORE_SIZES[0];
