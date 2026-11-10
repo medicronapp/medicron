@@ -9,10 +9,7 @@ export type SiteSources = { template: string; css: string; themeJs: string; glob
 const DEFAULT_ORIGIN = "https://medicron.com.br";
 
 /** Variáveis do app que a página usa (o resto do global.css não entra). */
-const USED = [
-  "background", "foreground", "card", "muted-foreground", "border", "primary", "primary-foreground",
-  "brand-soft", "brand-ink", "destructive-soft", "destructive-ink", "success-soft", "success-ink",
-];
+const USED = ["background", "foreground", "muted-foreground", "border", "primary", "primary-foreground"];
 
 const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -39,7 +36,7 @@ export function extractTokens(globalCss: string): string {
   if (mediaAt < 0) throw new Error("bloco escuro não encontrado no global.css");
   const media = blockAt(globalCss, mediaAt);
   const dark = pick(blockAt(media, media.indexOf(":root")));
-  return `:root{${light};--radius:.875rem}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${dark}}}:root[data-theme="dark"]{${dark}}`;
+  return `:root{${light}}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${dark}}}:root[data-theme="dark"]{${dark}}`;
 }
 
 function availability(env: SiteEnv): { line: string; stores: string } {
@@ -119,6 +116,8 @@ export function buildSite(env: SiteEnv, appRoot: string, outRoot: string = path.
   const from = fontsDir(appRoot);
   for (const w of ["400", "600"]) fs.copyFileSync(path.join(from, `geist-latin-${w}-normal.woff2`), path.join(landing, "fonts", `geist-${w}.woff2`));
   fs.copyFileSync(path.join(appRoot, "site/og.png"), path.join(landing, "og.png"));
+  // Capturas reais do app (geradas por `npm run capture-site-shots`), uma por tema.
+  for (const f of ["hoje-claro.webp", "hoje-escuro.webp"]) fs.copyFileSync(path.join(appRoot, "site", f), path.join(landing, f));
   const origin = env.origin ?? DEFAULT_ORIGIN;
   fs.writeFileSync(path.join(outRoot, "robots.txt"), robotsTxt(origin));
   fs.writeFileSync(path.join(outRoot, "sitemap.xml"), sitemapXml(origin));

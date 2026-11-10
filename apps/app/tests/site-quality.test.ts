@@ -58,10 +58,7 @@ describe("contraste AA (≥ 4,5) dos pares de cor usados, claro e escuro", () =>
     if (!m) throw new Error(`token ${name} ausente`);
     return [Number(m[1]), Number(m[2]), Number(m[3])];
   };
-  const PAIRS: [string, string][] = [
-    ["foreground", "background"], ["muted-foreground", "background"], ["muted-foreground", "card"], ["primary-foreground", "primary"],
-    ["brand-ink", "brand-soft"], ["destructive-ink", "destructive-soft"], ["success-ink", "success-soft"], ["foreground", "card"],
-  ];
+  const PAIRS: [string, string][] = [["foreground", "background"], ["muted-foreground", "background"], ["primary-foreground", "primary"]];
   test.each(["claro", "escuro"])("%s", (tema) => {
     const b = tema === "claro" ? light : dark;
     const fail = PAIRS.filter(([fg, bg]) => ratio(token(b, fg), token(b, bg)) < 4.5).map(([fg, bg]) => `${fg} sobre ${bg}`);
@@ -118,10 +115,25 @@ describe("leve e sem enfeite", () => {
   test("HTML com CSS embutido ≤ 25 KB", () => {
     expect(Buffer.byteLength(html)).toBeLessThanOrEqual(25 * 1024);
   });
-  test("no máximo 2 arquivos de fonte e nenhuma imagem raster no corpo", () => {
+  test("no máximo 2 arquivos de fonte; imagens só as 2 capturas do app (uma por tema), sem fundo em imagem", () => {
     expect(style.match(/url\(\/landing\/fonts\//g)).toHaveLength(2);
-    expect(body).not.toMatch(/<img|<picture|background-image/);
+    expect(body.match(/<img /g)).toHaveLength(2);
+    expect(body).not.toMatch(/<picture|background-image/);
+    expect(style).not.toMatch(/background-image/);
   });
+  test("só a captura do tema em uso aparece (e só ela é baixada): a outra fica display:none, nos dois mecanismos de tema", () => {
+    expect(style).toMatch(/\.hero-shot \.shot-d\{display:none\}/);
+    expect(style).toMatch(/@media \(prefers-color-scheme:dark\)\{:root:not\(\[data-theme="light"\]\) \.hero-shot \.shot-l\{display:none\}:root:not\(\[data-theme="light"\]\) \.hero-shot \.shot-d\{display:block\}\}/);
+    expect(style).toMatch(/:root\[data-theme="dark"\] \.hero-shot \.shot-l\{display:none\}:root\[data-theme="dark"\] \.hero-shot \.shot-d\{display:block\}/);
+  });
+  test("a regra que esconde a captura vence a que mostra imagens (especificidade): senão as duas aparecem empilhadas", () => {
+    // `.hero-shot img{display:block}` tem especificidade (0,1,1); esconder precisa de (0,2,0) ou mais.
+    const spec = (sel: string) => ({ ids: 0, cls: (sel.match(/[.[:]/g) ?? []).length, tags: (sel.match(/(^|[ >])[a-z]+/g) ?? []).length });
+    const hide = spec(".hero-shot .shot-d");
+    const show = spec(".hero-shot img");
+    expect(hide.cls).toBeGreaterThan(show.cls);
+  });
+
   test("a fonte troca por fallback sem bloquear (font-display: swap) e há preload da principal", () => {
     expect(style.match(/font-display:swap/g)).toHaveLength(2);
     expect(html).toMatch(/<link rel="preload" href="\/landing\/fonts\/geist-400.woff2" as="font" type="font\/woff2" crossorigin>/);
@@ -129,12 +141,20 @@ describe("leve e sem enfeite", () => {
   test("sem animação, transição, sombra, filtro nem degradê", () => {
     expect(style).not.toMatch(/animation|transition|@keyframes|box-shadow|filter|gradient/);
   });
-  test("só um elemento sólido de ação (uma cor de ação) e o vermelho só no 'Atrasada'", () => {
+  test("só um elemento sólido de ação (uma cor de ação); vermelho e verde de estado só existem dentro da captura do app", () => {
     expect(body.match(/class="btn"/g)).toHaveLength(1);
-    expect(style.match(/var\(--destructive-/g)).toHaveLength(2);
+    expect(style).not.toMatch(/--destructive|--success/);
   });
-  test("apps do tamanho do celular: sem rolagem horizontal (nada com largura fixa maior que a coluna)", () => {
-    expect(style).toMatch(/body\{[^}]*max-width:640px/);
-    expect(style).toMatch(/\.shot\{[^}]*width:300px;max-width:100%/);
+  test("largura: página larga (até 1080 px), hero em duas colunas no computador e em uma só no celular", () => {
+    expect(style).toMatch(/\.top,main,\.foot\{max-width:1080px;margin:0 auto/);
+    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 340px/);
+    expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero\{grid-template-columns:1fr/);
+    expect(style).not.toMatch(/body\{[^}]*max-width:640px/);
+  });
+  test("a captura nunca estoura a coluna (largura máxima 100% e altura automática)", () => {
+    expect(style).toMatch(/\.hero-shot img\{[^}]*max-width:100%[^}]*height:auto/);
+  });
+  test("no HTML, o texto vem antes da captura (leitores de tela e telas pequenas leem o título primeiro)", () => {
+    expect(body.indexOf("<h1")).toBeLessThan(body.indexOf("<img"));
   });
 });

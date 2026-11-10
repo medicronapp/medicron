@@ -53,4 +53,5 @@ Tudo o que dá para fazer e testar sozinho já está no repositório (`main`). O
 25. **Quando as lojas publicarem o app:** definir `LANDING_APP_STORE_URL` e `LANDING_PLAY_URL` no `medicron-web` e republicar: a linha de disponibilidade passa a dizer "No iPhone, no Android e no navegador" e os links aparecem. Até lá o hotsite diz que os aplicativos estão "em breve".
 26. **Republicar o site** (da raiz do repositório): `VERCEL_ORG_ID=team_LQIw6FRi4hvzyz0FewKkMWES VERCEL_PROJECT_ID=prj_6tLxVdRNAEA8x391X6yPrlCxGalV vercel deploy --prod --yes`. A build gera o hotsite, exporta o app e renomeia o `index.html` do app para `app.html`.
 27. **Como conferir:** numa janela anônima, `https://medicron.com.br` mostra o hotsite; logado, abre direto o app. O app instalado (PWA) abre sempre o app.
+28. **Atualizar as capturas do hotsite** (só quando a tela Hoje mudar de aparência): dentro de `apps/app`, `npx expo export -p web && node scripts/finalize-web.cli.ts` e depois `npm run capture-site-shots` (usa o Google Chrome; gera `site/hoje-claro.webp` e `site/hoje-escuro.webp`), commitar e republicar o `medicron-web`.
 
