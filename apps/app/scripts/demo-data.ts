@@ -1,6 +1,6 @@
 // Dados de demonstração para as capturas de tela do hotsite: o app web REAL roda contra uma API simulada com estes dados,
 // com o relógio congelado, então as imagens são do próprio app (não um desenho) e saem iguais em qualquer dia.
-import type { EntryDto, HomeDto, ItemDto, MeDto, PatientDto, PlanDto } from "@medicron/shared"; // só tipos: o Node não importa o fonte do shared em tempo de execução
+import type { EntryDto, HomeDto, ItemDto, MeDto, PatientDto, PlanDto, SubscriptionDto } from "@medicron/shared"; // só tipos: o Node não importa o fonte do shared em tempo de execução
 import type { HomeResponse } from "../src/lib/api/home";
 import type { WidgetProps } from "../src/lib/widget-data";
 
@@ -53,7 +53,13 @@ export function demoHome(): HomeResponse {
   };
 }
 
-export const demoMe = (): MeDto => ({ user: { id: USER_ID, name: "Ana Souza", email: "ana@example.com" }, orgId: ORG_ID, role: "owner" });
+/** A conta de demonstração é Plus (tem 5 pacientes e 3 pessoas, acima do limite do grátis). Literais: este arquivo só importa tipos do shared. */
+export const demoSubscription = (): SubscriptionDto => ({
+  tier: "plus", plusUntil: "2027-11-10T15:05:00.000Z", source: "manual", willRenew: false,
+  limits: { patients: null, members: 8, historyDays: null }, usage: { patients: 5, members: 3 },
+});
+
+export const demoMe = (): MeDto => ({ user: { id: USER_ID, name: "Ana Souza", email: "ana@example.com" }, orgId: ORG_ID, role: "owner", subscription: demoSubscription() });
 
 export const demoOrgs = () => [{ id: ORG_ID, name: "Família Souza", slug: "familia-souza", logo: null, metadata: null, createdAt: "2026-01-02T12:00:00.000Z" }];
 

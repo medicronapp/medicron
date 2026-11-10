@@ -62,6 +62,15 @@ describe("dados de demonstração das capturas do hotsite", () => {
     expect(r.onboarding.checklist.show).toBe(false);
   });
 
+  test("a conta de demonstração é Plus (tem 5 pacientes, acima do limite do grátis): o /me traz a assinatura", () => {
+    const sub = demoMe().subscription;
+    expect(sub.tier).toBe("plus");
+    expect(new Date(sub.plusUntil!).getTime()).toBeGreaterThan(DEMO_NOW.getTime());
+    expect(sub.limits.patients).toBeNull();
+    expect(sub.usage.patients).toBe(demoPatients().length);
+    expect(sub.usage.members).toBe(demoFullOrg().members.length);
+  });
+
   test("sessão, usuário e conta batem entre si", () => {
     const s = demoSession();
     expect(s.session.activeOrganizationId).toBe(demoOrgs()[0].id);

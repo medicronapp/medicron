@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { SubscriptionDto } from "./subscription";
 
 export const API_PREFIX = "/api/v1" as const;
 
@@ -101,4 +102,5 @@ export type MeDto = {
   user: { id: string; name: string; email: string };
   orgId: string;
   role: "owner" | "admin" | "member";
+  subscription: SubscriptionDto;
 };

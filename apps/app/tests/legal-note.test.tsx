@@ -4,7 +4,7 @@ import { renderApp } from "./helpers";
 import { AuthShell } from "@/components/auth-shell";
 import { LegalNote, MEDICAL_DISCLAIMER, PRIVACY_URL } from "@/components/legal-note";
 
-beforeEach(() => { jest.spyOn(Linking, "openURL").mockResolvedValue(true); });
+beforeEach(() => { jest.spyOn(Linking, "openURL").mockResolvedValue(); });
 afterEach(() => { jest.restoreAllMocks(); });
 
 describe("aviso legal do app (exigido pela revisão das lojas)", () => {
