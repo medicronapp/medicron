@@ -21,7 +21,7 @@ const globalsFor = () => ({
   Text: "Text", VStack: "VStack", HStack: "HStack", ZStack: "ZStack", Spacer: "Spacer", Divider: "Divider", Image: "Image", Gauge: "Gauge",
   containerBackground: mod("containerBackground"), font: mod("font"), foregroundStyle: mod("foregroundStyle"), padding: mod("padding"),
   lineLimit: mod("lineLimit"), monospacedDigit: mod("monospacedDigit"), widgetURL: mod("widgetURL"), gaugeStyle: mod("gaugeStyle"),
-  tint: mod("tint"), frame: mod("frame"), accessibilityLabel: mod("accessibilityLabel"), minimumScaleFactor: mod("minimumScaleFactor"),
+  tint: mod("tint"), frame: mod("frame"), scaleEffect: mod("scaleEffect"), accessibilityLabel: mod("accessibilityLabel"), minimumScaleFactor: mod("minimumScaleFactor"),
   PlatformColor: (...a: string[]) => ({ semantic: a }),
 });
 const source = (widget as unknown as { layout: unknown }).layout;
@@ -62,12 +62,26 @@ test("é registrado com o nome do plugin e um estado inicial sem dados (nada de 
 });
 
 describe("médio: anel do dia + próximas + pendentes", () => {
-  test("o anel é o Gauge circular nativo com a fração feita e o '3/5' no centro", () => {
+  test("o anel é o Gauge circular nativo, AMPLIADO (o iOS o desenha pequeno): escala ≥ 1,8 e miolo sem texto largo", () => {
     const g = all(ok(), "systemMedium").find((e) => e.type === "Gauge")!;
     expect(g.props!.value).toBeCloseTo(0.6);
-    expect(g.props!.modifiers!.some((m) => m.m === "gaugeStyle" && m.a[0] === "circularCapacity")).toBe(true);
-    expect(text(ok(), "systemMedium")).toContain("3/5");
-    expect(text(ok(), "systemMedium")).toContain("hoje");
+    const mods = g.props!.modifiers!;
+    expect(mods.some((m) => m.m === "gaugeStyle" && m.a[0] === "circularCapacity")).toBe(true);
+    const scale = mods.find((m) => m.m === "scaleEffect")!.a[0] as number;
+    expect(scale).toBeGreaterThanOrEqual(1.8);
+    // O espaço reservado no layout acompanha o tamanho final (senão o anel invade os vizinhos).
+    const box = all(ok(), "systemMedium").find((e) => e.type === "ZStack" && e.props!.modifiers!.some((m) => m.m === "frame"))!;
+    const side = (box.props!.modifiers!.find((m) => m.m === "frame")!.a[0] as { width: number }).width;
+    const gaugeFrame = (mods.find((m) => m.m === "frame")!.a[0] as { width: number }).width;
+    expect(side).toBeGreaterThanOrEqual(96);
+    expect(Math.abs(side - gaugeFrame * scale)).toBeLessThanOrEqual(6);
+  });
+  test("o miolo mostra só o número feito (grande) e 'de N' pequeno, nunca o '10/13' largo que invadia o traço", () => {
+    const t = text(ok({ resolved: 10, total: 13 }), "systemMedium");
+    expect(t).toContain("10 | de 13");
+    expect(t).not.toContain("10/13");
+    const numeral = all(ok({ resolved: 10, total: 13 }), "systemMedium").find((e) => e.type === "Text" && e.props!.children === "10")!;
+    expect(numeral.props!.modifiers!.some((m) => m.m === "minimumScaleFactor")).toBe(true);
   });
   test("as 2 próximas: horário, remédio e paciente; a contagem 'em ...' é do sistema (Text com date relativo, não texto fixo)", () => {
     const t = text(ok(), "systemMedium");
@@ -75,6 +89,15 @@ describe("médio: anel do dia + próximas + pendentes", () => {
     const dates = all(ok(), "systemMedium").filter((e) => e.type === "Text" && e.props!.date instanceof Date);
     expect(dates.map((d) => (d.props!.date as Date).getTime())).toEqual([AT, AT + 6 * 3_600_000]);
     expect(dates.every((d) => d.props!.dateStyle === "relative")).toBe(true);
+  });
+  test("aproveita a altura do widget: remédio e horário em 'headline', paciente/contagem em 'subheadline' (antes ocupavam só uma faixa)", () => {
+    const styleOf = (el: El) => (el.props!.modifiers!.find((m) => m.m === "font")!.a[0] as { textStyle: string }).textStyle;
+    const byText = (t: string) => all(ok(), "systemMedium").find((e) => e.type === "Text" && e.props!.children === t)!;
+    expect(styleOf(byText("Losartana"))).toBe("headline");
+    expect(styleOf(byText("12:00"))).toBe("headline");
+    expect(styleOf(byText("Mel"))).toBe("subheadline");
+    const dates = all(ok(), "systemMedium").filter((e) => e.type === "Text" && e.props!.date instanceof Date);
+    expect(dates.every((d) => styleOf(d) === "subheadline")).toBe(true);
   });
   test("pendentes com símbolo (não só cor): '3 pendentes' e 'desde 06:00'; singular com 1", () => {
     expect(text(ok(), "systemMedium")).toContain("3 pendentes");
@@ -95,7 +118,7 @@ describe("médio: anel do dia + próximas + pendentes", () => {
   test("tudo em dia: anel cheio e 'Tudo em dia'", () => {
     const p = ok({ resolved: 5, total: 5, upcoming: [], pendingCount: 0, pendingSince: "" });
     expect(text(p, "systemMedium")).toContain("Tudo em dia");
-    expect(text(p, "systemMedium")).toContain("5/5");
+    expect(text(p, "systemMedium")).toContain("5 | de 5");
   });
   test("verde de acento mais claro no escuro (o mesmo da tela de entrada no claro)", () => {
     const colorOf = (scheme: string) => JSON.stringify(render(ok(), "systemMedium", scheme));
