@@ -10,9 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Drawer } from "@/components/ui/drawer";
 import { FormField } from "@/components/ui/form-field";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Text } from "@/components/ui/text";
 
 const DESCRIPTION =
   "Apaga o seu acesso e os seus dados. Se você for a única pessoa de uma conta, os pacientes, itens e rotinas dela também serão apagados. Isso não pode ser desfeito.";
+
+/** Excluir a conta não cancela a assinatura da loja (a cobrança é da Apple/Google): o aviso fica à vista. */
+export const SUBSCRIPTION_NOTICE = "Se você assina o Medicron Plus, cancele também na App Store ou no Google Play: excluir a conta não cancela a cobrança da loja.";
 
 /** Excluir a própria conta (exigido pelas lojas): confirma com a senha; ao concluir a sessão some e o app volta para Entrar. */
 export function DeleteAccount() {
@@ -54,12 +58,14 @@ export function DeleteAccount() {
           <CardTitle>Excluir conta</CardTitle>
           <CardDescription>{DESCRIPTION}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="gap-3">
+          <Text className="text-sm text-muted-foreground">{SUBSCRIPTION_NOTICE}</Text>
           <Button variant="destructive" size="lg" onPress={() => setOpen(true)} accessibilityLabel="Excluir minha conta">Excluir minha conta</Button>
         </CardContent>
       </Card>
       <Drawer open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setPassword(""); setError(""); } }} title="Excluir sua conta?" description={DESCRIPTION}>
         <View className="gap-4">
+          <Text className="text-sm text-muted-foreground">{SUBSCRIPTION_NOTICE}</Text>
           <FormField label="Senha" error={error}>
             <PasswordInput value={password} onChangeText={setPassword} autoComplete="current-password" textContentType="password" />
           </FormField>

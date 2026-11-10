@@ -132,3 +132,12 @@ test("excluir a conta limpa o widget da tela inicial", async () => {
   await confirm();
   await waitFor(() => expect(mockClearWidget).toHaveBeenCalledTimes(1));
 });
+
+const SUBSCRIPTION_NOTICE = "Se você assina o Medicron Plus, cancele também na App Store ou no Google Play: excluir a conta não cancela a cobrança da loja.";
+
+test("avisa que a assinatura da loja não é cancelada ao excluir a conta, no cartão e no sheet de confirmação", async () => {
+  await renderApp(<DeleteAccount />);
+  expect(screen.getByText(SUBSCRIPTION_NOTICE)).toBeOnTheScreen();
+  await open();
+  expect(screen.getAllByText(SUBSCRIPTION_NOTICE)).toHaveLength(2);
+});
