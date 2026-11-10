@@ -5,7 +5,7 @@ const pub = path.join(__dirname, "..", "public");
 
 test("manifest.webmanifest é válido e os ícones existem", () => {
   const m = JSON.parse(fs.readFileSync(path.join(pub, "manifest.webmanifest"), "utf8"));
-  expect(m.start_url).toBe("/");
+  expect(m.start_url).toBe("/?source=pwa"); // o app instalado abre sempre no app, nunca no hotsite
   expect(m.display).toBe("standalone");
   expect(m.icons).toHaveLength(3);
   for (const i of m.icons) expect(fs.existsSync(path.join(pub, i.src))).toBe(true);

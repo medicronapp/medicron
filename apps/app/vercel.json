@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx expo export -p web",
+  "buildCommand": "node scripts/build-site.cli.ts && npx expo export -p web && node scripts/finalize-web.cli.ts",
   "outputDirectory": "dist",
   "installCommand": "cd ../.. && npm ci",
   "cleanUrls": false,
@@ -12,6 +12,21 @@
     {
       "source": "/gatos/:path*",
       "destination": "/pacientes/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/landing",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/landing/",
+      "destination": "/",
       "permanent": true
     }
   ],
@@ -29,8 +44,33 @@
       "destination": "https://medicron.vercel.app/.well-known/:path*"
     },
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "source",
+          "value": "pwa"
+        }
+      ],
+      "destination": "/app.html"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "cookie",
+          "key": "__Secure-better-auth.session_token"
+        }
+      ],
+      "destination": "/app.html"
+    },
+    {
+      "source": "/",
+      "destination": "/landing/index.html"
+    },
+    {
       "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)",
-      "destination": "/index.html"
+      "destination": "/app.html"
     }
   ],
   "headers": [
@@ -40,6 +80,15 @@
         {
           "key": "x-vercel-enable-rewrite-caching",
           "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/landing/fonts/:file",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     },
