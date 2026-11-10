@@ -2,6 +2,8 @@
 
 Documento de estratégia, **não** de implementação: nada aqui foi construído. Serve para você decidir o modelo, os preços e a ordem das coisas antes de abrir o código. Data da pesquisa: 10/11/2026. Os números de comissão e de concorrentes mudaram bastante em 2026 e **as fontes se contradizem em alguns pontos**; onde isso importa, o texto avisa e diz o que conferir.
 
+> **Decisões de 10/11/2026 (valem sobre o texto abaixo):** escopo **B** (lançamento enxuto) e **sem relatório em PDF** por ora (não faz sentido agora: as menções ao relatório nas seções abaixo ficam **adiadas**, não removidas); teste de **7 dias da loja**; conta de desenvolvedor **pessoa física**. O plano de implementação está em `docs/superpowers/plans/2026-11-10-plus-fase-0-plano-11.md`.
+
 ---
 
 ## 1. Resumo (a recomendação em 10 linhas)
@@ -53,7 +55,7 @@ Documento de estratégia, **não** de implementação: nada aqui foi construído
 | Histórico de doses (dia passado) | **últimos 30 dias** | **completo** | Parcial (falta o corte) |
 | Widgets (iPhone) | grátis (ajudam a reter) | + estilos extras (opcional) | Sim |
 | Exportar dados (CSV) | **grátis** (LGPD) | grátis | Não (a construir, simples) |
-| **Relatório em PDF** para médico/veterinário (adesão, atrasos, período) | só a **prévia** da 1ª página | completo | Não |
+| ~~Relatório em PDF para médico/veterinário~~ | | | **Adiado** (decisão de 10/11: não agora) |
 | **Avisar a família quando uma dose atrasa** (escalonamento) | não | **sim** | Não (há o disparo; falta a regra) |
 | **Controle de estoque** ("restam 5, hora de comprar") | não | **sim** | Não |
 | **Carteira de vacinação e peso do pet** (reforços anuais, gráfico) | só registro simples | **lembretes de reforço + gráfico** | Não |
@@ -100,11 +102,10 @@ Depois, **impostos do seu regime** (MEI, Simples ou outro): fale com um contador
 2. **Paywall contextual, no momento do valor:**
    - ao tentar criar o **3º paciente**;
    - ao convidar a **3ª pessoa**;
-   - ao abrir o **Relatório** (mostra a 1ª página e embaça o resto);
    - ao tocar em **"Avisar a família se atrasar"**;
    - ao tentar ver o histórico além de **30 dias**.
    Nunca interromper o **Hoje** nem o ato de marcar a dose.
-3. **Prévia que vende:** o relatório em PDF, com a primeira página real e o resto desfocado ("12 doses atrasadas em outubro, tudo pronto para levar à consulta").
+3. ~~**Prévia que vende** (relatório em PDF com a 1ª página real)~~ **Adiada** junto com o relatório. Enquanto isso, a "prévia" é o próprio limite: a pessoa **sente** o valor ao bater em "2 pacientes" ou "2 pessoas" com a família de verdade.
 4. **Marcos de valor, uma vez só:** ao completar **7 dias seguidos**, uma faixa discreta "Sua sequência está ótima. Quer compartilhar o resumo com a família?" (leva ao Plus). Sem pop-up chato, sem notificação promocional (a Apple restringe push de marketing).
 5. **Oferta sazonal:** **Black Friday** e **Dia do Cuidador/Dia do Pet**: anual com 30% de desconto no 1º ano, usando as ofertas promocionais da Apple e do Google (não exigem criar sistema de cupom).
 6. **Indicação:** código de oferta ("1 mês de Plus") para quem convida uma família que ativa; as lojas têm **códigos de oferta** nativos.
@@ -214,7 +215,7 @@ Esforços são **estimativas grossas** de uma pessoa, para ordenar, não prazos.
 |---|---|---|---|---|
 | 1 | Plano por conta + limites no servidor + telas de limite + paywall + restaurar compras + RevenueCat | libera a cobrança | 2 a 3 semanas | 1 |
 | 2 | Oferta de 7 dias grátis nas lojas, tela do paywall com os termos do teste e aviso de fim de teste | conversão | 2 a 4 dias | 1 |
-| 3 | Exportar CSV (grátis) e **relatório em PDF** (Plus) | valor claro para médico/veterinário | 1 a 2 semanas | 1 |
+| 3 | Exportar CSV (grátis) e ~~relatório em PDF~~ | **adiado** (decisão de 10/11) | | adiado |
 | 4 | Histórico completo (corte de 30 dias no grátis) | simples | 2 a 4 dias | 1 |
 | 5 | **Avisar a família quando atrasa** (escalonamento por regra) | **o recurso mais "pagável"** para cuidadores | 1 a 2 semanas | 2 |
 | 6 | Controle de estoque e reposição | alto para crônicos | 1 a 2 semanas | 2 |
@@ -224,7 +225,7 @@ Esforços são **estimativas grossas** de uma pessoa, para ordenar, não prazos.
 | 10 | Plano **Equipe** (cuidadores, clínicas, ILPI, vários grupos) | maior ticket | a validar | 3 |
 | 11 | Apple Watch, integração com Saúde/calendário | retenção | 3 a 4 semanas | 3 |
 
-**Ordem recomendada:** 1 + 2 + 4 + 3 na fase 1 (lança a cobrança com o que já existe e mais o relatório); depois 5 e 6 (os recursos que justificam pagar todo mês).
+**Ordem decidida:** 1 + 2 + 4 na fase 1 (lança a cobrança com o que já existe: mais pacientes, mais pessoas e histórico completo); depois 5 (**avisar a família quando uma dose atrasa**, o recurso mais "pagável") e 6 (estoque), que justificam pagar todo mês.
 
 ---
 
@@ -267,7 +268,7 @@ Estimativa de uma pessoa (a mesma da seção 7: itens 1, 2, 3 e 4):
 | Escopo antes do lançamento | O que entra | Trabalho |
 |---|---|---|
 | **A. Completo** (recomendado) | limites no servidor, assinatura (RevenueCat), paywall com os termos, oferta de 7 dias, histórico completo, **relatório em PDF** | **4 a 6 semanas** |
-| **B. Mínimo viável** | tudo acima **sem o PDF**: o Plus vende "mais pacientes, mais pessoas e histórico completo"; o relatório entra na 1.1 | **~3 semanas** |
+| **B. Mínimo viável (ESCOLHIDO em 10/11)** | tudo acima **sem o PDF**: o Plus vende "mais pacientes, mais pessoas e histórico completo"; o relatório entra na 1.1 | **~3 semanas** |
 | **C. Plano B (grátis primeiro)** | lançar como está, **anunciando** o Plus futuro e protegendo as contas antigas (ver acima) | **0 semana**, mas com custo de receita e de confiança |
 
 O que **corre em paralelo** e não alonga o escopo A ou B: a **aprovação do contrato de apps pagos e dos dados bancários** (alguns dias), o **teste fechado do Google** (14 dias), o **TestFlight** com o build atual para validar o fluxo básico com testadores, a criação dos **Termos de uso** e o cadastro das assinaturas nas duas lojas. O que **depois** do código ainda soma: **revisão da Apple** (a 1ª com assinatura costuma levar de 1 a 3 dias, às vezes mais) e o ajuste de qualquer rejeição.
@@ -296,6 +297,7 @@ Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem ra
 | **Receita pequena** (nicho) | Foco em crescimento; plano Equipe; custos baixos (RevenueCat grátis, infra enxuta). |
 | **Comissões mudando** (2026 foi um ano de mudanças e as fontes divergem) | Planejar com 15%; conferir no App Store Connect e no Play Console; revisar o preço se a taxa for 26%. |
 | **Impostos e conta pessoa física** | Conta no seu nome: a receita é de pessoa física e o seu nome fica público como vendedor. Falar com o contador **antes da primeira venda** (carnê-leão/IRPF); se a receita crescer, considerar converter para a LTDA (seção 6.1). |
+| **Plus enxuto no lançamento** (só capacidade) pode converter menos que o esperado | Aceito no escopo B. Medir a conversão; se baixa, antecipar o **alerta à família** (fase 2) e testar o preço (R$ 9,90 / R$ 79,90) antes de mexer nos limites. |
 | **Dados sensíveis (LGPD)** | Dados de saúde já estão cobertos na política; acrescentar compras e plano; manter exclusão e portabilidade (CSV grátis). |
 | **Quebra de confiança** ao limitar quem já usava tudo | Evitada por desenho: **lançar já com as regras** (seção 9); os limites só afrouxam depois; o que existe nunca é tirado; testadores viram "fundadores" com Plus manual. |
 | **Fraude de recibo / burla de limite** | Limites na API e webhook do RevenueCat; nunca confiar no cliente. |
@@ -312,11 +314,12 @@ Indicadores a acompanhar (todos calculáveis no banco ou no RevenueCat, **sem ra
 | 2 | Preços **R$ 12,90 por mês e R$ 89,90 por ano**: aprovados. |
 | 3 | Teste: **7 dias grátis da loja (com cartão)**, sem teste sem cartão. |
 | 4 | **Lançar já com as regras definitivas** (seção 9), em vez de lançar ilimitado e cobrar depois. |
+| 6 | **Escopo B** (lançamento enxuto, **sem relatório em PDF**). |
 | 5 | **Conta de desenvolvedor: pessoa física** (nome público do vendedor, receita no CPF); a LTDA fica como opção futura (seção 6.1). |
 
 **Em aberto:**
 
-1. **Escopo antes do lançamento:** **A** (completo, com relatório em PDF, 4 a 6 semanas), **B** (mínimo, sem o PDF, ~3 semanas) ou **C** (plano B, grátis primeiro)? Veja a tabela da seção 9.
+1. **Plus enxuto no lançamento:** com o escopo B, o Plus vende **capacidade** (mais pacientes, mais pessoas, histórico completo) e só ganha o que justifica pagar todo mês (**avisar a família, estoque**) na fase 2. Aceita lançar assim, e priorizar o **alerta à família** logo depois?
 2. **Assinatura por conta (família)** como diferencial: confirmado? (implícito nas respostas; diga se quer mudar.)
 3. **Equipe/B2B** (cuidadores, clínicas): interessa explorar já ou só depois da fase 2?
 4. **Começar já o teste fechado do Google** (12 pessoas por 14 dias) com o build atual, para não travar o lançamento Android?
