@@ -14,7 +14,9 @@
     "sync-tokens": "node scripts/sync-tokens.cli.ts",
     "check-tokens": "jest tokens",
     "build-assets": "node scripts/build-assets.ts",
-    "vercel-config": "node scripts/vercel-config.cli.ts"
+    "vercel-config": "node scripts/vercel-config.cli.ts",
+    "build-site": "node scripts/build-site.cli.ts",
+    "build-og": "node scripts/build-og.cli.ts"
   },
   "dependencies": {
     "@better-auth/expo": "1.7.18",
@@ -59,6 +61,8 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@fontsource/geist": "^5.3.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "4.1.12",
     "@testing-library/react-native": "^14.1.0",
     "@types/jest": "30.0.0",

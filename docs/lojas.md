@@ -28,6 +28,7 @@ Importante: o Medicron é um organizador de lembretes. Ele não faz diagnóstico
 ## Links obrigatórios
 
 - **Política de privacidade:** https://medicron.com.br/privacidade
+- **URL de marketing (App Store):** https://medicron.com.br (o hotsite, para quem não está logado)
 - **Suporte / contato:** o e-mail definido em `CONTACT_EMAIL` (mostrado na política) — informe o mesmo nos consoles.
 - **Exclusão de conta (Google pede URL):** use a política de privacidade, seção "Como excluir seus dados"; a exclusão é feita no app em Conta → Excluir conta.
 

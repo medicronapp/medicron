@@ -1,6 +1,6 @@
 # Hotsite do Medicron: design
 
-Data: 2026-11-10. Autor do pedido: usuário. Status: **proposta para aprovação** (nada implementado).
+Data: 2026-11-10. Autor do pedido: usuário. Status: **implementado** (Plano 10); publicação em produção conforme `docs/passos-do-usuario.md`, seção H.
 
 > **Direção visual escolhida (2026-11-10): minimalista, coluna única.** Descartadas: a proposta de molde de site de produto (parecia gerada por IA) e os conceitos "Bula", "Cartela" e "Um dia" (forçados). Regra: nenhum recurso decorativo (sem degradê, sombra pesada, ícone em círculo, pílula de rótulo, faixa de CTA, herói centralizado); texto específico; uma só cor de ação; filetes finos; a tela do app como imagem.
 
@@ -32,7 +32,7 @@ Serve também como a "URL de marketing" exigida pela App Store e como porta de e
 1. **Topo:** logo pequeno (o do app) e "Medicron", à esquerda; "Entrar" em texto, à direita. Sem barra, sem menu.
 2. **Título e texto** (alinhados à esquerda, bastante respiro acima): "Lembretes de remédio para quem cuida de gente e de bicho." / "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir."
 3. **Ação:** botão **Criar conta** (`/cadastrar`, o único elemento sólido da página) e link **Já tenho conta →** (`/entrar`). Abaixo, uma linha pequena e **verdadeira** sobre onde funciona (ver "Disponibilidade").
-4. **A tela do app:** a tela Hoje, com a legenda "A tela Hoje: o que falta e o que atrasou." Exemplo: conta "Família Souza", "3 de 5 doses feitas hoje", Vitamina D · Pedro · 08:00 (Atrasada), Losartana · Ana · 12:00 (Agora), Vermífugo · Mel · 18:00 (Feita).
+4. **A tela do app:** a tela Hoje, com a legenda "A tela Hoje: o que falta e o que atrasou." Exemplo: conta "Família Souza", "3 de 5 doses feitas hoje", Vermífugo · Mel · 07:00 (Feita), Vitamina D · Pedro · 08:00 (Atrasada), Losartana · Ana · 12:00 (Agora), em ordem de horário.
 5. **"Em poucas palavras":** lista de definições (termo à esquerda, explicação à direita, filete entre as linhas): Lembretes; Gente e pets; Em família; No iPhone (widgets na tela inicial e de bloqueio); Seus dados (apagar a conta e tudo o que cadastrou, no app).
 6. **Rodapé:** aviso "O Medicron é um organizador de lembretes. Não faz diagnóstico nem indica doses ou tratamentos: siga a orientação do seu médico ou veterinário." e os links Política de privacidade (`/privacidade`) e Contato (só se `CONTACT_EMAIL` existir na build).
 
