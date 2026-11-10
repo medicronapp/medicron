@@ -2,7 +2,7 @@
 
 Data: 2026-11-10. Autor do pedido: usuário. Status: **proposta para aprovação** (nada implementado).
 
-> **Direção visual: em redefinição (2026-11-10).** A primeira proposta (herói com celular, grade de cartões com ícone, passos numerados, faixa de degradê) foi rejeitada por parecer um site genérico gerado por IA. O usuário quer um visual peculiar. Três conceitos próprios estão em avaliação (A "Bula", B "Cartela", C "Um dia com o Medicron"); a seção "Estrutura da página" abaixo será reescrita depois da escolha. As decisões de arquitetura (roteamento, cookie, página estática, zero terceiros) **continuam valendo**.
+> **Direção visual escolhida (2026-11-10): minimalista, coluna única.** Descartadas: a proposta de molde de site de produto (parecia gerada por IA) e os conceitos "Bula", "Cartela" e "Um dia" (forçados). Regra: nenhum recurso decorativo (sem degradê, sombra pesada, ícone em círculo, pílula de rótulo, faixa de CTA, herói centralizado); texto específico; uma só cor de ação; filetes finos; a tela do app como imagem.
 
 ## Intenção
 
@@ -27,15 +27,20 @@ Serve também como a "URL de marketing" exigida pela App Store e como porta de e
 7. **Tema:** segue o sistema (`prefers-color-scheme`) e, se existir, a escolha da pessoa no app (`localStorage["medicron.theme"]`, mesma origem), com o mesmo mecanismo `data-theme` do app.
 8. **Zero terceiros:** nenhuma fonte, script, imagem ou métrica de outro domínio. Fonte: a do sistema (SF/Roboto/Segoe), no mesmo espírito do app nativo.
 
-## Estrutura da página (uma só, rolável) — rascunho antigo, a reescrever conforme o conceito escolhido
+## Estrutura da página (coluna única de 640 px, margens de 28 px)
 
-1. **Topo:** logo + "Medicron", links "Entrar" e "Criar conta" (este em destaque).
-2. **Herói:** título "Nenhum remédio esquecido. Todo mundo da casa na mesma página." (é a frase do painel de entrada do app); subtítulo; botões **Criar conta grátis** → `/cadastrar` e **Já tenho conta** → `/entrar`; três garantias ("Grátis, sem anúncios", "Não vendemos seus dados", "iPhone, Android e web"); ao lado, um celular desenhado em HTML/CSS com a tela Hoje (anel, sequência, cartões de dose).
-3. **Como funciona:** três passos (criar conta, cadastrar quem você cuida, receber lembretes).
-4. **Recursos:** seis cartões (lembretes, pessoas e pets, família na mesma conta, o dia de relance, iPhone/Android/web, seus dados sob seu controle).
-5. **Widgets e lojas:** o widget do iPhone desenhado em HTML/CSS, mais selos "Em breve" da App Store e do Google Play (viram links quando as URLs existirem).
-6. **Chamada final** em degradê verde, com os dois botões.
-7. **Rodapé:** aviso "organizador de lembretes, não faz diagnóstico nem indica doses", links para Política de privacidade (`/privacidade`), Contato e Entrar.
+1. **Topo:** logo pequeno (o do app) e "Medicron", à esquerda; "Entrar" em texto, à direita. Sem barra, sem menu.
+2. **Título e texto** (alinhados à esquerda, bastante respiro acima): "Lembretes de remédio para quem cuida de gente e de bicho." / "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir."
+3. **Ação:** botão **Criar conta** (`/cadastrar`, o único elemento sólido da página) e link **Já tenho conta →** (`/entrar`). Abaixo, uma linha pequena e **verdadeira** sobre onde funciona (ver "Disponibilidade").
+4. **A tela do app:** a tela Hoje, com a legenda "A tela Hoje: o que falta e o que atrasou." Exemplo: conta "Família Souza", "3 de 5 doses feitas hoje", Vitamina D · Pedro · 08:00 (Atrasada), Losartana · Ana · 12:00 (Agora), Vermífugo · Mel · 18:00 (Feita).
+5. **"Em poucas palavras":** lista de definições (termo à esquerda, explicação à direita, filete entre as linhas): Lembretes; Gente e pets; Em família; No iPhone (widgets na tela inicial e de bloqueio); Seus dados (apagar a conta e tudo o que cadastrou, no app).
+6. **Rodapé:** aviso "O Medicron é um organizador de lembretes. Não faz diagnóstico nem indica doses ou tratamentos: siga a orientação do seu médico ou veterinário." e os links Política de privacidade (`/privacidade`) e Contato (só se `CONTACT_EMAIL` existir na build).
+
+**Visual:** tokens de cor e raio do app, extraídos do `global.css` na build; verde de ação em botão e links; vermelho só em "Atrasada"; Geist (400 e 600) servida do próprio site em `woff2`; título 46 px (34 px no celular), texto 19 px / 16,5 px, entrelinha 1,55 a 1,6; botão de 46 px de altura e raio de 11 px; links sublinhados com filete. Sem animações. Claro e escuro automáticos.
+
+**Disponibilidade (não prometer o que não existe):** a linha pequena abaixo do botão e o texto "No iPhone" dependem do que já foi publicado. Hoje: "Grátis, sem anúncios. Funciona no navegador; aplicativos para iPhone e Android em breve." Com as URLs das lojas definidas na build (`LANDING_APP_STORE_URL`, `LANDING_PLAY_URL`), a linha vira "Grátis, sem anúncios. No iPhone, no Android e no navegador." e aparecem os links das lojas.
+
+**A tela do app como imagem:** por padrão, a própria tela desenhada em HTML/CSS com os tokens (nítida, troca claro e escuro sozinha, não envelhece em relação às cores). Se o usuário fornecer capturas reais (claro e escuro), entram no lugar com `<picture>` por esquema de cor.
 
 ## Conteúdo, fatos e limites
 
@@ -52,7 +57,7 @@ Todo texto é fiel ao app (checado contra `docs/lojas.md` e a política de priva
 - **Cache da borda:** a decisão acontece no roteamento, antes do cache de arquivos; conferir com `vercel curl` em pré-visualização (com e sem cookie) antes de publicar.
 - **Reversão:** voltar o `vercel.json` anterior e o nome `index.html` (um commit), ou `vercel rollback`.
 
-## Decisões em aberto (precisam do usuário)
+## Decisões em aberto (têm padrão; o usuário pode mudar)
 
 1. Escopo: a página acima, mais enxuta ou mais completa (perguntas frequentes)?
 2. Selos das lojas: ficam como "Em breve" até as URLs existirem (recomendado) ou ocultos?
