@@ -1,4 +1,4 @@
-// Gera as capturas de tela REAIS do app para o hotsite (site/hoje-claro.webp e site/hoje-escuro.webp).
+// Gera as capturas de tela REAIS do app para o hotsite (site/hoje-*.webp: tela Hoje; site/familia-*.webp: tela Conta).
 // Uso (dentro de apps/app, com o app já exportado em dist/ por `expo export -p web` + finalize-web):
 //   npm run capture-site-shots
 // Sobe um servidor local que serve o app web real com uma API simulada (scripts/demo-data.ts) e o relógio congelado,
@@ -9,7 +9,7 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
-import { demoHome, demoMe, demoOrgs, demoSession, freezeTimeScript } from "./demo-data.ts";
+import { demoFullOrg, demoHome, demoMe, demoOrgs, demoSession, freezeTimeScript } from "./demo-data.ts";
 
 const appRoot = path.resolve(import.meta.dirname, "..");
 const dist = path.join(appRoot, "dist");
@@ -22,6 +22,7 @@ if (!fs.existsSync(CHROME)) throw new Error(`Chrome não encontrado em ${CHROME}
 const API: Record<string, unknown> = {
   "/api/auth/get-session": demoSession(),
   "/api/auth/organization/list": demoOrgs(),
+  "/api/auth/organization/get-full-organization": demoFullOrg(),
   "/api/v1/me": demoMe(),
   "/api/v1/home": demoHome(),
   "/api/v1/config": { minAppVersion: "0.0.0" },
@@ -29,6 +30,7 @@ const API: Record<string, unknown> = {
 const TYPES: Record<string, string> = { ".html": "text/html", ".js": "application/javascript", ".css": "text/css", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json", ".ttf": "font/ttf", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json", ".svg": "image/svg+xml" };
 
 let theme: "light" | "dark" = "light";
+let screen = "/";
 const missing = new Set<string>();
 
 const server = http.createServer((req, res) => {
@@ -40,7 +42,7 @@ const server = http.createServer((req, res) => {
   }
   if (url.pathname === "/__frame") {
     res.writeHead(200, { "content-type": "text/html" });
-    res.end(`<!doctype html><body style="margin:0;background:transparent"><iframe src="/" style="width:${WIDTH}px;height:${HEIGHT}px;border:0;display:block"></iframe>`);
+    res.end(`<!doctype html><body style="margin:0;background:transparent"><iframe src="${screen}" style="width:${WIDTH}px;height:${HEIGHT}px;border:0;display:block"></iframe>`);
     return;
   }
   const file = path.join(dist, decodeURIComponent(url.pathname));
@@ -65,9 +67,10 @@ function runChrome(args: string[]): Promise<{ code: number | null; stderr: strin
   });
 }
 
-async function shoot(t: "light" | "dark", out: string) {
+async function shoot(route: string, t: "light" | "dark", out: string) {
   theme = t;
-  const png = path.join(os.tmpdir(), `medicron-shot-${t}.png`);
+  screen = route;
+  const png = path.join(os.tmpdir(), `medicron-shot-${route.replace(/\W/g, "")}-${t}.png`);
   const port = (server.address() as { port: number }).port;
   const r = await runChrome([
     "--headless=new", "--disable-gpu", "--hide-scrollbars", `--window-size=${WIDTH},${HEIGHT}`, `--force-device-scale-factor=${SCALE}`,
@@ -81,8 +84,10 @@ async function shoot(t: "light" | "dark", out: string) {
 
 server.listen(0, async () => {
   try {
-    await shoot("light", path.join(appRoot, "site/hoje-claro.webp"));
-    await shoot("dark", path.join(appRoot, "site/hoje-escuro.webp"));
+    await shoot("/", "light", path.join(appRoot, "site/hoje-claro.webp"));
+    await shoot("/", "dark", path.join(appRoot, "site/hoje-escuro.webp"));
+    await shoot("/conta", "light", path.join(appRoot, "site/familia-claro.webp"));
+    await shoot("/conta", "dark", path.join(appRoot, "site/familia-escuro.webp"));
     if (missing.size) console.warn("Requisições sem resposta simulada:", [...missing].join(", "));
   } finally {
     server.close();

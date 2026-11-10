@@ -1,5 +1,5 @@
 import { addDays, dayKey, type EntryDto, type HomeDto } from "@medicron/shared";
-import { DEMO_NOW, demoMe, demoHome, demoOrgs, demoSession, freezeTimeScript } from "../scripts/demo-data";
+import { DEMO_NOW, demoFullOrg, demoMe, demoHome, demoOrgs, demoSession, freezeTimeScript } from "../scripts/demo-data";
 
 describe("dados de demonstração das capturas do hotsite", () => {
   const home = demoHome().home;
@@ -68,6 +68,25 @@ describe("dados de demonstração das capturas do hotsite", () => {
     expect(demoMe().orgId).toBe(demoOrgs()[0].id);
     expect(demoMe().user.id).toBe(s.user.id);
     expect(new Date(s.session.expiresAt).getTime()).toBeGreaterThan(DEMO_NOW.getTime());
+  });
+});
+
+describe("conta completa para a captura da tela Conta (cartão 'Em família')", () => {
+  const org = demoFullOrg();
+  test("é a mesma conta da sessão, com a pessoa da sessão como dona", () => {
+    expect(org.id).toBe(demoOrgs()[0].id);
+    expect(org.name).toBe("Família Souza");
+    const owner = org.members.find((m) => m.role === "owner")!;
+    expect(owner.userId).toBe(demoMe().user.id);
+    expect(owner.user.name).toBe("Ana Souza");
+  });
+  test("tem 3 pessoas com nomes diferentes e e-mails de exemplo", () => {
+    expect(org.members).toHaveLength(3);
+    expect(new Set(org.members.map((m) => m.user.name)).size).toBe(3);
+    for (const m of org.members) expect(m.user.email).toMatch(/@example\.com$/);
+  });
+  test("sem convites pendentes (a captura mostra só pessoas e o convite por link)", () => {
+    expect(org.invitations).toEqual([]);
   });
 });
 

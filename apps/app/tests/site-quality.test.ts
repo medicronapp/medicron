@@ -23,9 +23,10 @@ describe("estrutura e navegação por teclado", () => {
   test("foco visível de 2 px em links e botões", () => {
     expect(style).toMatch(/a:focus-visible\{[^}]*outline:2px solid/);
   });
-  test("hierarquia: h1, depois h2; figura com legenda; viewport definido", () => {
+  test("hierarquia: h1, depois h2; figura sem legenda; viewport definido", () => {
     expect(body.indexOf("<h1")).toBeLessThan(body.indexOf("<h2"));
-    expect(body).toMatch(/<figure[\s\S]*<figcaption>[\s\S]*<\/figcaption>[\s\S]*<\/figure>/);
+    expect(body).toMatch(/<figure[\s\S]*<\/figure>/);
+    expect(body).not.toMatch(/figcaption/);
     expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
   });
 });
@@ -35,7 +36,7 @@ describe("alvos de toque (≥ 44 px)", () => {
     const m = style.match(new RegExp(`(?:^|[}\\s,])${selector.replace(/[.]/g, "\\.")}\\{[^}]*min-height:(\\d+)px`));
     return m ? Number(m[1]) : 0;
   };
-  test.each([".btn", ".lnk", ".mark", ".links a"])("%s", (sel) => {
+  test.each([".btn", ".lnk", ".enter", ".mark", ".links a"])("%s", (sel) => {
     expect(minHeight(sel)).toBeGreaterThanOrEqual(44);
   });
 });
@@ -115,44 +116,94 @@ describe("leve e sem enfeite", () => {
   test("HTML com CSS embutido ≤ 25 KB", () => {
     expect(Buffer.byteLength(html)).toBeLessThanOrEqual(25 * 1024);
   });
-  test("no máximo 2 arquivos de fonte; imagens só as 2 capturas do app (uma por tema), sem fundo em imagem", () => {
+  test("no máximo 2 arquivos de fonte; imagens só as 4 capturas do app (duas telas, uma por tema), sem fundo em imagem", () => {
     expect(style.match(/url\(\/landing\/fonts\//g)).toHaveLength(2);
-    expect(body.match(/<img /g)).toHaveLength(2);
+    expect(body.match(/<img /g)).toHaveLength(4);
     expect(body).not.toMatch(/<picture|background-image/);
     expect(style).not.toMatch(/background-image/);
   });
   test("só a captura do tema em uso aparece (e só ela é baixada): a outra fica display:none, nos dois mecanismos de tema", () => {
-    expect(style).toMatch(/\.hero-shot \.shot-d\{display:none\}/);
-    expect(style).toMatch(/@media \(prefers-color-scheme:dark\)\{:root:not\(\[data-theme="light"\]\) \.hero-shot \.shot-l\{display:none\}:root:not\(\[data-theme="light"\]\) \.hero-shot \.shot-d\{display:block\}\}/);
-    expect(style).toMatch(/:root\[data-theme="dark"\] \.hero-shot \.shot-l\{display:none\}:root\[data-theme="dark"\] \.hero-shot \.shot-d\{display:block\}/);
+    expect(style).toMatch(/\.phone \.shot-d\{display:none\}/);
+    expect(style).toMatch(/@media \(prefers-color-scheme:dark\)\{:root:not\(\[data-theme="light"\]\) \.phone \.shot-l\{display:none\}:root:not\(\[data-theme="light"\]\) \.phone \.shot-d\{display:block\}\}/);
+    expect(style).toMatch(/:root\[data-theme="dark"\] \.phone \.shot-l\{display:none\}:root\[data-theme="dark"\] \.phone \.shot-d\{display:block\}/);
   });
   test("a regra que esconde a captura vence a que mostra imagens (especificidade): senão as duas aparecem empilhadas", () => {
-    // `.hero-shot img{display:block}` tem especificidade (0,1,1); esconder precisa de (0,2,0) ou mais.
+    // `.phone img{display:block}` tem especificidade (0,1,1); esconder precisa de (0,2,0) ou mais.
     const spec = (sel: string) => ({ ids: 0, cls: (sel.match(/[.[:]/g) ?? []).length, tags: (sel.match(/(^|[ >])[a-z]+/g) ?? []).length });
-    const hide = spec(".hero-shot .shot-d");
-    const show = spec(".hero-shot img");
+    const hide = spec(".phone .shot-d");
+    const show = spec(".phone img");
     expect(hide.cls).toBeGreaterThan(show.cls);
   });
 
+  test("a ilustração é quadrada e recortada, com moldura de celular (borda grossa escura, ilha de câmera) e sem sombra extra", () => {
+    expect(style).toMatch(/\.fam-art,\.hero-shot\{[^}]*aspect-ratio:1\s*\/\s*1[^}]*overflow:hidden/);
+    const phone = style.match(/(?:^|\n)\.phone\{[^}]*\}/)![0];
+    expect(phone).toMatch(/border:\d+px solid/);
+    expect(phone).toMatch(/border-radius:\d+px \d+px 0 0/);
+    expect(style).toMatch(/\.phone::before\{[^}]*border-radius:999px/);
+  });
+  test("a ilustração é um quadrado 1:1 de cantos arredondados com fundo colorido próprio (var(--art)), diferente do cartão", () => {
+    const art = style.match(/\.fam-art,\.hero-shot\{[^}]*\}/)![0];
+    expect(art).toMatch(/aspect-ratio:1\s*\/\s*1/);
+    expect(art).toMatch(/border-radius:\d+px/);
+    expect(art).toMatch(/background:var\(--art\)/);
+    expect(style.match(/--art:/g)!.length).toBe(3); // claro, escuro (automático) e escuro (escolhido)
+    expect(style).toMatch(/\.row-fam\{[^}]*background:var\(--tint\)/);
+  });
   test("a fonte troca por fallback sem bloquear (font-display: swap) e há preload da principal", () => {
     expect(style.match(/font-display:swap/g)).toHaveLength(2);
     expect(html).toMatch(/<link rel="preload" href="\/landing\/fonts\/geist-400.woff2" as="font" type="font\/woff2" crossorigin>/);
   });
-  test("sem animação, transição, sombra, filtro nem degradê", () => {
-    expect(style).not.toMatch(/animation|transition|@keyframes|box-shadow|filter|gradient/);
+  test("sem animação nem transição; degradê só em variáveis de tema (--grad do hero e --art da ilustração) e sombra só na captura", () => {
+    expect(style).not.toMatch(/animation|transition|@keyframes|filter/);
+    const semVariaveis = style.replace(/--(?:grad|art):[^;}]*/g, "");
+    expect(semVariaveis).not.toMatch(/gradient/);
+    expect(style.match(/box-shadow/g)).toHaveLength(3); // claro, escuro (automático) e escuro (escolhido), todas em .hero-shot
+  });
+  test("hero é uma caixa arredondada, com respiro antes de \"Em poucas palavras\"", () => {
+    const hero = style.match(/\.hero\{[^}]*\}/)![0];
+    expect(Number(hero.match(/border-radius:(\d+)px/)![1])).toBeGreaterThanOrEqual(24);
+    expect(Number(hero.match(/margin:\d+px 0 (\d+)px/)![1])).toBeGreaterThanOrEqual(64);
+    expect(hero).toMatch(/overflow:hidden/);
+  });
+  test("o texto do hero fica acima da ilustração na pilha", () => {
+    expect(style).toMatch(/\.hero-text\{[^}]*position:relative[^}]*z-index:2/);
+  });
+  test("o hero usa o mesmo padrão do cartão 'Em família': quadrado 1:1 com fundo próprio e celular recortado", () => {
+    expect(body).toMatch(/<figure class="hero-shot"><div class="phone">/);
+    expect(style).not.toMatch(/\.hero-shot::(before|after)/);
+  });
+  test("sombra grande e esfumaçada abaixo da captura (deslocada para baixo, blur largo)", () => {
+    const m = style.match(/\.hero-shot\{[^}]*box-shadow:0 (\d+)px (\d+)px/)!;
+    expect(Number(m[1])).toBeGreaterThanOrEqual(30);
+    expect(Number(m[2])).toBeGreaterThanOrEqual(50);
   });
   test("só um elemento sólido de ação (uma cor de ação); vermelho e verde de estado só existem dentro da captura do app", () => {
     expect(body.match(/class="btn"/g)).toHaveLength(1);
     expect(style).not.toMatch(/--destructive|--success/);
   });
-  test("largura: página larga (até 1080 px), hero em duas colunas no computador e em uma só no celular", () => {
-    expect(style).toMatch(/\.top,main,\.foot\{max-width:1080px;margin:0 auto/);
-    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) 340px/);
+  test("largura: página larga (até 1160 px), hero em duas colunas no computador e em uma só no celular", () => {
+    expect(style).toMatch(/\.top,main,\.foot\{max-width:1160px;margin:0 auto/);
+    expect(style).toMatch(/\.hero\{display:grid;grid-template-columns:minmax\(0,1fr\) clamp\(300px,34vw,400px\)/);
     expect(style).toMatch(/@media \(max-width:860px\)\{[^@]*\.hero\{grid-template-columns:1fr/);
     expect(style).not.toMatch(/body\{[^}]*max-width:640px/);
   });
-  test("a captura nunca estoura a coluna (largura máxima 100% e altura automática)", () => {
-    expect(style).toMatch(/\.hero-shot img\{[^}]*max-width:100%[^}]*height:auto/);
+  test("hero fluido: logo acima do breakpoint (861 px) a coluna do texto ainda tem largura para o título (≥ 340 px)", () => {
+    const hero = style.match(/(?:^|\n)\.hero\{[^}]*\}/)![0];
+    const clamp = (src: string, vw: number) => {
+      const m = src.match(/clamp\((\d+)px,(\d+(?:\.\d+)?)vw,(\d+)px\)/)!;
+      return Math.min(Number(m[3]), Math.max(Number(m[1]), (Number(m[2]) * vw) / 100));
+    };
+    const W = 861, content = W - 64; // .top,main,.foot têm 32 px de margem de cada lado
+    const cols = hero.match(/grid-template-columns:minmax\(0,1fr\) (clamp\([^)]*\))/)![1];
+    const gap = hero.match(/gap:(clamp\([^)]*\))/)![1];
+    const pad = hero.match(/padding:(clamp\([^)]*\)) (clamp\([^)]*\)) (clamp\([^)]*\)) (clamp\([^)]*\))/)!;
+    const text = content - clamp(cols, W) - clamp(gap, W) - clamp(pad[2], W) - clamp(pad[4], W);
+    expect(text).toBeGreaterThanOrEqual(340);
+    expect(style).toMatch(/\.hero-shot\{[^}]*width:clamp\(300px,34vw,400px\)/);
+  });
+  test("a captura nunca estoura a moldura (largura 100% e altura automática)", () => {
+    expect(style).toMatch(/\.phone img\{[^}]*width:100%[^}]*height:auto/);
   });
   test("no HTML, o texto vem antes da captura (leitores de tela e telas pequenas leem o título primeiro)", () => {
     expect(body.indexOf("<h1")).toBeLessThan(body.indexOf("<img"));

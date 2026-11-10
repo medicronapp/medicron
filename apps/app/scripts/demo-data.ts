@@ -56,6 +56,24 @@ export const demoMe = (): MeDto => ({ user: { id: USER_ID, name: "Ana Souza", em
 
 export const demoOrgs = () => [{ id: ORG_ID, name: "Família Souza", slug: "familia-souza", logo: null, metadata: null, createdAt: "2026-01-02T12:00:00.000Z" }];
 
+/** Resposta de `organization/get-full-organization`: a conta com as pessoas (tela Conta). */
+export function demoFullOrg() {
+  const base = demoOrgs()[0];
+  const member = (id: string, userId: string, name: string, email: string, role: "owner" | "admin" | "member") => ({
+    id, organizationId: base.id, userId, role, createdAt: "2026-01-02T12:00:00.000Z",
+    user: { id: userId, name, email, image: null },
+  });
+  return {
+    ...base,
+    members: [
+      member("mem_ana", USER_ID, "Ana Souza", "ana@example.com", "owner"),
+      member("mem_pedro", "user_pedro", "Pedro Souza", "pedro@example.com", "admin"),
+      member("mem_carla", "user_carla", "Carla Souza", "carla@example.com", "member"),
+    ],
+    invitations: [] as { id: string; email: string; status: string }[],
+  };
+}
+
 export function demoSession() {
   return {
     session: {

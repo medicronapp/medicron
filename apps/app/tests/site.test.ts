@@ -12,9 +12,9 @@ describe("conteúdo (texto exato da spec)", () => {
   const h = html();
   test("título, texto e rótulos", () => {
     for (const t of [
-      "Lembretes de remédio para quem cuida de gente e de bicho.",
+      "Lembretes de remédio para quem cuida de gente e de pets.",
       "O Medicron avisa na hora de cada dose e mostra para a família inteira o que já foi dado, para ninguém esquecer nem repetir.",
-      "Criar conta", "Já tenho conta →", "Em poucas palavras", "A tela Hoje do app: o que falta e o que atrasou.",
+      "Criar conta", "Já tenho conta →", "Em poucas palavras",
       "O Medicron é um organizador de lembretes. Não faz diagnóstico nem indica doses ou tratamentos: siga a orientação do seu médico ou veterinário.",
     ]) expect(h).toContain(t);
   });
@@ -44,11 +44,13 @@ describe("links", () => {
 
 describe("a tela do app é a captura REAL (não um desenho em HTML)", () => {
   const h = html();
-  test("duas imagens (claro e escuro), com tamanho declarado, texto alternativo e carregamento preguiçoso", () => {
+  test("quatro imagens (Hoje e Conta, cada uma em claro e escuro), com tamanho declarado, texto alternativo e carregamento preguiçoso", () => {
     const imgs = [...h.matchAll(/<img [^>]*>/g)].map((m) => m[0]);
-    expect(imgs).toHaveLength(2);
+    expect(imgs).toHaveLength(4);
     expect(imgs[0]).toContain('src="/landing/hoje-claro.webp"');
     expect(imgs[1]).toContain('src="/landing/hoje-escuro.webp"');
+    expect(imgs[2]).toContain('src="/landing/familia-claro.webp"');
+    expect(imgs[3]).toContain('src="/landing/familia-escuro.webp"');
     for (const i of imgs) {
       expect(i).toContain('width="390"');
       expect(i).toContain('height="760"');
@@ -62,12 +64,20 @@ describe("a tela do app é a captura REAL (não um desenho em HTML)", () => {
     for (const t of ["Hoje", "3 de 5", "Pedro", "Vitamina D", "Ana", "Losartana"]) expect(alt).toContain(t);
     expect(h).not.toMatch(/Vov[óo]/);
   });
+  test("o cartão 'Em família' mostra a tela Conta real dentro de uma moldura de celular, antes do texto", () => {
+    const row = h.match(/<div class="row row-fam">[\s\S]*?<\/dd><\/div>/)![0];
+    expect(row.indexOf('class="phone"')).toBeGreaterThan(-1);
+    expect(row.indexOf('class="phone"')).toBeLessThan(row.indexOf("<dt>"));
+    const alts = [...row.matchAll(/alt="([^"]+)"/g)].map((m) => m[1]);
+    expect(alts).toHaveLength(2);
+    for (const a of alts) for (const t of ["Conta", "Família Souza", "Ana Souza", "Pedro Souza", "Carla Souza", "Convidar alguém"]) expect(a).toContain(t);
+  });
   test("o desenho em HTML da tela saiu (a fidelidade vem da captura)", () => {
     expect(h).not.toContain('class="shot"');
     expect(h).not.toContain("Família Souza</span>");
   });
-  test("legenda da figura", () => {
-    expect(h).toContain("A tela Hoje do app: o que falta e o que atrasou.");
+  test("a figura não tem legenda", () => {
+    expect(h).not.toContain("A tela Hoje do app");
   });
 });
 
@@ -147,17 +157,17 @@ describe("sem terceiros e sem decoração", () => {
     expect(h).not.toMatch(/@import|url\(["']?https?:/);
     expect(h).not.toMatch(/https?:\/\/(?!medicron\.com\.br)/);
   });
-  test("CSS sem degradê, sombra pesada nem animação", () => {
+  test("CSS sem animação nem desfoque de fundo", () => {
     const style = h.slice(h.indexOf("<style>"), h.indexOf("</style>"));
-    expect(style).not.toMatch(/gradient|animation|@keyframes|transition|backdrop-filter/);
+    expect(style).not.toMatch(/animation|@keyframes|transition|backdrop-filter/);
   });
 });
 
 describe("buildSite", () => {
-  test("copia as duas capturas reais do app (≤ 80 KB cada)", () => {
+  test("copia as quatro capturas reais do app (≤ 80 KB cada)", () => {
     const out = fs.mkdtempSync(path.join(os.tmpdir(), "site-shots-"));
     buildSite({}, appRoot, out);
-    for (const f of ["hoje-claro.webp", "hoje-escuro.webp"]) {
+    for (const f of ["hoje-claro.webp", "hoje-escuro.webp", "familia-claro.webp", "familia-escuro.webp"]) {
       const file = path.join(out, "landing", f);
       expect(fs.statSync(file).size).toBeGreaterThan(5000);
       expect(fs.statSync(file).size).toBeLessThanOrEqual(80 * 1024);
@@ -173,5 +183,29 @@ describe("buildSite", () => {
       expect(fs.statSync(file).size).toBeGreaterThan(1000);
       expect(fs.statSync(file).size).toBeLessThanOrEqual(40 * 1024);
     }
+  });
+});
+
+const enter = (css: string) => css.match(/(?:^|\n)\.enter\{[^}]*\}/)![0];
+
+describe("texto e botão do topo", () => {
+  const h = renderSite({}, loadSources(path.resolve(__dirname, "..")));
+  test("não usa a palavra \"bicho\" em lugar nenhum", () => {
+    expect(h.toLowerCase()).not.toContain("bicho");
+  });
+  test("Entrar é um botão suave no tom do Medicron (sem borda nem ícone), com o mesmo raio do Criar conta", () => {
+    expect(h).toMatch(/<a class="enter" href="\/entrar">Entrar<\/a>/);
+    const css = h.slice(h.indexOf("<style>"), h.indexOf("</style>"));
+    const enter = css.match(/(?:^|\n)\.enter\{[^}]*\}/)![0];
+    const btn = css.match(/(?:^|\n)\.btn\{[^}]*\}/)![0];
+    expect(enter).toMatch(/border:0/);
+    expect(enter).toMatch(/color-mix\(in oklab,var\(--primary\)/);
+    expect(enter.match(/border-radius:(\d+px)/)![1]).toBe(btn.match(/border-radius:(\d+px)/)![1]);
+  });
+  test("no tema escuro o texto do Entrar é a menta clara (legível), nos dois mecanismos de tema", () => {
+    const css = h.slice(h.indexOf("<style>"), h.indexOf("</style>"));
+    expect(enter(css)).toMatch(/color:var\(--enter\)/);
+    expect(css.match(/--enter:#99f6e4/g)).toHaveLength(2); // automático e escolhido
+    expect(css).toMatch(/:root\{[^}]*--enter:var\(--primary\)/);
   });
 });
