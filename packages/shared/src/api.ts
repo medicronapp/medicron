@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { SubscriptionDto } from "./subscription";
 
 export const API_PREFIX = "/api/v1" as const;
 
@@ -60,7 +61,7 @@ export type DoseBody = z.infer<typeof doseBody>;
 
 // ---------- Respostas ----------
 
-export type ErrorDto = { error: string; message?: string; issues?: unknown[]; minAppVersion?: string };
+export type ErrorDto = { error: string; message?: string; issues?: unknown[]; minAppVersion?: string; limit?: "patients" | "members" | "history" };
 
 export type PatientDto = {
   id: string; name: string; species: z.infer<typeof species>;
@@ -101,4 +102,5 @@ export type MeDto = {
   user: { id: string; name: string; email: string };
   orgId: string;
   role: "owner" | "admin" | "member";
+  subscription: SubscriptionDto;
 };

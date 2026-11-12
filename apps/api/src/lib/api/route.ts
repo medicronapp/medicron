@@ -53,7 +53,7 @@ function checkAppVersion(req: Request): Response | null {
 }
 
 function errorResponse(err: unknown): Response {
-  if (err instanceof ApiError) return json({ error: err.code, message: err.message }, err.status);
+  if (err instanceof ApiError) return json({ error: err.code, message: err.message, ...err.details }, err.status);
   if (err instanceof ZodError) {
     return json({ error: "invalid_request", message: "Dados inválidos.", issues: err.issues }, 400);
   }

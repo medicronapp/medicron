@@ -20,6 +20,7 @@ import { useWidgetSync } from "@/lib/widget-sync";
 import { bindFocusToAppState } from "@/lib/api/focus";
 import { queryClient } from "@/lib/api/query";
 import { decideRoute } from "@/lib/route-guard";
+import { configurePurchases } from "@/lib/purchases";
 import { useAppSession } from "@/lib/session";
 import { Toaster } from "@/components/ui/toast";
 import { SessionError } from "@/components/session-error";
@@ -32,6 +33,8 @@ setupNotificationHandler();
 /** Aplica a guarda de rotas e troca tudo pela tela de atualização quando a API recusa esta versão. */
 function Gate() {
   const session = useAppSession();
+  // A conta ativa é o usuário do RevenueCat (assinatura por conta); ao sair a conta vira null e o SDK faz logOut.
+  useEffect(() => { void configurePurchases(session.activeOrgId); }, [session.activeOrgId]);
   const path = usePathname();
   const { next } = useGlobalSearchParams<{ next?: string }>();
   // `usePathname` não traz a query: devolve o `next` para a guarda levar ao destino guardado depois do login/cadastro.

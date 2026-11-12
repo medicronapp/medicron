@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "grant-plus": "tsx --env-file=.env.local scripts/grant-plus.cli.ts"
   },
   "dependencies": {
     "@better-auth/expo": "1.7.18",
@@ -41,6 +42,7 @@
     "eslint-config-next": "16.4.5",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.0"
   },

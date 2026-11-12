@@ -4,6 +4,9 @@ import { Text } from "@/components/ui/text";
 /** Política de privacidade (a mesma informada nas fichas das lojas). */
 export const PRIVACY_URL = "https://medicron.com.br/privacidade";
 
+/** Termos de uso (assinatura, teste grátis, cancelamento). */
+export const TERMS_URL = "https://medicron.com.br/termos";
+
 /** Mesmo texto do rodapé do hotsite e das fichas das lojas: o app não é dispositivo médico. */
 export const MEDICAL_DISCLAIMER =
   "O Medicron é um organizador de lembretes. Não faz diagnóstico nem indica doses ou tratamentos: siga a orientação do seu médico ou veterinário.";

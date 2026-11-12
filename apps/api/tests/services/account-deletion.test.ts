@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { eq, sql } from "drizzle-orm";
 import { createTestDb } from "@/lib/db/test-db";
 import {
-  carePlans, careSlots, doseLogs, invitation, items, member, organization, patients, pushDevices, pushSubscriptions, user,
+  carePlans, careSlots, doseLogs, invitation, items, member, organization, orgSubscriptions, patients, pushDevices, pushSubscriptions, user,
 } from "@/lib/db/schema";
 import { createPatient } from "@/lib/services/patients";
 import { createItem } from "@/lib/services/items";
@@ -10,6 +10,7 @@ import { createPlan } from "@/lib/services/plans";
 import { resolveSlot, ensureSlots } from "@/lib/services/slots";
 import { saveDevice, saveSubscription } from "@/lib/services/push";
 import { purgeUserData } from "@/lib/services/account-deletion";
+import { grantPlus } from "@/lib/services/subscription";
 
 const d = (s: string) => new Date(s);
 
@@ -87,6 +88,20 @@ describe("purgeUserData", () => {
     expect(await count(db, patients, "o2")).toBe(1);
     const roles = Object.fromEntries((await db.select().from(member)).map((m) => [m.userId, m.role]));
     expect(roles).toEqual({ u3: "owner", u2: "member" }); // o administrador virou dono; u1 saiu
+  });
+
+  test("assinatura: conta só do usuário leva a assinatura junto (cascata); a de outra conta e a de conta compartilhada ficam", async () => {
+    const db = await base();
+    await db.insert(member).values([
+      { id: "m1", organizationId: "o1", userId: "u1", role: "owner", createdAt: new Date() },
+      { id: "m2", organizationId: "o2", userId: "u1", role: "owner", createdAt: new Date() },
+      { id: "m4", organizationId: "o2", userId: "u2", role: "member", createdAt: new Date() },
+      { id: "m3", organizationId: "o3", userId: "u3", role: "owner", createdAt: new Date() },
+    ]);
+    const ate = new Date(Date.now() + 30 * 86_400_000);
+    for (const o of ["o1", "o2", "o3"]) await grantPlus(db, o, ate, "apple");
+    await purgeUserData(db, "u1");
+    expect((await db.select().from(orgSubscriptions)).map((r) => r.organizationId).sort()).toEqual(["o2", "o3"]);
   });
 
   test("sem admin, o membro mais antigo vira dono", async () => {

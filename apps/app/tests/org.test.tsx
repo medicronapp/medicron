@@ -83,6 +83,13 @@ describe("getInvitation", () => {
 });
 
 describe("acceptInvitation", () => {
+  test("conta já cheia (limite de pessoas do plano grátis): mensagem do plano em português, e o código chega para o paywall", async () => {
+    mockOrg.acceptInvitation.mockResolvedValue({ data: null, error: { code: "ORGANIZATION_MEMBERSHIP_LIMIT_REACHED", message: "Organization membership limit reached" } });
+    const err = await acceptInvitation("inv1").catch((e) => e);
+    expect(err.message).toBe("Esta conta já está com o número máximo de pessoas do plano grátis. Peça a quem convidou você para assinar o Medicron Plus.");
+    expect(err.code).toBe("ORGANIZATION_MEMBERSHIP_LIMIT_REACHED");
+  });
+
   test("aceita, ativa a conta, avisa a lista de contas e esvazia o cache da conta anterior (o usuário fica)", async () => {
     mockOrg.acceptInvitation.mockResolvedValue({ data: { invitation: { organizationId: "org9" } }, error: null });
     mockOrg.setActive.mockResolvedValue({ data: {}, error: null });

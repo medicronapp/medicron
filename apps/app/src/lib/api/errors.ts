@@ -8,6 +8,8 @@ export class ApiClientError extends Error {
     public code: string,
     message: string,
     public issues?: unknown[],
+    /** Só no 402 `plan_limit`: qual limite do plano grátis foi atingido. */
+    public limit?: "patients" | "members" | "history",
   ) {
     super(message);
     this.name = "ApiClientError";

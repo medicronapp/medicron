@@ -8,7 +8,10 @@ const messageOf = (error: unknown): string | undefined => (error as { message?: 
 /** Convida por e-mail e devolve o id do convite (o link é `inviteLink(id, inviteBase())`). */
 export async function inviteMember(email: string, role: "admin" | "member"): Promise<{ id: string }> {
   const { data, error } = await authClient.organization.inviteMember({ email, role });
-  if (error || !data) throw new Error(messageOf(error) ?? "Não foi possível criar o convite.");
+  if (error || !data) {
+    // Leva o `code` do better-auth junto: convidar além do limite de pessoas vira paywall (isPlanLimit), não mensagem em inglês.
+    throw Object.assign(new Error(messageOf(error) ?? "Não foi possível criar o convite."), { code: (error as { code?: string } | null)?.code });
+  }
   return { id: data.id };
 }
 
@@ -34,6 +37,12 @@ export async function getInvitation(id: string): Promise<InvitationInfo | null> 
 export async function acceptInvitation(id: string): Promise<{ organizationId: string }> {
   const { data, error } = await authClient.organization.acceptInvitation({ invitationId: id });
   if (error || !data) {
+    if ((error as { code?: string } | null)?.code === "ORGANIZATION_MEMBERSHIP_LIMIT_REACHED") {
+      throw Object.assign(
+        new Error("Esta conta já está com o número máximo de pessoas do plano grátis. Peça a quem convidou você para assinar o Medicron Plus."),
+        { code: "ORGANIZATION_MEMBERSHIP_LIMIT_REACHED" },
+      );
+    }
     throw new Error("Não foi possível aceitar o convite (talvez você já seja membro ou o convite seja de outro e-mail).");
   }
   const organizationId = data.invitation.organizationId;

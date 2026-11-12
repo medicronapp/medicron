@@ -1,5 +1,5 @@
 // Configuração do projeto estático da web (o vercel.json é gerado por `npm run vercel-config`).
-// O navegador só vê medicron.com.br: a API, a política de privacidade e os arquivos de links universais
+// O navegador só vê medicron.com.br: a API, a política de privacidade, os termos de uso e os arquivos de links universais
 // são reescritos para o projeto da API (host próprio), e qualquer outro caminho sem extensão cai no app.
 // A raiz `/` decide pelo cookie de sessão: com sessão (ou PWA instalado) é o app; sem sessão, o hotsite (/landing).
 export type Rewrite = { source: string; destination: string; has?: { type: "cookie" | "query"; key: string; value?: string }[] };
@@ -29,6 +29,7 @@ export function buildVercelConfig(apiOrigin: string) {
     rewrites: [
       toApi("/api/:path*"),
       toApi("/privacidade"),
+      toApi("/termos"),
       toApi("/.well-known/:path*"),
       // A raiz: PWA instalado (start_url com ?source=pwa) e quem tem sessão vão ao app; o resto vê o hotsite.
       { source: "/", has: [{ type: "query", key: "source", value: "pwa" }], destination: "/app.html" },

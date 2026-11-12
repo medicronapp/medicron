@@ -2,7 +2,7 @@
 
 Documento de estratégia, **não** de implementação: nada aqui foi construído. Serve para você decidir o modelo, os preços e a ordem das coisas antes de abrir o código. Data da pesquisa: 10/11/2026. Os números de comissão e de concorrentes mudaram bastante em 2026 e **as fontes se contradizem em alguns pontos**; onde isso importa, o texto avisa e diz o que conferir.
 
-> **Decisões de 10/11/2026 (valem sobre o texto abaixo):** escopo **B** (lançamento enxuto) e **sem relatório em PDF** por ora (não faz sentido agora: as menções ao relatório nas seções abaixo ficam **adiadas**, não removidas); teste de **7 dias da loja**; conta de desenvolvedor **pessoa física**. O plano de implementação está em `docs/superpowers/plans/2026-11-10-plus-fase-0-plano-11.md`.
+> **Decisões de 10/11/2026 (valem sobre o texto abaixo):** escopo **B** (lançamento enxuto) e **sem relatório em PDF** por ora (não faz sentido agora: as menções ao relatório nas seções abaixo ficam **adiadas**, não removidas); teste de **7 dias da loja**; conta de desenvolvedor **pessoa física**. O plano de implementação está em `docs/superpowers/plans/2026-11-10-plus-fase-0-plano-11.md`. **Estado (10/11/2026): o código da fase 0 está pronto** (limites no servidor, assinatura por conta, webhook do RevenueCat, paywall, Termos de uso); falta a configuração das lojas e do RevenueCat, que são passos seus: seção J de `docs/passos-do-usuario.md`.
 
 ---
 

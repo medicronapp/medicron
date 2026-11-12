@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { expect, test } from "vitest";
 
-test("src/app só tem a API, a política e os arquivos de links universais", () => {
+test("src/app só tem a API, a política, os termos de uso e os arquivos de links universais", () => {
   const dirs = readdirSync("src/app", { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
-  expect(dirs).toEqual([".well-known", "api", "privacidade"]);
+  expect(dirs).toEqual([".well-known", "api", "privacidade", "termos"]);
 });
 
 test("a web agora é o app Expo: o Next não serve mais manifest, service worker nem ícones", () => {

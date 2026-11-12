@@ -40,6 +40,10 @@
       "destination": "https://medicron.vercel.app/privacidade"
     },
     {
+      "source": "/termos",
+      "destination": "https://medicron.vercel.app/termos"
+    },
+    {
       "source": "/.well-known/:path*",
       "destination": "https://medicron.vercel.app/.well-known/:path*"
     },

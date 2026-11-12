@@ -7,6 +7,7 @@ import { expo } from "@better-auth/expo";
 import { getDb, type Db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { purgeUserData } from "@/lib/services/account-deletion";
+import { getSubscription } from "@/lib/services/subscription";
 
 // Esquema de links do app nativo (identificador app.medicron) e domínios de produção.
 const APP_ORIGINS = ["medicron://", "medicron://*", "https://medicron.com.br", "https://www.medicron.com.br"];
@@ -52,6 +53,13 @@ export function createAuth(db: Db, opts: Options = {}) {
       organization({
         allowUserToCreateOrganization: true,
         invitationExpiresIn: 60 * 60 * 24 * 7,
+        // Limite de pessoas da conta pelo plano (grátis 2, Plus 8). Barra só **entrar** e **convidar** além do limite: quem já está nunca sai.
+        membershipLimit: async (_user, org) => (await getSubscription(db, org.id, new Date())).limits.members,
+        // Convites pendentes só cabem nas vagas que sobram (limite − pessoas). Sem vaga (0), nenhum convite novo.
+        invitationLimit: async ({ organization: org }) => {
+          const { limits, usage } = await getSubscription(db, org.id, new Date());
+          return Math.max(0, limits.members - usage.members);
+        },
       }),
       expo(),
       ...(opts.withNextCookies === false ? [] : [nextCookies()]),

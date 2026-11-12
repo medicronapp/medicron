@@ -176,3 +176,23 @@ test("puxar para atualizar refaz a consulta", async () => {
   await act(async () => { scroll.props.refreshControl.props.onRefresh(); });
   expect(mockQuery.value.refetch).toHaveBeenCalledTimes(1);
 });
+
+describe("histórico além do limite do plano grátis", () => {
+  test("o dia antigo (API responde 402 plan_limit history) volta para Hoje e abre o paywall; a tela não quebra", async () => {
+    const { ApiClientError } = require("@/lib/api/errors") as typeof import("@/lib/api/errors");
+    mockParams.value = { dia: "2026-09-01" };
+    mockQuery.value = { data: undefined, error: new ApiClientError(402, "plan_limit", "Limite", undefined, "history"), isPending: false, isError: true, isRefetching: false, refetch: jest.fn() } as never;
+    await renderApp(<Hoje />);
+    expect(mockRouter.setParams).toHaveBeenCalledWith({ dia: undefined });
+    expect(mockRouter.push).toHaveBeenCalledWith("/plus?motivo=history");
+    expect(screen.queryByRole("header", { name: "Algo deu errado" })).toBeNull(); // não é "tela de erro"
+  });
+
+  test("REGRA DE OURO: Hoje (sem dia) renderiza e mostra as doses mesmo que a assinatura seja grátis e a conta esteja acima dos limites", async () => {
+    mockParams.value = {};
+    ready(home());
+    await renderApp(<Hoje />);
+    expect(screen.getByRole("header", { name: "Hoje" })).toBeOnTheScreen();
+    expect(mockRouter.push).not.toHaveBeenCalledWith(expect.stringContaining("/plus"));
+  });
+});

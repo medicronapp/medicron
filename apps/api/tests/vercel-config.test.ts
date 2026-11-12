@@ -26,11 +26,11 @@ describe("vercel.ts: redirecionamento para medicron.com.br", () => {
     expect(rule(await load("1"))?.permanent).toBe(false);
   });
 
-  test("a API, a política e os arquivos de links universais não são redirecionados: são o alvo das reescritas do site estático", async () => {
+  test("a API, a política, os termos e os arquivos de links universais não são redirecionados: são o alvo das reescritas do site estático", async () => {
     const m = rule(await load("1"))?.source.match(/^\/:path\((.*)\)$/);
     expect(m).not.toBeNull();
     const re = new RegExp(`^${m![1]}$`);
-    for (const no of ["api/cron/dispatch", "api/auth/get-session", "api/v1/me", "api/push/subscribe", "privacidade", ".well-known/assetlinks.json"]) {
+    for (const no of ["api/cron/dispatch", "api/auth/get-session", "api/v1/me", "api/push/subscribe", "api/webhooks/revenuecat", "privacidade", "termos", ".well-known/assetlinks.json"]) {
       expect(re.test(no), no).toBe(false);
     }
     for (const ok of ["", "entrar", "pacientes/abc", "convite/x"]) expect(re.test(ok), ok).toBe(true);
