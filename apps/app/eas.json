@@ -9,24 +9,21 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://medicron.com.br",
-        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SRrkFzGscRutXeLCsScssEEnWpF",
-        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": ""
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SRrkFzGscRutXeLCsScssEEnWpF"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://medicron.com.br",
-        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SRrkFzGscRutXeLCsScssEEnWpF",
-        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": ""
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SRrkFzGscRutXeLCsScssEEnWpF"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://medicron.com.br",
-        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SRrkFzGscRutXeLCsScssEEnWpF",
-        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": ""
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SRrkFzGscRutXeLCsScssEEnWpF"
       }
     }
   },
