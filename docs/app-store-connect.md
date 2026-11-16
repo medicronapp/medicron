@@ -57,11 +57,11 @@ Lembretes para gente e pets
 |---|---|
 | Preço | **Gratuito** (Preço base: US$ 0,00) |
 | Disponibilidade | **Brasil** (recomendado no começo: o app só está em português); acrescente Portugal se quiser |
-| Compras no app | Nenhuma |
+| Compras no app | Assinaturas do Medicron Plus (seção 6.1); o app em si continua **Gratuito** |
 | Pré-venda | Não |
 | Disponibilizar para Mac com Apple Silicon / Vision | Desmarque (o app não foi feito para eles) |
 
-App gratuito **não** exige o contrato de apps pagos nem dados bancários.
+O app é gratuito, mas como tem assinatura dentro dele, o **contrato de apps pagos e os dados bancários são obrigatórios** (passo 35 de `docs/passos-do-usuario.md`).
 
 ---
 
