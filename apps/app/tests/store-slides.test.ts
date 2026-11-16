@@ -3,10 +3,12 @@ import { renderStoreSlide, slidesFor, STORE_SIZES, STORE_SLIDES } from "../scrip
 const PIXEL = "data:image/png;base64,iVBORw0KGgo=";
 
 describe("imagens da App Store: tamanhos e roteiro", () => {
-  test("tamanhos: iPhone 6,9\" (1320×2868) e 6,5\" (1284×2778) e Android (1080×1920)", () => {
+  test("tamanhos: iPhone 6,9\" (1320×2868) e 6,5\" (1284×2778), 6,3\" (1206×2622), 6,1\" (1179×2556) e Android (1080×1920)", () => {
     expect(STORE_SIZES).toEqual([
       { id: "6.9", platform: "ios", width: 1320, height: 2868 },
       { id: "6.5", platform: "ios", width: 1284, height: 2778 },
+      { id: "6.3", platform: "ios", width: 1206, height: 2622 },
+      { id: "6.1", platform: "ios", width: 1179, height: 2556 },
       { id: "1080x1920", platform: "android", width: 1080, height: 1920 },
     ]);
   });

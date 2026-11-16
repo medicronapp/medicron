@@ -4,7 +4,7 @@
 import { DEMO_NOW, DEMO_WIDGET_PROPS, WIDGET_DEMO_NOW } from "./demo-data.ts";
 import { renderWidgetScreen } from "./store-widgets.ts";
 
-export type StoreSize = { id: "6.9" | "6.5" | "1080x1920"; platform: "ios" | "android"; width: number; height: number };
+export type StoreSize = { id: "6.9" | "6.5" | "6.3" | "6.1" | "1080x1920"; platform: "ios" | "android"; width: number; height: number };
 /** `app` = captura real de uma tela do app (`route`); `lock` e `home` = widgets do iOS reproduzidos (store-widgets.ts). */
 export type StoreSlide = {
   id: string; kind: "app" | "lock" | "home"; route: string;
@@ -15,10 +15,12 @@ export type StoreSlide = {
   subtitle: string; theme: "light" | "dark";
 };
 
-/** Tamanhos: iPhone 6,9" e 6,5" (exigidos pela App Store) e telefone Android 1080×1920 (Google Play: 320 a 3840 px, até 2:1). */
+/** Tamanhos: iPhone 6,9" e 6,5" (exigidos pela App Store) e 6,3" / 6,1" (iPhone com Dynamic Island, tela média) e telefone Android 1080×1920 (Google Play: 320 a 3840 px, até 2:1). */
 export const STORE_SIZES: StoreSize[] = [
   { id: "6.9", platform: "ios", width: 1320, height: 2868 },
   { id: "6.5", platform: "ios", width: 1284, height: 2778 },
+  { id: "6.3", platform: "ios", width: 1206, height: 2622 },
+  { id: "6.1", platform: "ios", width: 1179, height: 2556 },
   { id: "1080x1920", platform: "android", width: 1080, height: 1920 },
 ];
 
