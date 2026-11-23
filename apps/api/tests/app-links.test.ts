@@ -4,9 +4,9 @@ import { GET as aasa } from "@/app/.well-known/apple-app-site-association/route"
 import { GET as assetlinks } from "@/app/.well-known/assetlinks.json/route";
 
 describe("appleAppSiteAssociation", () => {
-  test("monta o appID com o Team ID e o caminho do convite", () => {
+  test("monta o appID com o Team ID e os caminhos do convite e da redefinição de senha", () => {
     expect(appleAppSiteAssociation({ APPLE_TEAM_ID: "ABCDE12345" })).toEqual({
-      applinks: { details: [{ appIDs: ["ABCDE12345.app.medicron"], components: [{ "/": "/convite/*" }] }] },
+      applinks: { details: [{ appIDs: ["ABCDE12345.app.medicron"], components: [{ "/": "/convite/*" }, { "/": "/redefinir-senha" }] }] },
     });
   });
   test("sem Team ID (ou em branco) é null, nunca um JSON incompleto", () => {
