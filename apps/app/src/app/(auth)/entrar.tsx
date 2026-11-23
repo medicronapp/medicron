@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { safeNext } from "@medicron/shared";
 import { authClient } from "@/lib/auth-client";
@@ -11,6 +11,7 @@ import { FormHeader } from "@/components/form-header";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
+import { Text } from "@/components/ui/text";
 import { PasswordInput } from "@/components/ui/password-input";
 
 export default function Entrar() {
@@ -50,6 +51,9 @@ export default function Entrar() {
         <FormField label="Senha">
           <PasswordInput value={password} onChangeText={setPassword} autoComplete="current-password" textContentType="password" returnKeyType="go" onSubmitEditing={submit} />
         </FormField>
+        <Pressable accessibilityRole="link" accessibilityLabel="Esqueci minha senha" onPress={() => router.push("/esqueci-senha" as never)} className="min-h-11 -mt-2 justify-center self-start">
+          <Text className="text-sm font-medium text-link underline">Esqueci minha senha</Text>
+        </Pressable>
         <FormError message={error} />
         <Button size="lg" loading={loading} onPress={submit} accessibilityLabel="Entrar">
           {loading ? "Entrando…" : "Entrar"}

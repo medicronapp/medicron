@@ -8,7 +8,9 @@ export type GuardInput = {
   pathname: string;
 };
 
-const PUBLIC = new Set(["/entrar", "/cadastrar"]);
+const PUBLIC = new Set(["/entrar", "/cadastrar", "/esqueci-senha"]);
+/** Link do e-mail de "esqueci minha senha": abre com ou sem sessão (a pessoa pode estar logada no mesmo aparelho). */
+const RESET = "/redefinir-senha";
 
 const pathOnly = (p: string) => p.split("?")[0];
 const isInvite = (path: string) => path.startsWith("/convite/");
@@ -18,6 +20,7 @@ const nextOf = (pathname: string) => safeNext(new URLSearchParams(pathname.split
 /** Decide se a rota atual precisa redirecionar. `to: null` = ficar onde está. */
 export function decideRoute({ hasSession, orgCount, pathname }: GuardInput): { to: string | null } {
   const path = pathOnly(pathname);
+  if (path === RESET) return { to: null };
   const isPublic = PUBLIC.has(path);
 
   if (!hasSession) {

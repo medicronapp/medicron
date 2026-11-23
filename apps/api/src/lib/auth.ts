@@ -8,6 +8,8 @@ import { getDb, type Db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { purgeUserData } from "@/lib/services/account-deletion";
 import { getSubscription } from "@/lib/services/subscription";
+import { sendMail, type Mail } from "@/lib/email/send";
+import { resetPasswordEmail } from "@/lib/email/reset-password";
 
 // Esquema de links do app nativo (identificador app.medicron) e domínios de produção.
 const APP_ORIGINS = ["medicron://", "medicron://*", "https://medicron.com.br", "https://www.medicron.com.br"];
@@ -19,15 +21,36 @@ type Options = {
   withNextCookies?: boolean;
   /** Origens extras (ex.: `exp://` do Expo em desenvolvimento). Também lidas de EXTRA_TRUSTED_ORIGINS (separadas por vírgula). */
   extraTrustedOrigins?: string[];
+  /** Endereço público do app (base do link do e-mail de redefinição de senha). */
+  appUrl?: string;
+  /** Envio de e-mail (os testes trocam; em produção é a Resend). */
+  sendEmail?: (mail: Mail) => Promise<void>;
 };
 
 export function createAuth(db: Db, opts: Options = {}) {
+  const appUrl = (opts.appUrl ?? process.env.APP_URL ?? "https://medicron.com.br").replace(/\/+$/, "");
+  const sendEmail = opts.sendEmail ?? ((mail: Mail) => sendMail(mail));
   const fromEnv = (process.env.EXTRA_TRUSTED_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   return betterAuth({
     ...(opts.baseURL ? { baseURL: opts.baseURL } : {}),
     ...(opts.secret ? { secret: opts.secret } : {}),
     database: drizzleAdapter(db, { provider: "pg", schema }),
-    emailAndPassword: { enabled: true, minPasswordLength: 8 },
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 8,
+      // "Esqueci minha senha": o link leva à página do app (abre o app instalado ou o navegador) e vale 1 hora.
+      resetPasswordTokenExpiresIn: 60 * 60,
+      // Quem tinha a senha antiga (ou a roubou) perde as sessões abertas.
+      revokeSessionsOnPasswordReset: true,
+      sendResetPassword: async ({ user: u, token }) => {
+        // Só existe conta quando este código roda: um erro aqui viraria resposta diferente e revelaria quem tem conta. Registra e segue.
+        try {
+          await sendEmail({ to: u.email, ...resetPasswordEmail({ name: u.name || "tudo bem", link: `${appUrl}/redefinir-senha?token=${encodeURIComponent(token)}` }) });
+        } catch (err) {
+          console.error("Falha ao enviar o e-mail de redefinição de senha:", err instanceof Error ? err.message : err);
+        }
+      },
+    },
     user: {
       // Exclusão de conta (exigida pelas lojas): com a senha, apaga/repassa os dados do app e depois o usuário.
       deleteUser: {

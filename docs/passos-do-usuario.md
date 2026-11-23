@@ -78,3 +78,12 @@ O app já tem o paywall, os limites e o servidor que atualiza o plano. Para cobr
 42. **Testar no sandbox.** Crie um **testador sandbox** no App Store Connect (Usuários e acesso → Sandbox) e, no iPhone instalado pelo TestFlight, tente criar o **3º paciente** (deve abrir o paywall), assine o anual (o sandbox acelera o tempo), veja a conta virar **Plus** na tela Conta e cancele. Confira também **Restaurar compras**.
 43. **Dar Plus aos testadores e fundadores** (de graça, sem loja), em `apps/api`: `npm run grant-plus -- --email pessoa@exemplo.com --until 2027-12-31` (concede à conta ativa da pessoa até o fim desse dia). Use para a equipe e para quem testou antes do lançamento.
 44. **Google Play:** o teste fechado (12 pessoas por 14 dias) já com o build novo, e a assinatura vinculada à versão. **Antes de enviar às lojas**, siga a seção "Assinatura" de `docs/app-store-connect.md` (6.1) e o checklist.
+
+## K. Esqueci minha senha (e-mail pela Resend)
+
+O código está pronto (API, telas do app e da web). Para o e-mail sair de verdade:
+
+45. **Resend.** Domínio `medicron.com.br` verificado na Resend (registros `resend._domainkey`, `send`, `rsend` e `_dmarc` no **Registro.br**, onde o DNS do domínio está; a zona da Vercel não vale) e uma chave de API **restrita a enviar e-mails**.
+46. **Variáveis na Vercel, projeto da API** (rode você mesmo, com `!`): `vercel env add RESEND_API_KEY production` (a mesma chave do `.env.local`). Opcionais: `MAIL_FROM` (padrão: `Medicron <nao-responda@medicron.com.br>`) e `APP_URL` (padrão: `https://medicron.com.br`, base do link do e-mail). Depois **publique a API** de novo: a Vercel só lê variáveis novas num deploy novo. Sem a chave, o pedido responde "enviamos" mas nenhum e-mail sai (o erro fica no log da Vercel).
+47. **Publicar a web** (`medicron-web`): a tela `/redefinir-senha` funciona no navegador na hora. No app, o "Esqueci minha senha" só aparece num **novo build** (`npx eas-cli build --platform ios --profile production` e envio à App Store como versão 1.0.1). Até lá, quem usa o app pode pedir o link pelo site e criar a senha pelo navegador. O link do e-mail só abre o **app instalado** (e não o navegador) depois da API publicada (caminho novo nos links universais) e do novo build.
+48. **Testar:** na tela Entrar → "Esqueci minha senha", com o e-mail de uma conta de teste. O e-mail deve chegar em segundos (veja também o spam na primeira vez). Abra o link, crie a senha nova e entre. Reabrir o mesmo link deve dizer que venceu ou já foi usado.

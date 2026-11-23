@@ -9,7 +9,7 @@ export function appleAppSiteAssociation(env: Env) {
   if (!teamId) return null;
   return {
     applinks: {
-      details: [{ appIDs: [`${teamId}.${BUNDLE_ID}`], components: [{ "/": "/convite/*" }] }],
+      details: [{ appIDs: [`${teamId}.${BUNDLE_ID}`], components: [{ "/": "/convite/*" }, { "/": "/redefinir-senha" }] }],
     },
   };
 }
