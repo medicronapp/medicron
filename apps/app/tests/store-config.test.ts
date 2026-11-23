@@ -18,12 +18,15 @@ describe("app.json para as lojas", () => {
     expect(expo.ios.associatedDomains).toEqual(["applinks:medicron.com.br"]);
     expect(expo.ios.infoPlist.ITSAppUsesNonExemptEncryption).toBe(false);
   });
-  test("Android: versionCode e App Links verificados para /convite", () => {
+  test("Android: versionCode e App Links verificados para /convite e /redefinir-senha", () => {
     expect(expo.android.versionCode).toBe(1);
     const f = expo.android.intentFilters[0];
     expect(f.autoVerify).toBe(true);
     expect(f.action).toBe("VIEW");
-    expect(f.data).toEqual([{ scheme: "https", host: "medicron.com.br", pathPrefix: "/convite" }]);
+    expect(f.data).toEqual([
+      { scheme: "https", host: "medicron.com.br", pathPrefix: "/convite" },
+      { scheme: "https", host: "medicron.com.br", pathPrefix: "/redefinir-senha" },
+    ]);
     expect(f.category).toEqual(["BROWSABLE", "DEFAULT"]);
   });
 });
