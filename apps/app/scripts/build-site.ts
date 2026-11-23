@@ -67,7 +67,7 @@ function jsonLd(origin: string, appStoreUrl?: string): string {
 }
 
 /** Rotas privadas do app (o app web responde com o mesmo HTML para qualquer caminho): fora dos buscadores. */
-const PRIVATE_PATHS = ["/api/", "/pacientes", "/itens", "/conta", "/convite/", "/nova-conta"];
+const PRIVATE_PATHS = ["/api/", "/pacientes", "/itens", "/conta", "/convite/", "/nova-conta", "/redefinir-senha", "/esqueci-senha"];
 
 export const robotsTxt = (origin: string) =>
   `User-agent: *\nAllow: /\n${PRIVATE_PATHS.map((p) => `Disallow: ${p}`).join("\n")}\n\nSitemap: ${origin}/sitemap.xml\n`;

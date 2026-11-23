@@ -69,7 +69,7 @@ describe("arquivos publicados", () => {
     const r = fs.readFileSync(path.join(out, "robots.txt"), "utf8");
     expect(r).toContain("User-agent: *");
     expect(r).toContain("Allow: /");
-    for (const p of ["/api/", "/pacientes", "/itens", "/conta", "/convite/"]) expect(r).toContain(`Disallow: ${p}`);
+    for (const p of ["/api/", "/pacientes", "/itens", "/conta", "/convite/", "/redefinir-senha", "/esqueci-senha"]) expect(r).toContain(`Disallow: ${p}`);
     expect(r).toContain("Sitemap: https://medicron.com.br/sitemap.xml");
   });
   test("sitemap.xml lista a raiz e a política de privacidade", () => {

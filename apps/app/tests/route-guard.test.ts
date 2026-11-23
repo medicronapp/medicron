@@ -58,3 +58,18 @@ describe("decideRoute", () => {
     expect(decideRoute({ ...base, orgCount: 0, activeOrgId: null, pathname: "/cadastrar" })).toEqual({ to: "/nova-conta" });
   });
 });
+
+describe("esqueci minha senha", () => {
+  test("sem sessão, as duas telas são públicas (inclusive com o token na query)", () => {
+    expect(decideRoute({ ...base, hasSession: false, pathname: "/esqueci-senha" })).toEqual({ to: null });
+    expect(decideRoute({ ...base, hasSession: false, pathname: "/redefinir-senha?token=abc" })).toEqual({ to: null });
+  });
+  test("com sessão, pedir o link volta para a raiz (já está logado)", () => {
+    expect(decideRoute({ ...base, pathname: "/esqueci-senha" })).toEqual({ to: "/" });
+  });
+  test("com sessão, o link do e-mail continua abrindo a tela (a pessoa pode estar logada no mesmo aparelho)", () => {
+    expect(decideRoute({ ...base, pathname: "/redefinir-senha?token=abc" })).toEqual({ to: null });
+    expect(decideRoute({ ...base, orgCount: 0, activeOrgId: null, pathname: "/redefinir-senha?token=abc" })).toEqual({ to: null });
+  });
+});
+

@@ -33,6 +33,11 @@
               "scheme": "https",
               "host": "medicron.com.br",
               "pathPrefix": "/convite"
+            },
+            {
+              "scheme": "https",
+              "host": "medicron.com.br",
+              "pathPrefix": "/redefinir-senha"
             }
           ],
           "category": [
