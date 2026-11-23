@@ -45,12 +45,13 @@ function availability(env: SiteEnv): { line: string; stores: string } {
     : ios ? "Grátis, sem anúncios. No iPhone e no navegador; Android em breve."
     : android ? "Grátis, sem anúncios. No Android e no navegador; iPhone em breve."
     : "Grátis, sem anúncios. Funciona no navegador; aplicativos para iPhone e Android em breve.";
-  const links = [ios ? `<a href="${escapeHtml(env.appStoreUrl!)}">App Store</a>` : "", android ? `<a href="${escapeHtml(env.playUrl!)}">Google Play</a>` : ""].filter(Boolean);
+  // A App Store tem botão próprio no topo (ao lado de "Criar conta"); aqui fica só a Google Play.
+  const links = [android ? `<a href="${escapeHtml(env.playUrl!)}">Google Play</a>` : ""].filter(Boolean);
   return { line, stores: links.length ? `\n    <p class="stores">${links.join("")}</p>` : "" };
 }
 
 /** Dados estruturados; o `<` vai escapado para o JSON nunca fechar o `<script>`. */
-function jsonLd(origin: string): string {
+function jsonLd(origin: string, appStoreUrl?: string): string {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -58,9 +59,10 @@ function jsonLd(origin: string): string {
     url: `${origin}/`,
     inLanguage: "pt-BR",
     applicationCategory: "HealthApplication",
-    operatingSystem: "Web",
+    operatingSystem: appStoreUrl ? "Web, iOS" : "Web",
     description: "Lembretes de remédio, vacina e cuidado para quem cuida de gente e de pets, com a família na mesma conta.",
     offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
+    ...(appStoreUrl ? { downloadUrl: appStoreUrl } : {}),
   }).replace(/</g, "\\u003c");
 }
 
@@ -80,8 +82,14 @@ function iphoneLine(published: boolean): string {
     : "Em breve, no app para iPhone: widgets na tela inicial e na de bloqueio vão mostrar a próxima dose sem abrir o app.";
 }
 
+/** O id numérico do app na URL da App Store (`.../id6832577438`); sem ele não há como montar o banner do Safari. */
+const appStoreId = (url?: string) => url?.match(/\/id(\d+)(?:[/?#]|$)/)?.[1];
+
 export function renderSite(env: SiteEnv, src: SiteSources): string {
   const { line, stores } = availability(env);
+  const id = appStoreId(env.appStoreUrl);
+  const banner = id ? `\n<meta name="apple-itunes-app" content="app-id=${id}">` : "";
+  const button = env.appStoreUrl ? `<a class="btn btn-outline" href="${escapeHtml(env.appStoreUrl)}">Baixar na App Store</a>` : "";
   const contact = env.contactEmail ? `<a href="mailto:${escapeHtml(env.contactEmail)}">Contato</a>` : "";
   return src.template
     .replace("{{TOKENS}}", () => extractTokens(src.globalCss))
@@ -89,9 +97,11 @@ export function renderSite(env: SiteEnv, src: SiteSources): string {
     .replace("{{THEME_JS}}", () => src.themeJs.trim())
     .replace("{{AVAILABILITY}}", () => line)
     .replace("{{STORES}}", () => stores)
+    .replace("{{SMARTBANNER}}", () => banner)
+    .replace("{{APPSTORE_BUTTON}}", () => button)
     .replace("{{CONTACT}}", () => contact)
     .replace("{{IPHONE}}", () => iphoneLine(!!env.appStoreUrl))
-    .replace("{{JSONLD}}", () => jsonLd(env.origin ?? DEFAULT_ORIGIN))
+    .replace("{{JSONLD}}", () => jsonLd(env.origin ?? DEFAULT_ORIGIN, env.appStoreUrl))
     .replaceAll("{{ORIGIN}}", () => escapeHtml(env.origin ?? DEFAULT_ORIGIN));
 }
 

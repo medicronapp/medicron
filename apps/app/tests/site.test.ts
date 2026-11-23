@@ -91,12 +91,41 @@ describe("disponibilidade: só afirma o que existe", () => {
   test("com as URLs: a linha muda e aparecem os links", () => {
     const h = html({ appStoreUrl: "https://apps.apple.com/app/id1", playUrl: "https://play.google.com/store/apps/details?id=app.medicron" });
     expect(h).toContain("Grátis, sem anúncios. No iPhone, no Android e no navegador.");
-    expect(links(h).filter((x) => /^https:\/\//.test(x.href)).map((x) => x.text)).toEqual(["App Store", "Google Play"]);
+    expect(links(h).filter((x) => /^https:\/\//.test(x.href)).map((x) => x.text)).toEqual(["Baixar na App Store", "Google Play"]);
   });
   test("só com a URL da App Store: não menciona Android como disponível", () => {
     const h = html({ appStoreUrl: "https://apps.apple.com/app/id1" });
     expect(h).toContain("Grátis, sem anúncios. No iPhone e no navegador; Android em breve.");
     expect(h).not.toContain("Google Play");
+  });
+});
+
+describe("divulgação do app na App Store", () => {
+  const url = "https://apps.apple.com/br/app/medicron/id6832577438";
+  test("sem a URL: nada de botão, banner nem dados de download", () => {
+    const h = html();
+    expect(h).not.toContain("Baixar na App Store");
+    expect(h).not.toContain("apple-itunes-app");
+    expect(h).not.toContain("downloadUrl");
+  });
+  test("com a URL: botão 'Baixar na App Store' junto de Criar conta, antes do link 'Já tenho conta'", () => {
+    const h = html({ appStoreUrl: url });
+    const actions = h.match(/<p class="actions">([\s\S]*?)<\/p>/)![1];
+    expect(actions).toContain(`<a class="btn btn-outline" href="${url}">Baixar na App Store</a>`);
+    expect(actions.indexOf("Criar conta")).toBeLessThan(actions.indexOf("Baixar na App Store"));
+    expect(actions.indexOf("Baixar na App Store")).toBeLessThan(actions.indexOf("Já tenho conta"));
+  });
+  test("com a URL: banner do Safari (app-id extraído da URL) e dados estruturados com iOS e link de download", () => {
+    const h = html({ appStoreUrl: url });
+    expect(h).toContain('<meta name="apple-itunes-app" content="app-id=6832577438">');
+    const ld = JSON.parse(h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]);
+    expect(ld.operatingSystem).toBe("Web, iOS");
+    expect(ld.downloadUrl).toBe(url);
+  });
+  test("URL sem id numérico: sem banner (não inventa app-id), mas o botão continua", () => {
+    const h = html({ appStoreUrl: "https://apps.apple.com/app/medicron" });
+    expect(h).not.toContain("apple-itunes-app");
+    expect(h).toContain("Baixar na App Store");
   });
 });
 
