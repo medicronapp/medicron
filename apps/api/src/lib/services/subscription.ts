@@ -6,9 +6,9 @@ import { ApiError } from "@/lib/api/errors";
 
 type Source = "apple" | "google" | "manual";
 
-/** Contagens que entram nos limites: pacientes **não arquivados** e pessoas (membros) da conta. */
+/** Contagens que entram nos limites: pacientes **não arquivados e não pausados** e pessoas (membros) da conta. */
 async function usageOf(db: Db, orgId: string): Promise<{ patients: number; members: number }> {
-  const [p] = await db.select({ n: count() }).from(patients).where(and(eq(patients.organizationId, orgId), isNull(patients.archivedAt)));
+  const [p] = await db.select({ n: count() }).from(patients).where(and(eq(patients.organizationId, orgId), isNull(patients.archivedAt), isNull(patients.pausedAt)));
   const [m] = await db.select({ n: count() }).from(member).where(eq(member.organizationId, orgId));
   return { patients: Number(p?.n ?? 0), members: Number(m?.n ?? 0) };
 }

@@ -7,10 +7,12 @@ import { toast } from "@/components/ui/toast";
 type Props = {
   open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string; confirmLabel: string;
   onConfirm: () => Promise<void> | void;
+  /** `default` para ações reversíveis (ex.: pausar); o padrão é o botão vermelho de ação destrutiva. */
+  tone?: "destructive" | "default";
 };
 
 /** Confirmação de ação destrutiva (o `Dialog` do site vira um sheet): "Cancelar" e o botão vermelho. */
-export function ConfirmSheet({ open, onOpenChange, title, description, confirmLabel, onConfirm }: Props) {
+export function ConfirmSheet({ open, onOpenChange, title, description, confirmLabel, onConfirm, tone = "destructive" }: Props) {
   const [pending, setPending] = useState(false);
   const busy = useRef(false); // dois toques seguidos executam uma vez só
 
@@ -33,7 +35,7 @@ export function ConfirmSheet({ open, onOpenChange, title, description, confirmLa
     <Drawer open={open} onOpenChange={onOpenChange} title={title} description={description}>
       <View className="flex-row gap-2">
         <Button variant="outline" size="lg" className="flex-1" onPress={() => onOpenChange(false)}>Cancelar</Button>
-        <Button variant="destructive" size="lg" className="flex-1" disabled={pending} onPress={() => void confirm()} accessibilityLabel={pending ? "Aguarde…" : confirmLabel}>
+        <Button variant={tone === "destructive" ? "destructive" : "default"} size="lg" className="flex-1" disabled={pending} onPress={() => void confirm()} accessibilityLabel={pending ? "Aguarde…" : confirmLabel}>
           {pending ? "Aguarde…" : confirmLabel}
         </Button>
       </View>

@@ -66,6 +66,8 @@ export type ErrorDto = { error: string; message?: string; issues?: unknown[]; mi
 export type PatientDto = {
   id: string; name: string; species: z.infer<typeof species>;
   birthDate: string | null; weightKg: string | null; notes: string | null; createdAt: string;
+  /** Acompanhamento pausado desde quando (ISO); null = ativo. Pausado não gera lembretes e não conta no limite do plano. */
+  pausedAt: string | null;
 };
 export type ItemDto = {
   id: string; name: string; kind: "medication" | "procedure";

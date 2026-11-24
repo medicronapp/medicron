@@ -55,3 +55,48 @@ describe("/patients", () => {
     expect((await call(get, "/x", withId(p.id))).status).toBe(404);
   });
 });
+
+import { POST as pause } from "@/app/api/v1/patients/[id]/pause/route";
+import { POST as resume } from "@/app/api/v1/patients/[id]/resume/route";
+
+describe("/patients/:id/pause e /resume", () => {
+  test("pausar devolve o paciente com a data da pausa, ele segue na lista; retomar zera", async () => {
+    const p = await createPatient(env.db, "o1", { name: "Mel", species: "cat" });
+    const a = await call(pause, "/x", { method: "POST", ...withId(p.id) });
+    expect(a.status).toBe(200);
+    expect(a.body.patient.pausedAt).toEqual(expect.any(String));
+    expect((await call(list, "/api/v1/patients")).body.patients[0].pausedAt).toEqual(a.body.patient.pausedAt);
+    const b = await call(resume, "/x", { method: "POST", ...withId(p.id) });
+    expect(b.status).toBe(200);
+    expect(b.body.patient.pausedAt).toBeNull();
+  });
+
+  test("paciente de outra conta ou inexistente: 404", async () => {
+    const alheio = await createPatient(env.db, "o2", { name: "Alheio", species: "dog" });
+    expect((await call(pause, "/x", { method: "POST", ...withId(alheio.id) })).status).toBe(404);
+    expect((await call(resume, "/x", { method: "POST", ...withId(alheio.id) })).status).toBe(404);
+    expect((await call(pause, "/x", { method: "POST", ...withId("nao-existe") })).status).toBe(404);
+  });
+
+  test("plano grátis: pausar libera a vaga; retomar com a conta cheia é 402 plan_limit (sem contornar o limite)", async () => {
+    const a = await createPatient(env.db, "o1", { name: "A", species: "cat" });
+    await createPatient(env.db, "o1", { name: "B", species: "dog" });
+    // conta cheia (2 de 2): não dá para criar o 3º
+    expect((await call(create, "/api/v1/patients", { method: "POST", json: { name: "C", species: "cat" } })).status).toBe(402);
+    await call(pause, "/x", { method: "POST", ...withId(a.id) });
+    // com A pausada sobra uma vaga: cria o C
+    expect((await call(create, "/api/v1/patients", { method: "POST", json: { name: "C", species: "cat" } })).status).toBe(201);
+    // agora 2 ativos de novo: retomar A estoura o limite
+    const r = await call(resume, "/x", { method: "POST", ...withId(a.id) });
+    expect(r.status).toBe(402);
+    expect(r.body.error).toBe("plan_limit");
+    expect(r.body.limit).toBe("patients");
+    expect((await call(get, "/x", withId(a.id))).body.patient.pausedAt).toEqual(expect.any(String)); // continua pausada
+  });
+
+  test("retomar quem não está pausado não bate no limite (nada muda)", async () => {
+    const a = await createPatient(env.db, "o1", { name: "A", species: "cat" });
+    await createPatient(env.db, "o1", { name: "B", species: "dog" });
+    expect((await call(resume, "/x", { method: "POST", ...withId(a.id) })).status).toBe(200);
+  });
+});

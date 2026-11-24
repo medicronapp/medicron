@@ -12,7 +12,7 @@ export async function nextWakeAt(db: Db, now: Date): Promise<Date | null> {
   const rows = await db
     .select({ plan: carePlans })
     .from(carePlans)
-    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt)))
+    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt), isNull(patients.pausedAt)))
     .innerJoin(items, and(eq(items.id, carePlans.itemId), isNull(items.archivedAt)))
     .where(eq(carePlans.active, true));
   let best: Date | null = null;

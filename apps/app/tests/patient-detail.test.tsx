@@ -26,6 +26,8 @@ const mockPatient: { value: Q<PatientDto> } = { value: { isPending: true, isErro
 const mockPlans: { value: Q<PlanDto[]> } = { value: { isPending: false, isError: false, data: [], isRefetching: false, refetch: jest.fn() } };
 const mockUpdatePatient = jest.fn();
 const mockArchive = jest.fn();
+const mockPause = jest.fn();
+const mockResume = jest.fn();
 const mockUpdatePlan = jest.fn();
 const mockDeactivate = jest.fn();
 jest.mock("@/lib/patient-queries", () => ({
@@ -33,6 +35,8 @@ jest.mock("@/lib/patient-queries", () => ({
   usePlans: () => mockPlans.value,
   useUpdatePatient: () => ({ mutateAsync: (a: unknown) => mockUpdatePatient(a) }),
   useArchivePatient: () => ({ mutateAsync: (a: unknown) => mockArchive(a) }),
+  usePausePatient: () => ({ mutateAsync: (a: unknown) => mockPause(a) }),
+  useResumePatient: () => ({ mutateAsync: (a: unknown) => mockResume(a) }),
   useUpdatePlan: () => ({ mutateAsync: (a: unknown) => mockUpdatePlan(a) }),
   useDeactivatePlan: () => ({ mutateAsync: (a: unknown) => mockDeactivate(a) }),
 }));
@@ -41,7 +45,7 @@ import { toast as mockToast } from "@/components/ui/toast";
 import Detalhe from "@/app/(app)/pacientes/[id]/index";
 
 const patient = (o: Partial<PatientDto> = {}): PatientDto => ({
-  id: "a", name: "Izzy", species: "cat", birthDate: null, weightKg: null, notes: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
+  id: "a", name: "Izzy", species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
 });
 const plan = (o: Partial<PlanDto> = {}): PlanDto => ({
   id: "p1", patientId: "a", itemId: "i1", item: { id: "i1", name: "Dipirona", kind: "medication", defaultDose: null, notes: null, createdAt: "2026-01-01T00:00:00.000Z" },
@@ -241,3 +245,74 @@ describe("aba Dados", () => {
     expect(mockArchive).toHaveBeenCalledWith("a");
   });
 });
+
+describe("pausar e retomar o acompanhamento", () => {
+  const PAUSED = "2026-11-01T12:00:00.000Z";
+
+  test("ativo: em Dados há 'Pausar acompanhamento'; a confirmação explica e pausar avisa", async () => {
+    mockPause.mockResolvedValue(undefined);
+    mockParams.value = { id: "a", aba: "dados" };
+    ready();
+    await renderApp(<Detalhe />);
+    expect(screen.queryByRole("button", { name: "Retomar acompanhamento" })).toBeNull();
+    await fireEvent.press(screen.getByRole("button", { name: "Pausar acompanhamento" }));
+    expect(await screen.findByText("Pausar o acompanhamento de Izzy?")).toBeOnTheScreen();
+    expect(screen.getByText(/sem lembretes/i)).toBeOnTheScreen();
+    expect(screen.getByText(/rotinas ficam guardadas/i)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("button", { name: "Pausar" }));
+    await waitFor(() => expect(mockPause).toHaveBeenCalledWith("a"));
+    expect(mockToast.success).toHaveBeenCalledWith("Acompanhamento pausado");
+  });
+
+  test("cancelar a confirmação não pausa", async () => {
+    mockParams.value = { id: "a", aba: "dados" };
+    ready();
+    await renderApp(<Detalhe />);
+    await fireEvent.press(screen.getByRole("button", { name: "Pausar acompanhamento" }));
+    await fireEvent.press(await screen.findByRole("button", { name: "Cancelar" }));
+    expect(mockPause).not.toHaveBeenCalled();
+  });
+
+  test("pausado: aviso no topo (nas duas abas) com 'Retomar acompanhamento' e sem o botão de pausar", async () => {
+    ready(patient({ pausedAt: PAUSED }));
+    await renderApp(<Detalhe />);
+    expect(screen.getByText("Acompanhamento pausado. Sem lembretes até você retomar.")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Retomar acompanhamento" })).toBeOnTheScreen();
+    mockParams.value = { id: "a", aba: "dados" };
+    await renderApp(<Detalhe />);
+    expect(screen.queryByRole("button", { name: "Pausar acompanhamento" })).toBeNull();
+  });
+
+  test("retomar chama a API e avisa", async () => {
+    mockResume.mockResolvedValue(undefined);
+    ready(patient({ pausedAt: PAUSED }));
+    await renderApp(<Detalhe />);
+    await fireEvent.press(screen.getByRole("button", { name: "Retomar acompanhamento" }));
+    await waitFor(() => expect(mockResume).toHaveBeenCalledWith("a"));
+    expect(mockToast.success).toHaveBeenCalledWith("Acompanhamento retomado");
+  });
+
+  test("retomar com o plano cheio (402 plan_limit) abre o paywall, sem erro solto", async () => {
+    mockResume.mockRejectedValue(new ApiClientError(402, "plan_limit", "Limite do plano", undefined, "patients"));
+    ready(patient({ pausedAt: PAUSED }));
+    await renderApp(<Detalhe />);
+    await fireEvent.press(screen.getByRole("button", { name: "Retomar acompanhamento" }));
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith("/plus?motivo=patients"));
+    expect(mockToast.error).not.toHaveBeenCalled();
+  });
+
+  test("outro erro ao retomar mostra a mensagem", async () => {
+    mockResume.mockRejectedValue(new ApiClientError(500, "x", "Falhou"));
+    ready(patient({ pausedAt: PAUSED }));
+    await renderApp(<Detalhe />);
+    await fireEvent.press(screen.getByRole("button", { name: "Retomar acompanhamento" }));
+    await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("Falhou"));
+  });
+
+  test("pausado, ainda dá para adicionar rotina (prescrever com antecedência)", async () => {
+    ready(patient({ pausedAt: PAUSED }));
+    await renderApp(<Detalhe />);
+    expect(screen.getAllByRole("button", { name: "Adicionar" }).length).toBeGreaterThan(0);
+  });
+});
+

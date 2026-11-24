@@ -6,7 +6,7 @@ const iso = (d: Date) => d.toISOString();
 export function toPatientDto(p: Patient): PatientDto {
   return {
     id: p.id, name: p.name, species: p.species, birthDate: p.birthDate, weightKg: p.weightKg,
-    notes: p.notes, createdAt: iso(p.createdAt),
+    notes: p.notes, pausedAt: p.pausedAt ? iso(p.pausedAt) : null, createdAt: iso(p.createdAt),
   };
 }
 

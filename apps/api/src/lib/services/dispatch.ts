@@ -21,7 +21,7 @@ function dueCandidates(db: Db, now: Date) {
     .select({ slot: careSlots, plan: carePlans, patientName: patients.name, itemName: items.name })
     .from(careSlots)
     .innerJoin(carePlans, eq(carePlans.id, careSlots.carePlanId))
-    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt)))
+    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt), isNull(patients.pausedAt)))
     .innerJoin(items, and(eq(items.id, carePlans.itemId), isNull(items.archivedAt)))
     .where(and(
       eq(carePlans.active, true),

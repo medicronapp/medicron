@@ -20,7 +20,7 @@ import Lista from "@/app/(app)/pacientes/index";
 import Novo from "@/app/(app)/pacientes/novo";
 
 const p = (id: string, name: string, o: Partial<PatientDto> = {}): PatientDto => ({
-  id, name, species: "cat", birthDate: null, weightKg: null, notes: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
+  id, name, species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
 });
 const ready = (data: PatientDto[]) => { mockList.value = { data, isPending: false, isError: false, isRefetching: false, refetch: jest.fn() }; };
 
@@ -69,6 +69,31 @@ describe("lista de pacientes", () => {
     expect(mockRouter.push).toHaveBeenCalledWith("/pacientes/b");
     await fireEvent.press(screen.getByRole("button", { name: "Novo paciente" }));
     expect(mockRouter.push).toHaveBeenLastCalledWith("/pacientes/novo");
+  });
+
+  test("pausados ficam numa seção própria, esmaecidos e marcados; a descrição conta os dois", async () => {
+    ready([p("a", "Izzy"), p("b", "Bob", { species: "dog", pausedAt: "2026-11-01T12:00:00.000Z" })]);
+    await renderApp(<Lista />);
+    expect(screen.getByText("1 paciente nesta conta · 1 pausado")).toBeOnTheScreen();
+    expect(screen.getByText("Pausados")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: /^Izzy/ })).not.toHaveAccessibilityValue({ text: "Pausado" });
+    expect(screen.getByRole("button", { name: /^Bob.*Pausado/ })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("button", { name: /^Bob/ }));
+    expect(mockRouter.push).toHaveBeenCalledWith("/pacientes/b");
+  });
+
+  test("sem pausados não há seção 'Pausados'", async () => {
+    ready([p("a", "Izzy")]);
+    await renderApp(<Lista />);
+    expect(screen.queryByText("Pausados")).toBeNull();
+  });
+
+  test("todos pausados: o cabeçalho diz isso e os cartões aparecem em 'Pausados'", async () => {
+    ready([p("a", "Izzy", { pausedAt: "2026-11-01T12:00:00.000Z" }), p("b", "Bob", { pausedAt: "2026-11-02T12:00:00.000Z" })]);
+    await renderApp(<Lista />);
+    expect(screen.getByText("Nenhum paciente ativo · 2 pausados")).toBeOnTheScreen();
+    expect(screen.getByText("Pausados")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: /^Izzy.*Pausado/ })).toBeOnTheScreen();
   });
 
   test("puxar para atualizar refaz a consulta", async () => {

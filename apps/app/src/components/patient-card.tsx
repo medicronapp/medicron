@@ -26,15 +26,18 @@ export function PatientCard({ patient, onPress }: { patient: PatientDto; onPress
     patient.birthDate ? ageLabel(patient.birthDate, now()) : null,
     patient.weightKg ? weightLabel(patient.weightKg) : null,
   ].filter(Boolean).join(" · ");
+  const paused = patient.pausedAt !== null;
+  const label = `${patient.name}, ${meta}${paused ? ", Pausado" : ""}`;
   const tone = TONES[patientTone(patient.name)];
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${patient.name}, ${meta}`} onPress={onPress} className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3.5 active:bg-muted">
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} className={`flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3.5 active:bg-muted ${paused ? "opacity-60" : ""}`}>
       <View className={`size-12 items-center justify-center rounded-full ${tone.box}`}>
         <SpeciesIcon species={patient.species} color={tone.ink} />
       </View>
       <View className="min-w-0 flex-1">
         <Text numberOfLines={1} className="text-base font-semibold">{patient.name}</Text>
         {meta ? <Text numberOfLines={1} className="text-sm text-muted-foreground">{meta}</Text> : null}
+        {paused ? <Text className="text-xs font-medium text-muted-foreground">Pausado</Text> : null}
       </View>
       <Icon icon={ChevronRight} color="muted" size={20} />
     </Pressable>

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PatientBody, PlanCreateBody, PlanPatchBody } from "@medicron/shared";
 import { apiClient } from "@/lib/api";
-import { archivePatient, createPatient, fetchPatient, fetchPatients, updatePatient } from "@/lib/api/patients";
+import { archivePatient, createPatient, fetchPatient, fetchPatients, pausePatient, resumePatient, updatePatient } from "@/lib/api/patients";
 import { createPlan, deactivatePlan, fetchPlans, updatePlan } from "@/lib/api/plans";
 import { useAppSession } from "@/lib/session";
 
@@ -48,6 +48,15 @@ export function useArchivePatient() {
       return Promise.all([qc.invalidateQueries({ queryKey: ["patients"] }), qc.invalidateQueries({ queryKey: ["home"] })]);
     },
   });
+}
+/** Pausar/retomar mexe no que a Hoje mostra, na lista, no detalhe e no uso do plano (a Conta conta só os ativos). */
+export function usePausePatient() {
+  const invalidate = useInvalidate();
+  return useMutation({ mutationFn: (id: string) => pausePatient(apiClient, id), onSuccess: () => invalidate("patients", "patient", "home", "me") });
+}
+export function useResumePatient() {
+  const invalidate = useInvalidate();
+  return useMutation({ mutationFn: (id: string) => resumePatient(apiClient, id), onSuccess: () => invalidate("patients", "patient", "home", "me") });
 }
 export function useCreatePlan() {
   const invalidate = useInvalidate();
