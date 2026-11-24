@@ -4,6 +4,7 @@ import { carePlans, careSlots, patients, items } from "@/lib/db/schema";
 import { NotFound } from "@/lib/errors";
 import { slotsBetween } from "@/lib/schedule";
 import { dayBounds, dayKey } from "@/lib/time";
+import { invalidateWakeHint } from "@/lib/wake-store";
 
 /**
  * Materializa os horários esperados de cada rotina ativa até o fim do dia de `now` (Brasília).
@@ -88,7 +89,7 @@ export async function resolveSlot(
     appliedAt.getTime() > now.getTime() || appliedAt.getTime() < slotAt - (plan.intervalMinutes * 60_000) / 2
   )) throw new InvalidAppliedAt();
 
-  return db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     const updated = await tx.update(careSlots).set({
       outcome: input.outcome, resolvedByUserId: userId, resolvedAt: appliedAt ?? now,
       value: input.value?.trim() || null, note: input.note?.trim() || null,
@@ -112,4 +113,7 @@ export async function resolveSlot(
       .where(eq(carePlans.id, plan.id));
     return { recorded: true };
   });
+  // Reprogramar desloca a grade das próximas doses: a dica de "próxima dose" precisa ser refeita.
+  if (result.recorded && appliedAt) await invalidateWakeHint();
+  return result;
 }

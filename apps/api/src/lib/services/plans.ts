@@ -7,6 +7,7 @@ import { firstDueAt } from "@/lib/schedule";
 import { getPatient } from "@/lib/services/patients";
 import { getItem } from "@/lib/services/items";
 import { ensureSlots } from "@/lib/services/slots";
+import { invalidateWakeHint } from "@/lib/wake-store";
 
 const interval = z.number().int().min(5, "Intervalo mínimo de 5 minutos").max(60 * 24 * 365);
 
@@ -36,6 +37,7 @@ export async function createPlan(db: Db, orgId: string, input: PlanInput): Promi
     intervalMinutes: p.intervalMinutes, anchorAt: p.anchorAt, endAt: p.endAt ?? null,
     dose: p.dose || item.defaultDose, reschedule: p.reschedule ?? false, nextDueAt, startsAt: nextDueAt,
   }).returning();
+  await invalidateWakeHint();
   return row;
 }
 
@@ -74,7 +76,7 @@ export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanP
   const now = patch.now ?? new Date();
   // Congela o passado com a grade antiga antes de trocar a rotina.
   if (scheduleChanged) await ensureSlots(db, now, orgId);
-  return db.transaction(async (tx) => {
+  const updated = await db.transaction(async (tx) => {
     let schedule: { startsAt?: Date; slotsThrough?: Date | null } = {};
     if (scheduleChanged) {
       await tx.delete(careSlots).where(and(
@@ -92,6 +94,8 @@ export async function updatePlan(db: Db, orgId: string, id: string, patch: PlanP
     }).where(and(eq(carePlans.id, id), eq(carePlans.organizationId, orgId))).returning();
     return row;
   });
+  await invalidateWakeHint();
+  return updated;
 }
 
 /** Encerra a rotina: deixa de esperar cuidados dali em diante (apaga os horários futuros não resolvidos). */
@@ -104,4 +108,5 @@ export async function deactivatePlan(db: Db, orgId: string, id: string, now: Dat
       eq(careSlots.carePlanId, id), isNull(careSlots.outcome), gt(careSlots.scheduledFor, now),
     ));
   });
+  await invalidateWakeHint();
 }

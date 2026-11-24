@@ -1,5 +1,6 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
+import { invalidateWakeHint } from "@/lib/wake-store";
 import type { Db } from "@/lib/db";
 import { patients, carePlans, type Patient } from "@/lib/db/schema";
 
@@ -51,4 +52,5 @@ export async function archivePatient(db: Db, orgId: string, id: string): Promise
     await tx.update(carePlans).set({ active: false })
       .where(and(eq(carePlans.patientId, id), eq(carePlans.organizationId, orgId)));
   });
+  await invalidateWakeHint();
 }
