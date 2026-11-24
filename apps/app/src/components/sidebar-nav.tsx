@@ -2,6 +2,7 @@ import { Pressable, View } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import { cn } from "@/lib/cn";
 import { NAV_ITEMS, isActive } from "@/lib/nav-items";
+import { AppStorePromo } from "@/components/app-store-promo";
 import { BrandMark } from "@/components/brand-mark";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
@@ -33,6 +34,9 @@ export function SidebarNav() {
             </Pressable>
           );
         })}
+      </View>
+      <View className="mt-auto">
+        <AppStorePromo />
       </View>
     </View>
   );
