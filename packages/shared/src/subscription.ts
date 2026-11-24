@@ -20,6 +20,9 @@ export function historyCutoffKey(todayKey: string, tier: Tier): string | null {
 /** Identificadores fixos: entitlement do RevenueCat e produtos nas lojas. */
 export const PLUS_ENTITLEMENT = "plus";
 export const PRODUCT_IDS = { monthly: "app.medicron.plus.monthly", annual: "app.medicron.plus.annual" } as const;
+/** Oferta de boas-vindas: offering própria no RevenueCat, com um produto anual à parte (preço de lançamento no 1º ano). */
+export const WELCOME_OFFERING_ID = "welcome";
+export const WELCOME_PRODUCT_ID = "app.medicron.plus.annual.welcome";
 
 /** O que a API devolve sobre a assinatura da conta (em `/me`). */
 export type SubscriptionDto = {

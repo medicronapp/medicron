@@ -1,15 +1,17 @@
 import { Platform } from "react-native";
 import Purchases, { type PurchasesPackage } from "react-native-purchases";
-import { PLUS_ENTITLEMENT } from "@medicron/shared";
-import type { Offer, Pkg, PurchaseResult } from "./purchases-types";
+import { PLUS_ENTITLEMENT, WELCOME_OFFERING_ID } from "@medicron/shared";
+import type { Offer, Pkg, PurchaseResult, WelcomeOffer } from "./purchases-types";
 
-export type { Offer, Pkg, PurchaseResult };
+export type { Offer, Pkg, PurchaseResult, WelcomeOffer };
 
 // Chaves PÚBLICAS do SDK do RevenueCat (uma por plataforma), definidas no EAS. Sem elas o app funciona, só sem compra.
 const apiKey = (): string | null =>
   (Platform.OS === "ios" ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY) || null;
 
 export const purchasesAvailable: boolean = apiKey() !== null;
+/** Só existe na web (imagens da tela de planos); no app é sempre `false`. */
+export const previewPaywall = false;
 
 let configured = false;
 let currentOrg: string | null = null;
@@ -71,6 +73,7 @@ async function trialEligible(pkgs: PurchasesPackage[]): Promise<Set<string> | nu
 const toPkg = (pkg: PurchasesPackage, period: Pkg["period"], eligible: Set<string> | null): Pkg => ({
   id: pkg.identifier, priceString: pkg.product.priceString, period,
   trial: eligible === null || eligible.has(pkg.product.identifier) ? trialOf(pkg) : null,
+  price: pkg.product.price ?? null, pricePerMonthString: pkg.product.pricePerMonthString ?? null,
 });
 
 /** Os planos da oferta atual do RevenueCat (mensal e anual). `null` = indisponível. Erros de rede sobem. */
@@ -83,6 +86,35 @@ export async function getOffer(): Promise<Offer | null> {
   nativePackages.set(annual.identifier, annual);
   const eligible = await trialEligible([monthly, annual]);
   return { monthly: toPkg(monthly, "month", eligible), annual: toPkg(annual, "year", eligible) };
+}
+
+/** Economia do preço promocional sobre o normal, em % inteiro; `null` se a loja não informou os valores. */
+const savingsOf = (regular: number | undefined, promo: number): number | null =>
+  typeof regular === "number" && regular > promo && promo > 0 ? Math.round((1 - promo / regular) * 100) : null;
+
+/**
+ * A oferta de boas-vindas (offering `welcome`): o anual à parte, com preço de lançamento no 1º ano. **Só iOS** e só se a loja de
+ * fato cobra isso para esta pessoa (preço pago de 1 ano e elegível); qualquer dúvida devolve `null` e a oferta não aparece,
+ * para nunca prometer um preço que a Apple não vai cobrar. Erros de rede sobem.
+ */
+export async function getWelcomeOffer(): Promise<WelcomeOffer | null> {
+  if (!purchasesAvailable || !configured || Platform.OS !== "ios") return null;
+  const { all } = await Purchases.getOfferings();
+  const annual = all?.[WELCOME_OFFERING_ID]?.annual;
+  if (!annual) return null;
+  const intro = annual.product.introPrice;
+  if (!intro || !(intro.price > 0) || intro.periodUnit !== "YEAR" || intro.periodNumberOfUnits !== 1) return null;
+  const eligible = await trialEligible([annual]);
+  if (!eligible || !eligible.has(annual.product.identifier)) return null;
+  // O identificador do pacote ($rc_annual) é o mesmo do anual normal: o id do plano leva o prefixo para os dois não se confundirem.
+  const id = `${WELCOME_OFFERING_ID}:${annual.identifier}`;
+  nativePackages.set(id, annual);
+  return {
+    pkg: { id, priceString: intro.priceString, period: "year", trial: null, price: intro.price, pricePerMonthString: null },
+    priceString: intro.priceString,
+    regularPriceString: annual.product.priceString,
+    savingsPercent: savingsOf(annual.product.price, intro.price),
+  };
 }
 
 /**

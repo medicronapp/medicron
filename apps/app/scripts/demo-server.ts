@@ -14,7 +14,7 @@ export function demoApi(pathname: string, search = ""): unknown {
     "/api/auth/get-session": demoSession(),
     "/api/auth/organization/list": demoOrgs(),
     "/api/auth/organization/get-full-organization": demoFullOrg(),
-    "/api/v1/me": demoMe(),
+    "/api/v1/me": demoMe(process.env.DEMO_TIER === "free" ? "free" : "plus"),
     "/api/v1/home": demoHome(),
     "/api/v1/config": { minAppVersion: "0.0.0" },
     "/api/v1/patients": { patients: demoPatients() },

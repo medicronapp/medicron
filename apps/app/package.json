@@ -19,7 +19,8 @@
     "build-og": "node scripts/build-og.cli.ts",
     "capture-site-shots": "node scripts/capture-site-shots.cli.ts",
     "capture-store-shots": "node scripts/capture-store-shots.cli.ts",
-    "build-store-icons": "node scripts/build-store-icons.cli.ts"
+    "build-store-icons": "node scripts/build-store-icons.cli.ts",
+    "capture-paywall": "node scripts/capture-paywall.cli.ts"
   },
   "dependencies": {
     "@better-auth/expo": "1.7.18",

@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { Linking, Platform, Pressable, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Check } from "lucide-react-native";
-import { FREE_LIMITS, PLUS_LIMITS } from "@medicron/shared";
+import { FREE_LIMITS } from "@medicron/shared";
 import { errorMessage } from "@/lib/api/errors";
 import { useMe } from "@/lib/me-query";
-import { getOffer, manageUrl, purchase, purchasesAvailable, restore, type Offer } from "@/lib/purchases";
+import { getOffer, manageUrl, previewPaywall, purchase, purchasesAvailable, restore, type Offer } from "@/lib/purchases";
 import { afterPurchase, useSubscription } from "@/lib/subscription-queries";
 import { formatDay } from "@/components/plus-card";
 import { PRIVACY_URL, TERMS_URL } from "@/components/legal-note";
 import { PageHeader } from "@/components/page-header";
+import { PlusBenefits } from "@/components/plus-benefits";
+import { PlusHero } from "@/components/plus-hero";
 import { Screen } from "@/components/screen";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/ui/icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { toast } from "@/components/ui/toast";
@@ -20,7 +20,16 @@ import { cn } from "@/lib/cn";
 
 type Choice = "annual" | "monthly";
 
-const cancelHint = () => (Platform.OS === "ios" ? "nos Ajustes da App Store" : "no Google Play");
+const HERO_TITLE: Record<string, string> = {
+  patients: "Cuide de mais gente com o Plus",
+  members: "Traga mais gente para cuidar junto",
+  history: "Veja todo o histórico do cuidado",
+};
+const DEFAULT_TITLE = "Tudo liberado com o Plus";
+/** Abaixo disso a economia do anual não vale como argumento de venda. */
+const MIN_SAVINGS = 5;
+
+const cancelHint = () => (Platform.OS === "ios" || previewPaywall ? "nos Ajustes da App Store" : "no Google Play");
 
 /** Paywall do Medicron Plus. Preços e teste grátis vêm da loja (nada fixo no código). O essencial continua grátis. */
 export default function Plus() {
@@ -31,7 +40,7 @@ export default function Plus() {
   const role = me.data?.role;
   const orgId = me.data?.orgId;
   const isAdmin = role === "owner" || role === "admin";
-  const native = Platform.OS !== "web" && purchasesAvailable;
+  const native = (Platform.OS !== "web" || previewPaywall) && purchasesAvailable;
   const canBuy = !isPlus && isAdmin && native;
 
   const [offer, setOffer] = useState<Offer | null>(null);
@@ -88,6 +97,9 @@ export default function Plus() {
   }
 
   const pkg = offer?.[choice];
+  const savings = offer?.annual.price && offer.monthly.price
+    ? Math.round((1 - offer.annual.price / (offer.monthly.price * 12)) * 100)
+    : null;
   const trial = choice === "annual" ? pkg?.trial : null;
   const terms = pkg
     ? `${trial ? `${trial.days} dias grátis, depois ` : ""}${pkg.priceString}/${pkg.period === "year" ? "ano" : "mês"}. Cancele quando quiser ${cancelHint()}.`
@@ -97,21 +109,14 @@ export default function Plus() {
   return (
     <Screen>
       <PageHeader title="Medicron Plus" onBack={() => router.back()} />
-      {reason ? <Text className="text-base font-medium">{reason}</Text> : null}
-
-      <View className="gap-2">
-        {[
-          "Pacientes ilimitados",
-          `Até ${PLUS_LIMITS.members} pessoas na conta`,
-          "Histórico completo",
-        ].map((t) => (
-          <View key={t} className="flex-row items-center gap-2">
-            <Icon icon={Check} color="brandInk" size={18} />
-            <Text className="text-base">{t}</Text>
-          </View>
-        ))}
-      </View>
-      <Text className="text-sm text-muted-foreground">Continuam grátis: lembretes, a tela Hoje, marcar doses e widgets.</Text>
+      {isPlus ? null : (
+        <PlusHero
+          compact
+          title={HERO_TITLE[motivo ?? ""] ?? DEFAULT_TITLE}
+          subtitle={reason ?? "Sem limites para quem cuida de muita gente."}
+        />
+      )}
+      <PlusBenefits compact />
 
       {isPlus && subscription ? (
         <View className="gap-3">
@@ -124,7 +129,7 @@ export default function Plus() {
         </View>
       ) : !role ? null : !isAdmin ? (
         <Text className="text-base text-muted-foreground">Peça a quem administra a conta para assinar.</Text>
-      ) : Platform.OS === "web" ? (
+      ) : Platform.OS === "web" && !previewPaywall ? (
         <Text className="text-base text-muted-foreground">Assine pelo aplicativo no celular.</Text>
       ) : !purchasesAvailable ? (
         <Text className="text-base text-muted-foreground">A assinatura não está disponível neste momento.</Text>
@@ -143,12 +148,26 @@ export default function Plus() {
           {(["annual", "monthly"] as const).map((c) => {
             const label = `${offer[c].priceString} por ${c === "annual" ? "ano" : "mês"}`;
             const on = choice === c;
+            const annual = c === "annual";
             return (
               <Pressable
                 key={c} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: on }} onPress={() => setChoice(c)}
-                className={cn("min-h-14 justify-center rounded-xl border px-4", on ? "border-primary bg-brand-soft" : "border-border bg-card")}
+                className={cn("min-h-16 justify-center gap-0.5 rounded-2xl border px-4 py-3", on ? "border-2 border-primary bg-brand-soft" : "border-border bg-card")}
               >
-                <Text className="text-base font-semibold">{label}</Text>
+                <View className="flex-row items-center justify-between gap-2">
+                  <Text className="text-base font-semibold">{label}</Text>
+                  {annual ? (
+                    <View className="rounded-full bg-primary px-2.5 py-0.5">
+                      <Text className="text-xs font-semibold text-primary-foreground">Melhor valor</Text>
+                    </View>
+                  ) : null}
+                </View>
+                {annual && offer.annual.pricePerMonthString ? (
+                  <Text className="text-sm text-muted-foreground">{`Equivale a ${offer.annual.pricePerMonthString} por mês`}</Text>
+                ) : null}
+                {annual && savings !== null && savings >= MIN_SAVINGS ? (
+                  <Text className="text-sm font-semibold text-brand-ink">{`Economize ${savings}%`}</Text>
+                ) : null}
               </Pressable>
             );
           })}
@@ -161,6 +180,7 @@ export default function Plus() {
         </View>
       )}
 
+      <Text className="text-sm text-muted-foreground">Continuam grátis: lembretes, a tela Hoje, marcar doses e widgets.</Text>
       {canBuy ? (
         <Button variant="ghost" size="lg" disabled={busy} onPress={() => void restorePurchases()} accessibilityLabel="Restaurar compras">Restaurar compras</Button>
       ) : null}

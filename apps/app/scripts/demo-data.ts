@@ -49,7 +49,7 @@ export function demoHome(): HomeResponse {
   };
   return {
     home, hasPatients: true,
-    onboarding: { showWelcome: false, checklist: { show: false, steps: { patient: true, item: true, plan: true, push: true } } },
+    onboarding: { showWelcome: false, welcomeOffer: false, checklist: { show: false, steps: { patient: true, item: true, plan: true, push: true } } },
   };
 }
 
@@ -59,7 +59,13 @@ export const demoSubscription = (): SubscriptionDto => ({
   limits: { patients: null, members: 8, historyDays: null }, usage: { patients: 5, members: 3 },
 });
 
-export const demoMe = (): MeDto => ({ user: { id: USER_ID, name: "Ana Souza", email: "ana@example.com" }, orgId: ORG_ID, role: "owner", subscription: demoSubscription() });
+/** Variante grátis (no limite), usada só nas imagens da tela de planos. */
+export const demoFreeSubscription = (): SubscriptionDto => ({
+  tier: "free", plusUntil: null, source: null, willRenew: false,
+  limits: { patients: 2, members: 2, historyDays: 30 }, usage: { patients: 2, members: 2 },
+});
+
+export const demoMe = (tier: "plus" | "free" = "plus"): MeDto => ({ user: { id: USER_ID, name: "Ana Souza", email: "ana@example.com" }, orgId: ORG_ID, role: "owner", subscription: tier === "free" ? demoFreeSubscription() : demoSubscription() });
 
 export const demoOrgs = () => [{ id: ORG_ID, name: "Família Souza", slug: "familia-souza", logo: null, metadata: null, createdAt: "2026-01-02T12:00:00.000Z" }];
 

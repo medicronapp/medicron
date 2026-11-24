@@ -1,6 +1,7 @@
 let mockOS = "ios";
 
-type Pkg = { identifier: string; product: { identifier: string; priceString: string; introPrice: null | { price: number; periodUnit: string; periodNumberOfUnits: number } } };
+type Intro = { price: number; priceString?: string; periodUnit: string; periodNumberOfUnits: number };
+type Pkg = { identifier: string; product: { identifier: string; priceString: string; introPrice: null | Intro; price?: number; pricePerMonthString?: string } };
 const mockPurchases = {
   configure: jest.fn(),
   logIn: jest.fn(async () => ({})),
@@ -26,8 +27,8 @@ function load(key?: string) {
   return mod;
 }
 
-const pkg = (id: string, priceString: string, intro: Pkg["product"]["introPrice"] = null): Pkg => ({ identifier: id, product: { identifier: `app.medicron.plus.${id.includes("annual") ? "annual" : "monthly"}`, priceString, introPrice: intro } });
-const offerings = (monthly: Pkg | null, annual: Pkg | null) => ({ current: { monthly, annual } });
+const pkg = (id: string, priceString: string, intro: Pkg["product"]["introPrice"] = null, extra: { price?: number; pricePerMonthString?: string; productId?: string } = {}): Pkg => ({ identifier: id, product: { identifier: extra.productId ?? `app.medicron.plus.${id.includes("annual") ? "annual" : "monthly"}`, priceString, introPrice: intro, price: extra.price, pricePerMonthString: extra.pricePerMonthString } });
+const offerings = (monthly: Pkg | null, annual: Pkg | null, welcomeAnnual?: Pkg | null) => ({ current: { monthly, annual }, all: welcomeAnnual === undefined ? {} : { welcome: { annual: welcomeAnnual } } });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -87,8 +88,8 @@ describe("getOffer: preços e teste grátis vêm da loja, nunca do código", () 
       pkg("$rc_annual", "R$ 89,90", { price: 0, periodUnit: "DAY", periodNumberOfUnits: 7 }),
     ));
     expect(await p.getOffer()).toEqual({
-      monthly: { id: "$rc_monthly", priceString: "R$ 12,90", period: "month", trial: null },
-      annual: { id: "$rc_annual", priceString: "R$ 89,90", period: "year", trial: { days: 7 } },
+      monthly: { id: "$rc_monthly", priceString: "R$ 12,90", period: "month", trial: null, price: null, pricePerMonthString: null },
+      annual: { id: "$rc_annual", priceString: "R$ 89,90", period: "year", trial: { days: 7 }, price: null, pricePerMonthString: null },
     });
   });
 
@@ -235,3 +236,100 @@ describe("web: não há compra", () => {
     expect(await w.restore("org1")).toBe(false);
   });
 });
+
+describe("os planos trazem o valor numérico (para mostrar economia e preço por mês)", () => {
+  test("price e pricePerMonthString vêm do produto da loja; ausentes viram null", async () => {
+    const p = load("appl_chave");
+    await p.configurePurchases("org1");
+    mockPurchases.getOfferings.mockResolvedValue(offerings(
+      pkg("$rc_monthly", "R$ 12,90", null, { price: 12.9 }),
+      pkg("$rc_annual", "R$ 89,90", null, { price: 89.9, pricePerMonthString: "R$ 7,49" }),
+    ));
+    const offer = (await p.getOffer())!;
+    expect(offer.annual).toMatchObject({ price: 89.9, pricePerMonthString: "R$ 7,49" });
+    expect(offer.monthly).toMatchObject({ price: 12.9, pricePerMonthString: null });
+  });
+});
+
+describe("oferta de boas-vindas (produto anual à parte, preço de lançamento no 1º ano)", () => {
+  const welcomeIntro: Intro = { price: 59.9, priceString: "R$ 59,90", periodUnit: "YEAR", periodNumberOfUnits: 1 };
+  const welcomePkg = (intro: Intro | null = welcomeIntro) => pkg("$rc_annual", "R$ 89,90", intro, { productId: "app.medicron.plus.annual.welcome" });
+
+  async function ready(welcome: Pkg | null | undefined, os = "ios") {
+    mockOS = os;
+    const p = load("appl_chave");
+    await p.configurePurchases("org1");
+    mockPurchases.getOfferings.mockResolvedValue(offerings(pkg("$rc_monthly", "R$ 12,90"), pkg("$rc_annual", "R$ 89,90"), welcome));
+    return p;
+  }
+  const eligibleFor = (status: number) => mockPurchases.checkTrialOrIntroductoryPriceEligibility.mockResolvedValue({ "app.medicron.plus.annual.welcome": { status } });
+
+  test("elegível: devolve o preço de boas-vindas, o preço normal e um plano com id próprio", async () => {
+    const p = await ready(welcomePkg());
+    eligibleFor(2);
+    const w = (await p.getWelcomeOffer())!;
+    expect(w.priceString).toBe("R$ 59,90");
+    expect(w.regularPriceString).toBe("R$ 89,90");
+    expect(w.pkg).toMatchObject({ id: "welcome:$rc_annual", period: "year", trial: null });
+  });
+
+  test("a economia sai dos valores da loja (59,90 sobre 89,90 = 33%); sem os valores, null", async () => {
+    const comValores = pkg("$rc_annual", "R$ 89,90", welcomeIntro, { productId: "app.medicron.plus.annual.welcome", price: 89.9 });
+    const p = await ready(comValores);
+    eligibleFor(2);
+    expect((await p.getWelcomeOffer())!.savingsPercent).toBe(33);
+    const p2 = await ready(welcomePkg());
+    eligibleFor(2);
+    expect((await p2.getWelcomeOffer())!.savingsPercent).toBeNull();
+  });
+
+  test("sem a offering 'welcome' (ainda não configurada): null, sem erro", async () => {
+    expect(await (await ready(undefined)).getWelcomeOffer()).toBeNull();
+    expect(await (await ready(null)).getWelcomeOffer()).toBeNull();
+  });
+
+  test("só promete o que a loja cobra: sem preço de lançamento, teste grátis (preço 0) ou período diferente de 1 ano: null", async () => {
+    for (const intro of [null, { ...welcomeIntro, price: 0 }, { ...welcomeIntro, periodUnit: "MONTH" }, { ...welcomeIntro, periodNumberOfUnits: 2 }]) {
+      const p = await ready(welcomePkg(intro));
+      eligibleFor(2);
+      expect(await p.getWelcomeOffer()).toBeNull();
+    }
+  });
+
+  test("inelegível (já usou outra oferta), desconhecido ou erro na checagem: null (não promete o que a loja não dá)", async () => {
+    for (const status of [1, 0]) {
+      const p = await ready(welcomePkg());
+      eligibleFor(status);
+      expect(await p.getWelcomeOffer()).toBeNull();
+    }
+    const p = await ready(welcomePkg());
+    mockPurchases.checkTrialOrIntroductoryPriceEligibility.mockRejectedValue(new Error("falhou"));
+    expect(await p.getWelcomeOffer()).toBeNull();
+  });
+
+  test("Android: não há oferta de boas-vindas (a oferta é do iOS)", async () => {
+    const p = await ready(welcomePkg(), "android");
+    expect(await p.getWelcomeOffer()).toBeNull();
+  });
+
+  test("sem a chave do RevenueCat: null", async () => {
+    mockOS = "ios";
+    const p = load();
+    expect(await p.getWelcomeOffer()).toBeNull();
+  });
+
+  test("comprar a oferta usa o pacote da offering 'welcome', não o anual normal (os dois se chamam $rc_annual)", async () => {
+    const welcome = welcomePkg();
+    const p = await ready(welcome);
+    eligibleFor(2);
+    const normal = (await p.getOffer())!; // carrega também o anual normal, com o mesmo identificador
+    const w = (await p.getWelcomeOffer())!;
+    mockPurchases.getAppUserID.mockResolvedValue("org1");
+    mockPurchases.purchasePackage.mockResolvedValue({ customerInfo: {} });
+    expect(await p.purchase(w.pkg, "org1")).toBe("purchased");
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledWith(welcome);
+    await p.purchase(normal.annual, "org1");
+    expect(mockPurchases.purchasePackage).toHaveBeenLastCalledWith(expect.objectContaining({ product: expect.objectContaining({ identifier: "app.medicron.plus.annual" }) }));
+  });
+});
+

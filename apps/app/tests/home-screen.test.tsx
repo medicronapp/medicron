@@ -1,4 +1,5 @@
 import { act, fireEvent, screen } from "@testing-library/react-native";
+import { Platform } from "react-native";
 import type { EntryDto, HomeDto, OnboardingDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 
@@ -21,6 +22,7 @@ jest.mock("@/lib/clock", () => ({ now: () => new Date("2026-11-07T15:00:00.000Z"
 
 import { toast as mockToast } from "@/components/ui/toast";
 import Hoje from "@/app/(app)/index";
+import { resetWelcomeOfferAttempt } from "@/lib/welcome-offer";
 
 const NOW = "2026-11-07T15:00:00.000Z";
 const entry = (o: Partial<EntryDto> = {}): EntryDto => ({
@@ -40,7 +42,7 @@ const home = (o: Partial<HomeDto> = {}): HomeDto => ({
   ...o,
 });
 const onboarding = (o: Partial<OnboardingDto> = {}): OnboardingDto => ({
-  showWelcome: false, checklist: { show: false, steps: { patient: true, item: true, plan: true, push: true } }, ...o,
+  showWelcome: false, welcomeOffer: false, checklist: { show: false, steps: { patient: true, item: true, plan: true, push: true } }, ...o,
 });
 const ready = (h: HomeDto, hasPatients = true, ob = onboarding()) => {
   mockQuery.value = { data: { home: h, hasPatients, onboarding: ob }, isPending: false, isError: false, isRefetching: false, refetch: jest.fn() };
@@ -196,3 +198,39 @@ describe("histórico além do limite do plano grátis", () => {
     expect(mockRouter.push).not.toHaveBeenCalledWith(expect.stringContaining("/plus"));
   });
 });
+
+describe("oferta de boas-vindas na primeira vez", () => {
+  const withOffer = (o: Partial<OnboardingDto> = {}) => ready(home(), true, onboarding({ welcomeOffer: true, ...o }));
+  beforeEach(() => { resetWelcomeOfferAttempt(); (Platform as { OS: string }).OS = "ios"; });
+  afterEach(() => { (Platform as { OS: string }).OS = "ios"; });
+
+  test("depois das boas-vindas, abre a oferta (uma vez por sessão, mesmo se a Hoje montar de novo)", async () => {
+    withOffer();
+    const first = await renderApp(<Hoje />);
+    expect(mockRouter.push).toHaveBeenCalledWith("/oferta-boas-vindas");
+    first.unmount();
+    mockRouter.push.mockClear();
+    await renderApp(<Hoje />);
+    expect(mockRouter.push).not.toHaveBeenCalledWith("/oferta-boas-vindas");
+  });
+
+  test("enquanto as boas-vindas (os slides) ainda estão na tela, não atravessa com a oferta", async () => {
+    withOffer({ showWelcome: true });
+    await renderApp(<Hoje />);
+    expect(mockRouter.push).not.toHaveBeenCalledWith("/oferta-boas-vindas");
+  });
+
+  test("sem elegibilidade no servidor (welcomeOffer false): não abre", async () => {
+    withOffer({ welcomeOffer: false });
+    await renderApp(<Hoje />);
+    expect(mockRouter.push).not.toHaveBeenCalledWith("/oferta-boas-vindas");
+  });
+
+  test("na web não há compra: não abre", async () => {
+    (Platform as { OS: string }).OS = "web";
+    withOffer();
+    await renderApp(<Hoje />);
+    expect(mockRouter.push).not.toHaveBeenCalledWith("/oferta-boas-vindas");
+  });
+});
+

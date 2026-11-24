@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ErrorView } from "@/components/error-view";
 import { HomeView } from "@/components/home/home-view";
@@ -9,6 +9,7 @@ import { toast } from "@/components/ui/toast";
 import { NETWORK_MESSAGE } from "@/lib/api/errors";
 import { isPlanLimit } from "@/lib/plan-limit";
 import { useHome } from "@/lib/home-queries";
+import { claimWelcomeOfferAttempt } from "@/lib/welcome-offer";
 
 export default function Hoje() {
   const router = useRouter();
@@ -24,6 +25,14 @@ export default function Hoje() {
     router.setParams({ dia: undefined });
     router.push("/plus?motivo=history" as never);
   }, [historyLimit, router]);
+
+  // Primeira vez (conta nova, no grátis, depois dos slides de boas-vindas): abre a oferta de boas-vindas do Plus, no máximo uma vez
+  // por sessão. A "única vez" de verdade é gravada no servidor pela própria tela da oferta, quando ela de fato aparece.
+  const homeOnboarding = query.data?.onboarding;
+  const offerNow = Platform.OS !== "web" && !!homeOnboarding && !homeOnboarding.showWelcome && homeOnboarding.welcomeOffer;
+  useEffect(() => {
+    if (offerNow && claimWelcomeOfferAttempt()) router.push("/oferta-boas-vindas" as never);
+  }, [offerNow, router]);
 
   // Falha ao atualizar com dados já na tela: mantém a tela e avisa (não troca tudo por uma tela de erro).
   useEffect(() => {
