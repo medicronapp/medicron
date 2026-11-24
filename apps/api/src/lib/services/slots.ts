@@ -15,7 +15,7 @@ export async function ensureSlots(db: Db, now: Date, orgId?: string): Promise<nu
   const rows = await db
     .select({ plan: carePlans })
     .from(carePlans)
-    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt)))
+    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt), isNull(patients.pausedAt)))
     .innerJoin(items, and(eq(items.id, carePlans.itemId), isNull(items.archivedAt)))
     .where(and(eq(carePlans.active, true), orgId ? eq(carePlans.organizationId, orgId) : undefined));
 

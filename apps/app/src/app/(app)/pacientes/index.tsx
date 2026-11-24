@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { PatientCard } from "@/components/patient-card";
 import { Screen } from "@/components/screen";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Text } from "@/components/ui/text";
 import { usePatients } from "@/lib/patient-queries";
 
 export default function Pacientes() {
@@ -35,20 +36,36 @@ export default function Pacientes() {
   }
 
   const patients = query.data;
+  const active = patients.filter((p) => p.pausedAt === null);
+  const paused = patients.filter((p) => p.pausedAt !== null);
+  const description = [
+    active.length > 0 ? `${active.length} ${active.length === 1 ? "paciente" : "pacientes"} nesta conta` : paused.length > 0 ? "Nenhum paciente ativo" : null,
+    paused.length > 0 ? `${paused.length} ${paused.length === 1 ? "pausado" : "pausados"}` : null,
+  ].filter(Boolean).join(" · ");
   const add = <AddButton label="Novo paciente" onPress={() => router.push("/pacientes/novo")} />;
   return (
     <Screen testID="patients-scroll" refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
       <PageHeader
         title="Pacientes"
-        description={patients.length ? `${patients.length} ${patients.length === 1 ? "paciente" : "pacientes"} nesta conta` : undefined}
+        description={description || undefined}
         actions={add}
       />
       {patients.length === 0 ? (
         <EmptyState icon={HeartPulse} title="Nenhum paciente cadastrado" description="Cadastre o primeiro para montar a rotina de cuidados." action={add} />
       ) : (
-        <View className="gap-3">
-          {patients.map((p) => <PatientCard key={p.id} patient={p} onPress={() => router.push(`/pacientes/${p.id}` as never)} />)}
-        </View>
+        <>
+          {active.length > 0 ? (
+            <View className="gap-3">
+              {active.map((p) => <PatientCard key={p.id} patient={p} onPress={() => router.push(`/pacientes/${p.id}` as never)} />)}
+            </View>
+          ) : null}
+          {paused.length > 0 ? (
+            <View className="gap-3">
+              <Text className="text-sm font-medium text-muted-foreground">Pausados</Text>
+              {paused.map((p) => <PatientCard key={p.id} patient={p} onPress={() => router.push(`/pacientes/${p.id}` as never)} />)}
+            </View>
+          ) : null}
+        </>
       )}
     </Screen>
   );

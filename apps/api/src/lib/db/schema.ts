@@ -20,6 +20,8 @@ export const patients = pgTable("patients", {
   species: patientSpecies("species").notNull(),
   notes: text("notes"),
   archivedAt: tz("archived_at"),
+  /** Acompanhamento pausado: sem lembretes nem doses, a prescrição fica guardada. Reversível (arquivar não é). */
+  pausedAt: tz("paused_at"),
   createdAt: createdAt(),
 });
 

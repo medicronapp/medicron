@@ -5,7 +5,8 @@ import { CalendarClock, UserX } from "lucide-react-native";
 import type { PatientBody } from "@medicron/shared";
 import { speciesLabel } from "@medicron/shared";
 import { ApiClientError, errorMessage } from "@/lib/api/errors";
-import { useArchivePatient, usePatient, usePlans, useUpdatePatient } from "@/lib/patient-queries";
+import { isPlanLimit } from "@/lib/plan-limit";
+import { useArchivePatient, usePatient, usePausePatient, usePlans, useResumePatient, useUpdatePatient } from "@/lib/patient-queries";
 import { AddButton } from "@/components/add-button";
 import { ConfirmSheet } from "@/components/confirm-sheet";
 import { EmptyState } from "@/components/empty-state";
@@ -17,6 +18,7 @@ import { Screen } from "@/components/screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Text } from "@/components/ui/text";
 import { toast } from "@/components/ui/toast";
 
 export default function Paciente() {
@@ -28,8 +30,12 @@ export default function Paciente() {
   const plans = usePlans(id);
   const update = useUpdatePatient();
   const archive = useArchivePatient();
+  const pause = usePausePatient();
+  const resume = useResumePatient();
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [pausing, setPausing] = useState(false);
+  const [resuming, setResuming] = useState(false);
   const back = () => router.dismissTo("/pacientes");
 
   if (patient.isPending) {
@@ -74,9 +80,33 @@ export default function Paciente() {
     }
   }
 
+  const isPaused = p.pausedAt !== null;
+
+  async function resumeCare() {
+    if (resuming) return;
+    setResuming(true);
+    try {
+      await resume.mutateAsync(id);
+      toast.success("Acompanhamento retomado");
+    } catch (err) {
+      // Pausado não contava no limite do plano: voltar a ser ativo precisa caber nele.
+      const limit = isPlanLimit(err);
+      if (limit) router.push(`/plus?motivo=${limit.limit}` as never);
+      else toast.error(errorMessage(err));
+    } finally {
+      setResuming(false);
+    }
+  }
+
   return (
     <Screen>
       <PageHeader title={p.name} description={speciesLabel(p.species)} onBack={back} actions={tab === "rotina" ? add : undefined} />
+      {isPaused ? (
+        <View className="gap-3 rounded-2xl border border-border bg-muted p-3.5">
+          <Text className="text-sm">Acompanhamento pausado. Sem lembretes até você retomar.</Text>
+          <Button size="lg" loading={resuming} onPress={() => void resumeCare()} accessibilityLabel="Retomar acompanhamento">Retomar acompanhamento</Button>
+        </View>
+      ) : null}
       <Segmented
         accessibilityLabel="Seções do paciente"
         items={[{ key: "dados", label: "Dados" }, { key: "rotina", label: "Rotina" }]}
@@ -86,7 +116,20 @@ export default function Paciente() {
       {tab === "dados" ? (
         <View className="gap-8">
           <PatientForm patient={p} onSubmit={save} submitting={saving} />
+          {isPaused ? null : (
+            <View className="gap-2">
+              <Button variant="outline" size="lg" onPress={() => setPausing(true)} accessibilityLabel="Pausar acompanhamento">Pausar acompanhamento</Button>
+              <Text className="text-sm text-muted-foreground">Para quando o tratamento parou por um tempo. Nada é apagado e você retoma quando quiser.</Text>
+            </View>
+          )}
           <Button variant="destructive" size="lg" onPress={() => setArchiving(true)} accessibilityLabel="Arquivar paciente">Arquivar paciente</Button>
+          <ConfirmSheet
+            open={pausing} onOpenChange={setPausing} tone="default"
+            title={`Pausar o acompanhamento de ${p.name}?`}
+            description="Sem lembretes e sem doses na tela Hoje. As rotinas ficam guardadas e você pode retomar quando quiser. Pausado, não conta no limite de pacientes do plano."
+            confirmLabel="Pausar"
+            onConfirm={async () => { await pause.mutateAsync(id); toast.success("Acompanhamento pausado"); }}
+          />
           <ConfirmSheet
             open={archiving} onOpenChange={setArchiving}
             title={`Arquivar ${p.name}?`}

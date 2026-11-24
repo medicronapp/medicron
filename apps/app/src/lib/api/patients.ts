@@ -6,3 +6,5 @@ export const fetchPatient = async (c: ApiClient, id: string) => (await c.request
 export const createPatient = async (c: ApiClient, body: PatientBody) => (await c.request<{ patient: PatientDto }>("POST", "/patients", body)).patient;
 export const updatePatient = async (c: ApiClient, id: string, body: PatientBody) => (await c.request<{ patient: PatientDto }>("PATCH", `/patients/${id}`, body)).patient;
 export const archivePatient = (c: ApiClient, id: string) => c.request<void>("DELETE", `/patients/${id}`);
+export const pausePatient = async (c: ApiClient, id: string) => (await c.request<{ patient: PatientDto }>("POST", `/patients/${id}/pause`)).patient;
+export const resumePatient = async (c: ApiClient, id: string) => (await c.request<{ patient: PatientDto }>("POST", `/patients/${id}/resume`)).patient;

@@ -36,7 +36,7 @@ export async function getHome(db: Db, orgId: string, now: Date, selectedKey?: st
     })
     .from(careSlots)
     .innerJoin(carePlans, eq(carePlans.id, careSlots.carePlanId))
-    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt)))
+    .innerJoin(patients, and(eq(patients.id, carePlans.patientId), isNull(patients.archivedAt), isNull(patients.pausedAt)))
     .innerJoin(items, and(eq(items.id, carePlans.itemId), isNull(items.archivedAt)))
     .leftJoin(user, eq(user.id, careSlots.resolvedByUserId))
     .where(and(

@@ -1,8 +1,9 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { invalidateWakeHint } from "@/lib/wake-store";
 import type { Db } from "@/lib/db";
-import { patients, carePlans, type Patient } from "@/lib/db/schema";
+import { patients, carePlans, careSlots, type Patient } from "@/lib/db/schema";
+import { firstDueAt } from "@/lib/schedule";
 
 export const patientInput = z.object({
   name: z.string().trim().min(1, "Informe o nome").max(60),
@@ -53,4 +54,47 @@ export async function archivePatient(db: Db, orgId: string, id: string): Promise
       .where(and(eq(carePlans.patientId, id), eq(carePlans.organizationId, orgId)));
   });
   await invalidateWakeHint();
+}
+
+/**
+ * Pausa o acompanhamento: sem lembretes nem doses, mas o paciente e a prescrição ficam guardados (reversível; arquivar não é).
+ * Apaga as doses futuras ainda sem resultado (as já resolvidas e as passadas ficam no histórico). Idempotente.
+ */
+export async function pausePatient(db: Db, orgId: string, id: string, now: Date = new Date()): Promise<Patient | null> {
+  const row = await db.transaction(async (tx) => {
+    const [cur] = await tx.select().from(patients)
+      .where(and(eq(patients.id, id), eq(patients.organizationId, orgId), isNull(patients.archivedAt))).limit(1);
+    if (!cur) return null;
+    if (cur.pausedAt) return cur;
+    const [paused] = await tx.update(patients).set({ pausedAt: now }).where(eq(patients.id, id)).returning();
+    const planIds = (await tx.select({ id: carePlans.id }).from(carePlans).where(eq(carePlans.patientId, id))).map((p) => p.id);
+    if (planIds.length > 0) {
+      await tx.delete(careSlots).where(and(inArray(careSlots.carePlanId, planIds), isNull(careSlots.outcome), gt(careSlots.scheduledFor, now)));
+    }
+    return paused;
+  });
+  if (row) await invalidateWakeHint();
+  return row;
+}
+
+/**
+ * Retoma o acompanhamento: as rotinas ativas continuam a partir da PRÓXIMA dose (a grade da âncora), então o que passou durante a
+ * pausa não vira "atrasado". O limite de pacientes do plano é conferido por quem chama (a rota), como na criação.
+ */
+export async function resumePatient(db: Db, orgId: string, id: string, now: Date = new Date()): Promise<Patient | null> {
+  const row = await db.transaction(async (tx) => {
+    const [cur] = await tx.select().from(patients)
+      .where(and(eq(patients.id, id), eq(patients.organizationId, orgId), isNull(patients.archivedAt))).limit(1);
+    if (!cur) return null;
+    if (!cur.pausedAt) return cur;
+    const [resumed] = await tx.update(patients).set({ pausedAt: null }).where(eq(patients.id, id)).returning();
+    const plans = await tx.select().from(carePlans).where(and(eq(carePlans.patientId, id), eq(carePlans.active, true)));
+    for (const plan of plans) {
+      const next = firstDueAt(plan.anchorAt, plan.intervalMinutes, now);
+      await tx.update(carePlans).set({ startsAt: next, nextDueAt: next, slotsThrough: null }).where(eq(carePlans.id, plan.id));
+    }
+    return resumed;
+  });
+  if (row) await invalidateWakeHint();
+  return row;
 }

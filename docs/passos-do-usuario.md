@@ -98,3 +98,9 @@ O agendador (cron-job.org) bate em `/api/cron/dispatch` a cada minuto. Antes, ca
 52. **Depois de uns dias estável**, o Neon pode voltar ao plano grátis (Launch cobra por uso; sem o banco sempre ligado a conta deve ficar perto de zero, mas confira o consumo antes de rebaixar).
 
 **Como funciona (para manutenção):** `src/lib/wake-store.ts` (Redis por REST) e `src/lib/services/wake-hint.ts` (`dispatchIfDue`, `nextWakeAt`). Toda mudança que pode **adiantar** uma dose (criar, editar ou desativar rotina; arquivar paciente ou item; resolver "feito" numa rotina que reprograma) troca a versão da dica, e uma dica de versão antiga nunca pula o banco. Se o Redis falhar, o cron vai direto ao banco.
+
+## M. Pausar paciente
+
+Em Pacientes → o paciente → aba **Dados** → **Pausar acompanhamento** (reversível; "Arquivar" continua sendo o que encerra as rotinas). Pausado: sem lembretes, sem doses na Hoje, fora do limite de pacientes do plano (a Conta conta só os ativos) e a prescrição fica guardada. **Retomar** vale a partir da próxima dose; o que passou na pausa não vira "atrasado". Com o plano grátis cheio, retomar abre o paywall (pausar não é um jeito de passar do limite).
+
+53. **Aplicar a migração 0010 ANTES de publicar a API:** `cd apps/api && npm run db:migrate` (cria `patients.paused_at`; sem ela a lista de pacientes quebra). Depois publicar a API e a web (`medicron-web`). No app do iPhone, o botão só aparece no próximo build (1.0.1); até lá dá para pausar pelo site.
