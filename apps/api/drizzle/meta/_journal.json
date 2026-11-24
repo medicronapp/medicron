@@ -78,6 +78,13 @@
       "when": 1795544489640,
       "tag": "0010_patients_paused_at",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795562122418,
+      "tag": "0011_welcome_offer_seen",
+      "breakpoints": true
     }
   ]
 }

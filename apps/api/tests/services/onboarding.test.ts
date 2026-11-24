@@ -1,11 +1,13 @@
 import { describe, expect, test } from "vitest";
+import { eq } from "drizzle-orm";
 import { createTestDb } from "@/lib/db/test-db";
-import { user } from "@/lib/db/schema";
+import { member, organization, user } from "@/lib/db/schema";
 import { createPatient } from "@/lib/services/patients";
 import { createItem } from "@/lib/services/items";
 import { createPlan } from "@/lib/services/plans";
 import { saveSubscription, saveDevice } from "@/lib/services/push";
-import { dismissChecklist, getOnboarding, markWelcomeSeen } from "@/lib/services/onboarding";
+import { dismissChecklist, getOnboarding, markWelcomeOfferSeen, markWelcomeSeen } from "@/lib/services/onboarding";
+import { grantPlus } from "@/lib/services/subscription";
 
 async function setup() {
   const db = await createTestDb();
@@ -70,3 +72,84 @@ describe("passo 'push' do checklist com aparelho nativo", () => {
     expect((await getOnboarding(db, "u1", "o1")).checklist.steps.push).toBe(true);
   });
 });
+
+describe("oferta de boas-vindas (aparece uma vez)", () => {
+  async function withOrg() {
+    const db = await setup();
+    await db.insert(organization).values({ id: "o1", name: "Casa", slug: "casa", createdAt: new Date() });
+    await db.insert(member).values([
+      { id: "m1", organizationId: "o1", userId: "u1", role: "owner", createdAt: new Date() },
+      { id: "m2", organizationId: "o1", userId: "u2", role: "member", createdAt: new Date() },
+    ]);
+    return db;
+  }
+
+  test("dono (ou admin) de conta grátis que nunca viu a oferta: elegível", async () => {
+    const db = await withOrg();
+    expect((await getOnboarding(db, "u1", "o1")).welcomeOffer).toBe(true);
+  });
+
+  test("quem é só membro (não pode assinar) não vê a oferta", async () => {
+    const db = await withOrg();
+    expect((await getOnboarding(db, "u2", "o1")).welcomeOffer).toBe(false);
+  });
+
+  test("conta que já é Plus não vê a oferta", async () => {
+    const db = await withOrg();
+    await grantPlus(db, "o1", new Date(Date.now() + 86_400_000 * 30), "manual");
+    expect((await getOnboarding(db, "u1", "o1")).welcomeOffer).toBe(false);
+  });
+
+  test("depois de exibida nunca mais: marcar é idempotente e vale só para aquele usuário", async () => {
+    const db = await withOrg();
+    await db.update(member).set({ role: "admin" }).where(eq(member.id, "m2"));
+    await markWelcomeOfferSeen(db, "u1");
+    await markWelcomeOfferSeen(db, "u1");
+    expect((await getOnboarding(db, "u1", "o1")).welcomeOffer).toBe(false);
+    expect((await getOnboarding(db, "u2", "o1")).welcomeOffer).toBe(true);
+  });
+
+  test("marcar a oferta não mexe nas boas-vindas nem no checklist", async () => {
+    const db = await withOrg();
+    await markWelcomeOfferSeen(db, "u1");
+    const o = await getOnboarding(db, "u1", "o1");
+    expect(o.showWelcome).toBe(true);
+    expect(o.checklist.show).toBe(true);
+  });
+
+  test("conta que não existe para o usuário (sem vínculo): sem oferta", async () => {
+    const db = await withOrg();
+    expect((await getOnboarding(db, "u1", "outra-org")).welcomeOffer).toBe(false);
+  });
+});
+
+
+describe("migração 0011: quem já existia não vê a oferta", () => {
+  test("o preenchimento marca os usuários existentes (com ou sem linha de onboarding) e não mexe no resto", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { sql } = await import("drizzle-orm");
+    const { userOnboarding } = await import("@/lib/db/schema");
+    const db = await withOrgDb();
+    await markWelcomeSeen(db, "u2"); // u2 já tem linha (boas-vindas vistas); u1 não tem
+    await db.update(userOnboarding).set({ welcomeOfferSeenAt: null });
+    const file = readFileSync("drizzle/0011_welcome_offer_seen.sql", "utf8");
+    const backfill = file.split("--> statement-breakpoint")[1];
+    await db.execute(sql.raw(backfill));
+    expect((await getOnboarding(db, "u1", "o1")).welcomeOffer).toBe(false);
+    expect((await getOnboarding(db, "u2", "o1")).welcomeOffer).toBe(false);
+    expect((await getOnboarding(db, "u2", "o1")).showWelcome).toBe(false); // intacto
+    await db.insert(user).values({ id: "u3", name: "Cris", email: "c@x.com" });
+    await db.insert(member).values({ id: "m3", organizationId: "o1", userId: "u3", role: "owner", createdAt: new Date() });
+    expect((await getOnboarding(db, "u3", "o1")).welcomeOffer).toBe(true); // conta nova depois da migração vê
+  });
+});
+
+async function withOrgDb() {
+  const db = await setup();
+  await db.insert(organization).values({ id: "o1", name: "Casa", slug: "casa", createdAt: new Date() });
+  await db.insert(member).values([
+    { id: "m1", organizationId: "o1", userId: "u1", role: "owner", createdAt: new Date() },
+    { id: "m2", organizationId: "o1", userId: "u2", role: "owner", createdAt: new Date() },
+  ]);
+  return db;
+}
