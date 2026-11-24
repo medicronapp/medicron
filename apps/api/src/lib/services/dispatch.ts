@@ -15,17 +15,9 @@ export type PushSender = (
  */
 export type DeviceSender = (devices: PushDeviceRow[], payload: PushPayload) => Promise<{ sent: number; gone: string[] }>;
 
-/**
- * Notifica os cuidados vencidos e ainda não resolvidos, uma vez por horário. Por rotina avisa só o
- * horário mais recente (os mais antigos pendentes são marcados como avisados sem enviar). Seguro para
- * execuções concorrentes: o slot é reivindicado por compare-and-set em notified_at antes do envio.
- */
-export async function dispatchDue(
-  db: Db, now: Date, send: PushSender, sendDevices?: DeviceSender,
-): Promise<{ plans: number; sent: number; removed: number }> {
-  await ensureSlots(db, now);
-
-  const candidates = await db
+/** Horários vencidos, ainda sem resultado nem aviso, de rotinas ativas (a lista que o disparo notifica). */
+function dueCandidates(db: Db, now: Date) {
+  return db
     .select({ slot: careSlots, plan: carePlans, patientName: patients.name, itemName: items.name })
     .from(careSlots)
     .innerJoin(carePlans, eq(carePlans.id, careSlots.carePlanId))
@@ -38,6 +30,24 @@ export async function dispatchDue(
       or(isNull(carePlans.notifiedForDueAt), lt(carePlans.notifiedForDueAt, careSlots.scheduledFor)),
     ))
     .orderBy(careSlots.scheduledFor);
+}
+
+/** Ainda há horário vencido por avisar (ex.: o envio falhou e foi devolvido para nova tentativa)? */
+export async function hasPendingNotifications(db: Db, now: Date): Promise<boolean> {
+  return (await dueCandidates(db, now).limit(1)).length > 0;
+}
+
+/**
+ * Notifica os cuidados vencidos e ainda não resolvidos, uma vez por horário. Por rotina avisa só o
+ * horário mais recente (os mais antigos pendentes são marcados como avisados sem enviar). Seguro para
+ * execuções concorrentes: o slot é reivindicado por compare-and-set em notified_at antes do envio.
+ */
+export async function dispatchDue(
+  db: Db, now: Date, send: PushSender, sendDevices?: DeviceSender,
+): Promise<{ plans: number; sent: number; removed: number }> {
+  await ensureSlots(db, now);
+
+  const candidates = await dueCandidates(db, now);
 
   const byPlan = new Map<string, typeof candidates>();
   for (const c of candidates) byPlan.set(c.plan.id, [...(byPlan.get(c.plan.id) ?? []), c]);

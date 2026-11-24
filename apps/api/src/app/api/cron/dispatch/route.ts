@@ -1,7 +1,7 @@
 import { getDb } from "@/lib/db";
 import { expoSender } from "@/lib/push/expo-sender";
 import { webPushSender } from "@/lib/push/sender";
-import { dispatchDue } from "@/lib/services/dispatch";
+import { dispatchIfDue } from "@/lib/services/wake-hint";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +10,6 @@ export async function GET(req: Request) {
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) {
     return Response.json({ error: "Não autorizado" }, { status: 401 });
   }
-  const result = await dispatchDue(getDb(), new Date(), webPushSender, expoSender);
+  const result = await dispatchIfDue(getDb(), new Date(), webPushSender, expoSender);
   return Response.json(result);
 }
