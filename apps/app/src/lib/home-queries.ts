@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { hashKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DoseBody } from "@medicron/shared";
 import { apiClient } from "@/lib/api";
-import { completeWelcome, dismissChecklist, fetchHome, recordDose, type HomeResponse } from "@/lib/api/home";
+import { completeWelcome, dismissChecklist, fetchHome, markWelcomeOfferSeen, recordDose, type HomeResponse } from "@/lib/api/home";
 import { useAppSession } from "@/lib/session";
 
 export const HOME_KEY = ["home"] as const;
@@ -42,6 +42,12 @@ export function useRecordDose() {
 export function useCompleteWelcome() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: () => completeWelcome(apiClient), onSuccess: () => qc.invalidateQueries({ queryKey: HOME_KEY }) });
+}
+
+/** Grava no servidor que a oferta de boas-vindas foi exibida (nunca mais será oferecida a esta pessoa). */
+export function useMarkWelcomeOfferSeen() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: () => markWelcomeOfferSeen(apiClient), onSuccess: () => qc.invalidateQueries({ queryKey: HOME_KEY }) });
 }
 
 export function useDismissChecklist() {

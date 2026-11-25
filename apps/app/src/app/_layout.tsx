@@ -58,7 +58,12 @@ function Gate() {
   if (session.status === "error") return <SessionError onRetry={session.retry} />;
   // Sem casca enquanto a sessão carrega ou o redirecionamento está pendente (evita o flash de telas logadas).
   if (session.status === "loading" || decision.to) return <View className="flex-1 bg-background" />;
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* A oferta de boas-vindas cobre a tela toda e só se sai por "Agora não" ou comprando. */}
+      <Stack.Screen name="oferta-boas-vindas" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {

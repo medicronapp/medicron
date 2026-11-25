@@ -22,3 +22,4 @@ export async function recordDose(client: ApiClient, body: DoseBody): Promise<Dos
 
 export const completeWelcome = (client: ApiClient) => client.request<void>("POST", "/onboarding/welcome");
 export const dismissChecklist = (client: ApiClient) => client.request<void>("POST", "/onboarding/checklist/dismiss");
+export const markWelcomeOfferSeen = (client: ApiClient) => client.request<void>("POST", "/onboarding/welcome-offer");

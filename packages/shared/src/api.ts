@@ -81,6 +81,8 @@ export type PlanDto = {
 
 export type OnboardingDto = {
   showWelcome: boolean;
+  /** Mostrar a oferta de boas-vindas do Plus (uma vez, só para quem pode assinar e ainda está no grátis). */
+  welcomeOffer: boolean;
   checklist: { show: boolean; steps: { patient: boolean; item: boolean; plan: boolean; push: boolean } };
 };
 

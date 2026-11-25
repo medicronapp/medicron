@@ -197,3 +197,58 @@ describe("estados que não vendem", () => {
     expect(await screen.findByText("R$ 89,90 por ano")).toBeOnTheScreen();
   });
 });
+
+describe("visual promocional do paywall", () => {
+  const PRICED = {
+    monthly: { ...OFFER.monthly, price: 12.9, pricePerMonthString: null },
+    annual: { ...OFFER.annual, price: 89.9, pricePerMonthString: "R$ 7,49" },
+  };
+
+  test("destaque do anual: 'Melhor valor', economia sobre o mensal e o preço por mês", async () => {
+    mockPurchases.getOffer.mockResolvedValue(PRICED);
+    await renderApp(<Plus />);
+    expect(await screen.findByText("Melhor valor")).toBeOnTheScreen();
+    expect(screen.getByText("Economize 42%")).toBeOnTheScreen();
+    expect(screen.getByText("Equivale a R$ 7,49 por mês")).toBeOnTheScreen();
+  });
+
+  test("sem os valores numéricos da loja não inventa economia nem preço por mês; o selo 'Melhor valor' continua", async () => {
+    await renderApp(<Plus />);
+    expect(await screen.findByText("Melhor valor")).toBeOnTheScreen();
+    expect(screen.queryByText(/Economize/)).toBeNull();
+    expect(screen.queryByText(/Equivale a/)).toBeNull();
+  });
+
+  test("economia pequena (menos de 5%) não vira argumento de venda", async () => {
+    mockPurchases.getOffer.mockResolvedValue({ monthly: { ...OFFER.monthly, price: 10 }, annual: { ...OFFER.annual, price: 118 } });
+    await renderApp(<Plus />);
+    await screen.findByText("Melhor valor");
+    expect(screen.queryByText(/Economize/)).toBeNull();
+  });
+
+  test("o título de oportunidade acompanha o motivo, sem trocar o texto do limite", async () => {
+    mockParams.value = { motivo: "patients" };
+    await renderApp(<Plus />);
+    expect(await screen.findByText("Cuide de mais gente com o Plus")).toBeOnTheScreen();
+    expect(screen.getByText("Você chegou ao limite de 2 pacientes do plano grátis.")).toBeOnTheScreen();
+  });
+
+  test.each([
+    ["members", "Traga mais gente para cuidar junto"],
+    ["history", "Veja todo o histórico do cuidado"],
+    [undefined, "Tudo liberado com o Plus"],
+  ])("motivo %s: título '%s'", async (motivo, title) => {
+    mockParams.value = motivo ? { motivo } : {};
+    await renderApp(<Plus />);
+    expect(await screen.findByText(title)).toBeOnTheScreen();
+  });
+
+  test("quem já é Plus não vê o topo promocional", async () => {
+    mockSub.value = PLUS;
+    mockParams.value = { motivo: "patients" };
+    await renderApp(<Plus />);
+    await screen.findByText(/Medicron Plus ativo/);
+    expect(screen.queryByTestId("plus-hero")).toBeNull();
+  });
+});
+

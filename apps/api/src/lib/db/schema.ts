@@ -130,6 +130,8 @@ export const userOnboarding = pgTable("user_onboarding", {
   userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
   welcomeSeenAt: tz("welcome_seen_at"),
   checklistDoneAt: tz("checklist_done_at"),
+  /** Quando a oferta de boas-vindas do Plus foi exibida (uma vez só; contas anteriores ao recurso já nascem marcadas). */
+  welcomeOfferSeenAt: tz("welcome_offer_seen_at"),
 });
 
 export type Patient = typeof patients.$inferSelect;
