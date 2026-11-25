@@ -28,6 +28,10 @@ try {
       console.log(path.relative(path.resolve(appRoot, "../.."), out));
     }
   }
+  // Imagem de revisão da Apple (iPhone 6,5", 1242×2688): a oferta de boas-vindas, tema claro, sem alterar nada além do tamanho.
+  const review = path.join(outDir, "review-oferta-boas-vindas-1242x2688.png");
+  await demo.shoot({ route: "/oferta-boas-vindas", theme: "light", width: 414, height: 896, scale: 3, out: review });
+  console.log(path.relative(path.resolve(appRoot, "../.."), review));
 } finally {
   demo.close();
 }
