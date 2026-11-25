@@ -34,15 +34,23 @@ beforeEach(() => {
 });
 
 describe("oferta de boas-vindas", () => {
-  test("mostra o preço de lançamento, o preço normal riscado, a economia e a regra de uma vez só", async () => {
+  test("mostra o preço normal riscado ao lado do preço de lançamento, o desconto e a regra de uma vez só", async () => {
     await renderApp(<Oferta />);
     expect(await screen.findByText("Oferta de boas-vindas")).toBeOnTheScreen();
-    expect(screen.getByText("R$ 59,90")).toBeOnTheScreen();
+    expect(screen.getByText("Seu primeiro ano do Plus com desconto")).toBeOnTheScreen();
+    expect(screen.getByText("Normal")).toBeOnTheScreen();
     expect(screen.getByText("R$ 89,90")).toBeOnTheScreen();
-    expect(screen.getByText("no primeiro ano")).toBeOnTheScreen();
-    expect(screen.getByText("Economize 33%")).toBeOnTheScreen();
+    expect(screen.getByText("Só no 1º ano")).toBeOnTheScreen();
+    expect(screen.getByText("R$ 59,90")).toBeOnTheScreen();
+    expect(screen.getByText("-33%")).toBeOnTheScreen();
     expect(screen.getByText("Esta oferta não aparece de novo.")).toBeOnTheScreen();
     for (const t of ["Pacientes ilimitados", "Até 8 pessoas na conta", "Histórico completo"]) expect(screen.getByText(t)).toBeOnTheScreen();
+  });
+
+  test("sem o subtítulo antigo (espaço vertical para o preço e o botão)", async () => {
+    await renderApp(<Oferta />);
+    await screen.findByText("Oferta de boas-vindas");
+    expect(screen.queryByText(/Um convite só para quem está começando agora/)).toBeNull();
   });
 
   test("diz a verdade sobre a renovação e o cancelamento (exigência da Apple)", async () => {
@@ -128,10 +136,10 @@ describe("oferta de boas-vindas", () => {
     expect(mockRouter.back).toHaveBeenCalled();
   });
 
-  test("sem número da economia (a loja não informou), não mostra 'Economize'", async () => {
+  test("sem número do desconto (a loja não informou), não mostra a pílula de porcentagem", async () => {
     mockPurchases.getWelcomeOffer.mockResolvedValue({ ...WELCOME, savingsPercent: null });
     await renderApp(<Oferta />);
     await screen.findByText("Oferta de boas-vindas");
-    expect(screen.queryByText(/Economize/)).toBeNull();
+    expect(screen.queryByText(/%/)).toBeNull();
   });
 });
