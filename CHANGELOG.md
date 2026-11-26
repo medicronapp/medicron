@@ -15,6 +15,9 @@ Cada versão enviada à loja ganha uma tag no git (`v1.1.0`).
 ### Novo
 - **Avisos por paciente (grátis):** na ficha de cada paciente, "Receber avisos deste paciente". Cada pessoa decide de quais pacientes recebe o aviso de dose no celular, sem mexer no que os outros recebem. O padrão continua "tudo ligado". A tela Hoje não muda.
 
+### Corrigido
+- **Editar a frequência de uma rotina:** agora dá para trocar (por exemplo, de "1 vez ao dia" para "a cada 4 horas") ao editar a rotina de um paciente. Os próximos horários seguem o horário da primeira dose da rotina.
+
 ## [1.1.0]
 
 ### Novo

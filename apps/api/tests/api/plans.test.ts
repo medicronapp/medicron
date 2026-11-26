@@ -69,6 +69,27 @@ describe("/plans/:id", () => {
     expect(r.body.plan).toMatchObject({ reschedule: false, dose: "2 gotas" });
   });
 
+  test("alterar a frequência (ex.: de 8 em 8 horas para a cada 4 horas): a rotina muda e a próxima dose cai na nova grade", async () => {
+    const { id } = await plan();
+    const r = await call(patchPlan, "/x", { method: "PATCH", json: { intervalMinutes: 240 }, ...withId(id) });
+    expect(r.status).toBe(200);
+    expect(r.body.plan.intervalMinutes).toBe(240);
+    const stepMs = 240 * 60_000;
+    expect((new Date(r.body.plan.nextDueAt).getTime() - new Date(r.body.plan.anchorAt).getTime()) % stepMs).toBe(0);
+    expect(new Date(r.body.plan.nextDueAt).getTime()).toBeGreaterThan(Date.now());
+    // o que não foi enviado fica como estava
+    expect(r.body.plan.reschedule).toBe(true);
+  });
+
+  test("frequência inválida (menos de 5 minutos, mais de 1 ano, fracionada, texto): 400 e a rotina não muda", async () => {
+    const { id } = await plan();
+    for (const intervalMinutes of [4, 525_601, 90.5, "x", 0, -60]) {
+      expect((await call(patchPlan, "/x", { method: "PATCH", json: { intervalMinutes }, ...withId(id) })).status).toBe(400);
+    }
+    const l = await call(listPlans, "/x", withId((await call(patchPlan, "/x", { method: "PATCH", json: { dose: "x" }, ...withId(id) })).body.plan.patientId));
+    expect(l.body.plans[0].intervalMinutes).toBe(480);
+  });
+
   test("data final antes da próxima dose: 422; rotina de outra organização: 404", async () => {
     const { id } = await plan();
     const r = await call(patchPlan, "/x", { method: "PATCH", json: { endAt: "2000-01-01T00:00:00.000Z" }, ...withId(id) });

@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import type { ItemDto, PlanCreateBody } from "@medicron/shared";
-import { INTERVAL_PRESETS, parseLocalInput } from "@medicron/shared";
+import { parseLocalInput } from "@medicron/shared";
+import { INTERVAL_ERROR, resolveInterval } from "@/lib/interval";
+import { FrequencyFields } from "@/components/frequency-fields";
 import { FormSection } from "@/components/form-section";
 import { Button } from "@/components/ui/button";
 import { DateTimeField } from "@/components/ui/datetime-field";
@@ -10,10 +12,6 @@ import { Input } from "@/components/ui/input";
 import { SelectField } from "@/components/ui/select-field";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
-
-const CUSTOM = "0";
-const MIN_MINUTES = 5;
-const MAX_MINUTES = 60 * 24 * 365;
 
 type Props = { items: ItemDto[]; defaultAnchor: string; onSubmit: (body: PlanCreateBody) => Promise<void> };
 type Errors = { item?: string; interval?: string };
@@ -35,20 +33,13 @@ export function PlanForm({ items, defaultAnchor, onSubmit }: Props) {
     ...items.filter((i) => i.kind === "medication").map((i) => ({ value: i.id, label: i.name, group: "Medicações" })),
     ...items.filter((i) => i.kind === "procedure").map((i) => ({ value: i.id, label: i.name, group: "Procedimentos" })),
   ];
-  const intervalOptions = [
-    ...INTERVAL_PRESETS.map((p) => ({ value: String(p.minutes), label: p.label })),
-    { value: CUSTOM, label: "Personalizada…" },
-  ];
 
   async function submit() {
     if (busy.current) return;
     const next: Errors = {};
     if (!itemId) next.item = "Selecione o item";
-    let minutes = Number(interval);
-    if (interval === CUSTOM) {
-      minutes = Math.round(Number(customHours.replace(",", ".")) * 60);
-      if (!Number.isFinite(minutes) || minutes < MIN_MINUTES || minutes > MAX_MINUTES) next.interval = "Informe um intervalo entre 5 minutos e 1 ano";
-    }
+    const minutes = resolveInterval(interval, customHours);
+    if (minutes === null) next.interval = INTERVAL_ERROR;
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -56,7 +47,7 @@ export function PlanForm({ items, defaultAnchor, onSubmit }: Props) {
     setPending(true);
     try {
       await onSubmit({
-        itemId, intervalMinutes: minutes, anchorAt: parseLocalInput(anchor).toISOString(),
+        itemId, intervalMinutes: minutes as number, anchorAt: parseLocalInput(anchor).toISOString(),
         ...(endAt ? { endAt: parseLocalInput(endAt).toISOString() } : {}),
         ...(dose.trim() ? { dose: dose.trim() } : {}),
         reschedule,
@@ -78,12 +69,7 @@ export function PlanForm({ items, defaultAnchor, onSubmit }: Props) {
         </FormField>
       </FormSection>
       <FormSection title="Quando">
-        <FormField label="Frequência">
-          <SelectField value={interval} onChange={setInterval} options={intervalOptions} />
-        </FormField>
-        <FormField label="Se personalizada: a cada quantas horas?" hint="Ex.: 5" error={errors.interval}>
-          <Input value={customHours} onChangeText={setCustomHours} keyboardType="decimal-pad" />
-        </FormField>
+        <FrequencyFields interval={interval} onIntervalChange={setInterval} customHours={customHours} onCustomHoursChange={setCustomHours} error={errors.interval} />
         <FormField label="Horário da primeira dose" hint="Horário de Brasília. Os próximos seguem a frequência a partir daqui.">
           <DateTimeField value={anchor} onChange={setAnchor} />
         </FormField>
