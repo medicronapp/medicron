@@ -3,6 +3,8 @@ import { View } from "react-native";
 import { parseLocalInput, toLocalInput } from "@medicron/shared";
 import type { PlanDto } from "@medicron/shared";
 import { errorMessage } from "@/lib/api/errors";
+import { INTERVAL_ERROR, initialInterval, resolveInterval } from "@/lib/interval";
+import { FrequencyFields } from "@/components/frequency-fields";
 import { useUpdatePlan } from "@/lib/patient-queries";
 import { Button } from "@/components/ui/button";
 import { DateTimeField } from "@/components/ui/datetime-field";
@@ -15,7 +17,7 @@ import { toast } from "@/components/ui/toast";
 
 type Props = { plan: PlanDto; patientName: string; open: boolean; onOpenChange: (open: boolean) => void };
 
-/** Edição de uma rotina: dose, data final e reprogramação de horários. */
+/** Edição de uma rotina: frequência, dose, data final e reprogramação de horários. */
 export function EditPlanSheet({ plan, patientName, open, onOpenChange }: Props) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange} title={plan.item?.name ?? "Rotina"} description={`${patientName} · editar rotina`}>
@@ -27,6 +29,10 @@ export function EditPlanSheet({ plan, patientName, open, onOpenChange }: Props) 
 
 function EditPlanForm({ plan, onClose }: { plan: PlanDto; onClose: () => void }) {
   const update = useUpdatePlan();
+  const initial = initialInterval(plan.intervalMinutes);
+  const [interval, setInterval] = useState(initial.interval);
+  const [customHours, setCustomHours] = useState(initial.customHours);
+  const [intervalError, setIntervalError] = useState("");
   const [dose, setDose] = useState(plan.dose ?? "");
   // A data final aparece no relógio de Brasília.
   const [endAt, setEndAt] = useState(plan.endAt ? toLocalInput(new Date(plan.endAt)) : "");
@@ -35,11 +41,21 @@ function EditPlanForm({ plan, onClose }: { plan: PlanDto; onClose: () => void })
 
   async function save() {
     if (pending) return;
+    const minutes = resolveInterval(interval, customHours);
+    if (minutes === null) {
+      setIntervalError(INTERVAL_ERROR);
+      return;
+    }
+    setIntervalError("");
     setPending(true);
     try {
       await update.mutateAsync({
         planId: plan.id,
-        body: { dose: dose.trim() || null, endAt: endAt ? parseLocalInput(endAt).toISOString() : null, reschedule },
+        body: {
+          // Só vai no corpo se mudou: trocar a frequência refaz os horários futuros.
+          ...(minutes !== plan.intervalMinutes ? { intervalMinutes: minutes } : {}),
+          dose: dose.trim() || null, endAt: endAt ? parseLocalInput(endAt).toISOString() : null, reschedule,
+        },
       });
       toast.success("Rotina atualizada");
       onClose();
@@ -52,6 +68,10 @@ function EditPlanForm({ plan, onClose }: { plan: PlanDto; onClose: () => void })
 
   return (
     <View className="gap-4">
+      <FrequencyFields
+        interval={interval} onIntervalChange={setInterval} customHours={customHours} onCustomHoursChange={setCustomHours}
+        error={intervalError} hint="Os próximos horários seguem o horário da primeira dose desta rotina."
+      />
       <FormField label="Dose / instrução" hint="Opcional.">
         <Input value={dose} onChangeText={setDose} maxLength={120} autoComplete="off" />
       </FormField>

@@ -13,6 +13,7 @@ export const PATCH = route<P>(async (req, { params }) => {
   const { orgId } = await getApiContext();
   const body = await readJson(req, planPatchBody);
   const plan = await updatePlan(getDb(), orgId, (await params).id, {
+    intervalMinutes: body.intervalMinutes,
     dose: body.dose,
     reschedule: body.reschedule,
     endAt: body.endAt === undefined ? undefined : body.endAt === null ? null : new Date(body.endAt),

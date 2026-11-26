@@ -40,6 +40,8 @@ export const planCreateBody = z.object({
 export type PlanCreateBody = z.infer<typeof planCreateBody>;
 
 export const planPatchBody = z.object({
+  /** Nova frequência, em minutos (de 5 minutos a 1 ano). Os próximos horários seguem a grade do primeiro horário da rotina. */
+  intervalMinutes: z.number().int().min(5).max(60 * 24 * 365).optional(),
   dose: z.string().trim().max(120).nullable().optional(),
   endAt: iso.nullable().optional(),
   reschedule: z.boolean().optional(),

@@ -209,6 +209,61 @@ describe("editar rotina", () => {
     expect(screen.getByRole("button", { name: "Salvar" })).toBeEnabled();
   });
 
+  test("mostra a frequência atual e avisa de onde seguem os próximos horários", async () => {
+    ready(patient(), [plan({ intervalMinutes: 480 })]);
+    await renderApp(<Detalhe />);
+    await open();
+    expect(screen.getByRole("button", { name: "Frequência" })).toBeOnTheScreen();
+    expect(screen.getAllByText("A cada 8 horas")).toHaveLength(2); // o cartão da rotina e o seletor do sheet
+    expect(screen.getByText(/seguem o horário da primeira dose/)).toBeOnTheScreen();
+  });
+
+  test("trocar a frequência (ex.: de 1 vez ao dia para a cada 4 horas) envia o novo intervalo junto do resto", async () => {
+    mockUpdatePlan.mockResolvedValue(plan());
+    ready(patient(), [plan({ intervalMinutes: 1440 })]);
+    await renderApp(<Detalhe />);
+    await open();
+    await fireEvent.press(screen.getByRole("button", { name: "Frequência" }));
+    await fireEvent.press(await screen.findByRole("button", { name: "A cada 4 horas" }));
+    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalledWith({ planId: "p1", body: { intervalMinutes: 240, dose: "1 comprimido", endAt: null, reschedule: false } }));
+    expect(mockToast.success).toHaveBeenCalledWith("Rotina atualizada");
+  });
+
+  test("sem mexer na frequência ela não vai no corpo (nada de refazer os horários à toa)", async () => {
+    mockUpdatePlan.mockResolvedValue(plan());
+    ready(patient(), [plan({ intervalMinutes: 480 })]);
+    await renderApp(<Detalhe />);
+    await open();
+    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+    expect((mockUpdatePlan.mock.calls[0][0] as { body: Record<string, unknown> }).body).not.toHaveProperty("intervalMinutes");
+  });
+
+  test("frequência personalizada: horas viram minutos (1,5 h = 90 min); inválida avisa e não envia", async () => {
+    mockUpdatePlan.mockResolvedValue(plan());
+    ready(patient(), [plan({ intervalMinutes: 480 })]);
+    await renderApp(<Detalhe />);
+    await open();
+    await fireEvent.press(screen.getByRole("button", { name: "Frequência" }));
+    await fireEvent.press(await screen.findByRole("button", { name: "Personalizada…" }));
+    await fireEvent.changeText(screen.getByLabelText("Se personalizada: a cada quantas horas?"), "0,01");
+    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    expect(await screen.findByText("Informe um intervalo entre 5 minutos e 1 ano")).toBeOnTheScreen();
+    expect(mockUpdatePlan).not.toHaveBeenCalled();
+    await fireEvent.changeText(screen.getByLabelText("Se personalizada: a cada quantas horas?"), "1,5");
+    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalledWith({ planId: "p1", body: expect.objectContaining({ intervalMinutes: 90 }) }));
+  });
+
+  test("rotina com frequência fora dos atalhos abre como 'Personalizada' com as horas preenchidas", async () => {
+    ready(patient(), [plan({ intervalMinutes: 90 })]);
+    await renderApp(<Detalhe />);
+    await open();
+    expect(screen.getByText("Personalizada…")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Se personalizada: a cada quantas horas?").props.value).toBe("1,5");
+  });
+
   test("Cancelar fecha sem salvar", async () => {
     ready(patient(), [plan()]);
     await renderApp(<Detalhe />);
