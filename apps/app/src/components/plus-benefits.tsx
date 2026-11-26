@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Infinity as InfinityIcon, History, Users } from "lucide-react-native";
+import { Check, Infinity as InfinityIcon, History, Users } from "lucide-react-native";
 import { PLUS_LIMITS } from "@medicron/shared";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
@@ -11,7 +11,22 @@ const BENEFITS = [
 ] as const;
 
 /** O que o Plus libera, em cartões com ícone. Os textos são os mesmos das fichas das lojas. */
-export function PlusBenefits({ compact = false }: { compact?: boolean }) {
+export function PlusBenefits({ compact = false, plain = false }: { compact?: boolean; plain?: boolean }) {
+  // Lista simples com checks (a mesma da oferta de boas-vindas), sem cartões.
+  if (plain) {
+    return (
+      <View className="gap-2.5 px-1">
+        {BENEFITS.map(({ text }) => (
+          <View key={text} className="flex-row items-center gap-3">
+            <View className="size-6 items-center justify-center rounded-full bg-brand-soft">
+              <Icon icon={Check} color="brandInk" size={14} />
+            </View>
+            <Text className="flex-1 text-base font-medium">{text}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  }
   if (compact) {
     return (
       <View className="gap-1 rounded-2xl border border-border bg-card px-3.5 py-2.5">

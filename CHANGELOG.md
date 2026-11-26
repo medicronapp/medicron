@@ -18,7 +18,7 @@ Cada versão enviada à loja ganha uma tag no git (`v1.1.0`).
 - **Pausar paciente:** para quando o tratamento parou por um tempo. Sem lembretes e sem doses na Hoje, a prescrição fica guardada e não conta no limite de pacientes do plano. Retomar continua da próxima dose.
 
 ### Melhorado
-- **Tela de limites e planos** com visual promocional: topo de destaque, benefícios com ícones, plano anual com "Melhor valor" e a economia sobre o mensal.
+- **Tela de limites e planos** no mesmo estilo da oferta de boas-vindas: topo em degradê com título conforme o motivo, dois cartões de plano com botão de escolha (anual com "Melhor valor" e a economia, mensal), botão e avisos fixos na base e links de Termos e Privacidade numa frase só.
 
 ### Sem build (já publicado no servidor e no site)
 - O cron dos lembretes só abre o banco quando há dose a disparar (cache da próxima dose).

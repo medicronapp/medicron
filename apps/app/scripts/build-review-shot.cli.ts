@@ -1,7 +1,7 @@
 // Gera a imagem de revisão da assinatura para o App Store Connect: a tela do Plus (planos) em iPhone 6,5" (1242×2688).
 // Uso (dentro de apps/app): node scripts/build-review-shot.cli.ts
 // A tela real do Plus só carrega planos no aparelho (a versão web não vende), então esta imagem reproduz a tela com os
-// MESMOS textos, preços e cores de `src/app/(app)/plus.tsx` e do `global.css`. Se a tela mudar, atualize aqui.
+// MESMOS textos, preços e cores de `src/app/plus.tsx` e do `global.css`. Se a tela mudar, atualize aqui.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
