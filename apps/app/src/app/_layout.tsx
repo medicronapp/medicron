@@ -62,6 +62,8 @@ function Gate() {
     <Stack screenOptions={{ headerShown: false }}>
       {/* A oferta de boas-vindas cobre a tela toda e só se sai por "Agora não" ou comprando. */}
       <Stack.Screen name="oferta-boas-vindas" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
+      {/* A tela de planos (limites e Plus) também cobre a tela toda; dá para fechá-la deslizando ou pelo X. */}
+      <Stack.Screen name="plus" options={{ presentation: "fullScreenModal" }} />
     </Stack>
   );
 }

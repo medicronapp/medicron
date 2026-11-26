@@ -32,7 +32,7 @@ jest.mock("@/lib/purchases", () => ({
 }));
 
 import { toast as mockToast } from "@/components/ui/toast";
-import Plus from "@/app/(app)/plus";
+import Plus from "@/app/plus";
 
 const OFFER = {
   monthly: { id: "$rc_monthly", priceString: "R$ 12,90", period: "month" as const, trial: null },
@@ -53,7 +53,7 @@ afterEach(() => { jest.restoreAllMocks(); });
 describe("tela do Medicron Plus", () => {
   test("mostra o que o Plus inclui e o que continua grátis", async () => {
     await renderApp(<Plus />);
-    expect(await screen.findByText("Medicron Plus")).toBeOnTheScreen();
+    expect(await screen.findByText("Tudo liberado com o Plus")).toBeOnTheScreen();
     for (const t of ["Pacientes ilimitados", "Até 8 pessoas na conta", "Histórico completo"]) expect(screen.getByText(t)).toBeOnTheScreen();
     expect(screen.getByText(/Continuam grátis/)).toBeOnTheScreen();
     expect(screen.getByText(/lembretes, a tela Hoje, marcar doses e widgets/)).toBeOnTheScreen();
@@ -61,8 +61,10 @@ describe("tela do Medicron Plus", () => {
 
   test("os preços e o teste vêm da loja: anual com 7 dias grátis em destaque e o texto das regras da Apple", async () => {
     await renderApp(<Plus />);
-    expect(await screen.findByText("R$ 89,90 por ano")).toBeOnTheScreen();
-    expect(screen.getByText("R$ 12,90 por mês")).toBeOnTheScreen();
+    expect(await screen.findByText("R$ 89,90")).toBeOnTheScreen();
+    expect(screen.getByText("por ano")).toBeOnTheScreen();
+    expect(screen.getByText("R$ 12,90")).toBeOnTheScreen();
+    expect(screen.getByText("por mês")).toBeOnTheScreen();
     expect(screen.getByText(/7 dias grátis, depois R\$ 89,90\/ano\. Cancele quando quiser nos Ajustes da App Store\./)).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Começar 7 dias grátis" })).toBeOnTheScreen();
   });
@@ -70,14 +72,14 @@ describe("tela do Medicron Plus", () => {
   test("sem teste na oferta, não fala em teste grátis e o botão é 'Assinar'", async () => {
     mockPurchases.getOffer.mockResolvedValue({ ...OFFER, annual: { ...OFFER.annual, trial: null } });
     await renderApp(<Plus />);
-    expect(await screen.findByRole("button", { name: "Assinar" })).toBeOnTheScreen();
+    expect(await screen.findByRole("button", { name: "Assinar por R$ 89,90/ano" })).toBeOnTheScreen();
     expect(screen.queryByText(/dias grátis/)).toBeNull();
   });
 
   test("escolher o mensal troca o botão e o texto de renovação", async () => {
     await renderApp(<Plus />);
     await fireEvent.press(await screen.findByRole("radio", { name: /R\$ 12,90 por mês/ }));
-    expect(screen.getByRole("button", { name: "Assinar" })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Assinar por R$ 12,90/mês" })).toBeOnTheScreen();
     expect(screen.getByText(/R\$ 12,90\/mês\. Cancele quando quiser/)).toBeOnTheScreen();
   });
 
@@ -194,7 +196,7 @@ describe("estados que não vendem", () => {
     await renderApp(<Plus />);
     expect(await screen.findByText("Não foi possível carregar os planos.")).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole("button", { name: "Tentar de novo" }));
-    expect(await screen.findByText("R$ 89,90 por ano")).toBeOnTheScreen();
+    expect(await screen.findByRole("radio", { name: "R$ 89,90 por ano" })).toBeOnTheScreen();
   });
 });
 
@@ -207,16 +209,16 @@ describe("visual promocional do paywall", () => {
   test("destaque do anual: 'Melhor valor', economia sobre o mensal e o preço por mês", async () => {
     mockPurchases.getOffer.mockResolvedValue(PRICED);
     await renderApp(<Plus />);
-    expect(await screen.findByText("Melhor valor")).toBeOnTheScreen();
-    expect(screen.getByText("Economize 42%")).toBeOnTheScreen();
-    expect(screen.getByText("Equivale a R$ 7,49 por mês")).toBeOnTheScreen();
+    expect(await screen.findByText("Melhor valor · Economize 42%")).toBeOnTheScreen();
+    expect(screen.getByText("R$ 7,49 por mês")).toBeOnTheScreen();
   });
 
   test("sem os valores numéricos da loja não inventa economia nem preço por mês; o selo 'Melhor valor' continua", async () => {
     await renderApp(<Plus />);
     expect(await screen.findByText("Melhor valor")).toBeOnTheScreen();
     expect(screen.queryByText(/Economize/)).toBeNull();
-    expect(screen.queryByText(/Equivale a/)).toBeNull();
+    expect(screen.queryByText(/por mês$/)).toBeTruthy(); // só o "por mês" do plano mensal, sem preço mensal equivalente do anual
+    expect(screen.queryByText(/R\$ 7,49/)).toBeNull();
   });
 
   test("economia pequena (menos de 5%) não vira argumento de venda", async () => {
@@ -224,6 +226,37 @@ describe("visual promocional do paywall", () => {
     await renderApp(<Plus />);
     await screen.findByText("Melhor valor");
     expect(screen.queryByText(/Economize/)).toBeNull();
+  });
+
+  test("cartões de plano empilhados: o escolhido fica marcado e o outro não", async () => {
+    await renderApp(<Plus />);
+    expect(await screen.findByRole("radio", { name: /R\$ 89,90 por ano/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /R\$ 12,90 por mês/ })).not.toBeChecked();
+    await fireEvent.press(screen.getByRole("radio", { name: /R\$ 12,90 por mês/ }));
+    expect(screen.getByRole("radio", { name: /R\$ 12,90 por mês/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /R\$ 89,90 por ano/ })).not.toBeChecked();
+  });
+
+  test("'Comece com 7 dias grátis' só aparece no anual escolhido; o mensal diz 'Cobrado todo mês'", async () => {
+    await renderApp(<Plus />);
+    expect(await screen.findByText("Comece com 7 dias grátis")).toBeOnTheScreen();
+    expect(screen.getByText("Cobrado todo mês")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole("radio", { name: /R\$ 12,90 por mês/ }));
+    expect(screen.queryByText("Comece com 7 dias grátis")).toBeNull();
+  });
+
+  test("o X do topo fecha a tela", async () => {
+    await renderApp(<Plus />);
+    await fireEvent.press(await screen.findByRole("button", { name: "Fechar" }));
+    expect(mockRouter.back).toHaveBeenCalled();
+  });
+
+  test("rodapé: Termos e Privacidade ficam numa frase só (links dentro do texto) e 'Restaurar compras' separado", async () => {
+    await renderApp(<Plus />);
+    expect(await screen.findByText(/Ao continuar, você concorda com os/)).toBeOnTheScreen();
+    expect(screen.getByRole("link", { name: "Termos de uso" })).toBeOnTheScreen();
+    expect(screen.getByRole("link", { name: "Política de privacidade" })).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "Restaurar compras" })).toBeOnTheScreen();
   });
 
   test("o título de oportunidade acompanha o motivo, sem trocar o texto do limite", async () => {
