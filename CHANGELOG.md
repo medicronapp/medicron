@@ -10,7 +10,12 @@ O servidor (API) e o site são publicados à parte, sem número de versão próp
 O número do build (`buildNumber` no iOS, `versionCode` no Android) é separado e o EAS incrementa sozinho.
 Cada versão enviada à loja ganha uma tag no git (`v1.1.0`).
 
-## [1.1.0], em preparação
+## [1.2.0], em preparação
+
+### Novo
+- **Avisos por paciente (grátis):** na ficha de cada paciente, "Receber avisos deste paciente". Cada pessoa decide de quais pacientes recebe o aviso de dose no celular, sem mexer no que os outros recebem. O padrão continua "tudo ligado". A tela Hoje não muda.
+
+## [1.1.0]
 
 ### Novo
 - **Oferta de boas-vindas do Medicron Plus:** na primeira vez que uma conta nova chega à tela Hoje, o anual por R$ 59,90 no primeiro ano (depois R$ 89,90). Aparece uma única vez por pessoa; só aparece se a loja de fato oferecer esse preço.

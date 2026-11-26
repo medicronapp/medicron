@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PatientBody, PlanCreateBody, PlanPatchBody } from "@medicron/shared";
 import { apiClient } from "@/lib/api";
-import { archivePatient, createPatient, fetchPatient, fetchPatients, pausePatient, resumePatient, updatePatient } from "@/lib/api/patients";
+import { archivePatient, createPatient, fetchPatient, fetchPatients, pausePatient, resumePatient, setPatientNotifications, updatePatient } from "@/lib/api/patients";
 import { createPlan, deactivatePlan, fetchPlans, updatePlan } from "@/lib/api/plans";
 import { useAppSession } from "@/lib/session";
 
@@ -57,6 +57,17 @@ export function usePausePatient() {
 export function useResumePatient() {
   const invalidate = useInvalidate();
   return useMutation({ mutationFn: (id: string) => resumePatient(apiClient, id), onSuccess: () => invalidate("patients", "patient", "home", "me") });
+}
+/** Liga/desliga os avisos de dose de um paciente para a pessoa logada. Atualiza o detalhe e a lista. */
+export function useSetPatientNotifications() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) => setPatientNotifications(apiClient, id, enabled),
+    onSuccess: (patient) => {
+      qc.setQueryData(["patient", patient.id], patient);
+      return qc.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
 }
 export function useCreatePlan() {
   const invalidate = useInvalidate();

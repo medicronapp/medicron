@@ -115,3 +115,10 @@ O app abre uma tela de oferta na primeira vez que uma conta **nova** chega à te
 57. **Novo build** do iOS (1.0.1) e envio à App Store junto com o produto novo. Para o revisor ver a oferta, nas notas diga: "A oferta de boas-vindas só aparece para uma conta criada agora: crie uma conta nova para vê-la. A conta de demonstração é anterior à oferta."
 58. **Testar:** crie uma conta nova no TestFlight (conta sandbox), conclua os slides de boas-vindas e a oferta deve abrir. Feche com "Agora não": ela **não** volta, nem trocando de aparelho. Sem o produto na Apple ou sem a offering `welcome`, nada aparece e nada se perde (o app pode ir para a loja antes da configuração).
 59. **Imagens para conferir ou divulgar** (preços de exemplo, tema claro e escuro): `npm run capture-paywall` em `apps/app` (gera `store-assets/paywall/`; faz um build web especial, o app e o site de verdade não mudam).
+
+## O. Avisos por paciente
+
+Na ficha do paciente há o interruptor **"Receber avisos deste paciente"**. É pessoal: cada pessoa da conta escolhe de quais pacientes recebe o aviso de dose no celular (web e iPhone). Padrão: tudo ligado (ninguém precisa configurar). A tela Hoje e as doses continuam iguais para todos.
+
+60. **Aplicar a migração 0012 ANTES de publicar a API:** `cd apps/api && npm run db:migrate` (cria `patient_notification_mutes`; sem ela a lista de pacientes e o disparo dos avisos quebram). Depois publicar a API.
+61. **No app do iPhone** o interruptor só aparece num novo build (versão **1.2.0**: ajuste `version` do `app.json` e crie a versão no App Store Connect). O servidor novo é compatível com o app antigo (que continua recebendo tudo).

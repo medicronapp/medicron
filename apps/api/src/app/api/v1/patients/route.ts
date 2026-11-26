@@ -4,14 +4,16 @@ import { getApiContext } from "@/lib/api/context";
 import { toPatientDto } from "@/lib/api/dto";
 import { json, readJson, route } from "@/lib/api/route";
 import { createPatient, listPatients } from "@/lib/services/patients";
+import { mutedPatientIds } from "@/lib/services/notification-prefs";
 import { assertCanCreatePatient } from "@/lib/services/subscription";
 
 export const dynamic = "force-dynamic";
 
 export const GET = route(async () => {
-  const { orgId } = await getApiContext();
-  const patients = await listPatients(getDb(), orgId);
-  return json({ patients: patients.map(toPatientDto) });
+  const { orgId, userId } = await getApiContext();
+  const db = getDb();
+  const [patients, muted] = await Promise.all([listPatients(db, orgId), mutedPatientIds(db, userId)]);
+  return json({ patients: patients.map((p) => toPatientDto(p, !muted.has(p.id))) });
 });
 
 export const POST = route(async (req) => {
