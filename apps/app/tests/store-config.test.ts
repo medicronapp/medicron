@@ -7,7 +7,7 @@ const expo = appJson.expo as Record<string, any>;
 
 describe("app.json para as lojas", () => {
   test("identidade e orientação", () => {
-    expect(expo.version).toBe("1.1.0");
+    expect(expo.version).toBe("1.2.0");
     expect(expo.orientation).toBe("portrait");
     expect(expo.ios.bundleIdentifier).toBe("app.medicron");
     expect(expo.android.package).toBe("app.medicron");
