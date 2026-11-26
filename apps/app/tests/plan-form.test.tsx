@@ -34,7 +34,7 @@ import { toast as mockToast } from "@/components/ui/toast";
 import NovaRotina from "@/app/(app)/pacientes/[id]/rotina/nova";
 
 const item = (id: string, name: string, kind: ItemDto["kind"] = "medication"): ItemDto => ({ id, name, kind, defaultDose: null, notes: null, createdAt: "2026-01-01T00:00:00.000Z" });
-const patient: PatientDto = { id: "a", name: "Izzy", species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, createdAt: "2026-01-01T00:00:00.000Z" };
+const patient: PatientDto = { id: "a", name: "Izzy", species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, notify: true, createdAt: "2026-01-01T00:00:00.000Z" };
 const ready = (items: ItemDto[]) => {
   mockPatient.value = { data: patient, isPending: false, isError: false, refetch: jest.fn() };
   mockItems.value = { data: items, isPending: false, isError: false, refetch: jest.fn() };

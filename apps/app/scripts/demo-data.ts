@@ -120,11 +120,11 @@ export function freezeTimeScript(theme: "light" | "dark" | string): string {
 const CREATED = "2026-01-02T12:00:00.000Z";
 
 export const demoPatients = (): PatientDto[] => [
-  { id: "pa_ana", name: "Ana", species: "human", birthDate: "1968-03-14", weightKg: "68", notes: null, pausedAt: null, createdAt: CREATED },
-  { id: "pa_pedro", name: "Pedro", species: "human", birthDate: "2019-05-02", weightKg: "21", notes: null, pausedAt: null, createdAt: CREATED },
-  { id: "pa_mel", name: "Mel", species: "dog", birthDate: "2021-08-20", weightKg: "12.5", notes: null, pausedAt: null, createdAt: CREATED },
-  { id: "pa_carla", name: "Carla", species: "human", birthDate: "1995-11-30", weightKg: "61", notes: null, pausedAt: null, createdAt: CREATED },
-  { id: "pa_luna", name: "Luna", species: "cat", birthDate: "2022-02-10", weightKg: "4.2", notes: null, pausedAt: null, createdAt: CREATED },
+  { id: "pa_ana", name: "Ana", species: "human", birthDate: "1968-03-14", weightKg: "68", notes: null, pausedAt: null, notify: true, createdAt: CREATED },
+  { id: "pa_pedro", name: "Pedro", species: "human", birthDate: "2019-05-02", weightKg: "21", notes: null, pausedAt: null, notify: true, createdAt: CREATED },
+  { id: "pa_mel", name: "Mel", species: "dog", birthDate: "2021-08-20", weightKg: "12.5", notes: null, pausedAt: null, notify: true, createdAt: CREATED },
+  { id: "pa_carla", name: "Carla", species: "human", birthDate: "1995-11-30", weightKg: "61", notes: null, pausedAt: null, notify: true, createdAt: CREATED },
+  { id: "pa_luna", name: "Luna", species: "cat", birthDate: "2022-02-10", weightKg: "4.2", notes: null, pausedAt: null, notify: true, createdAt: CREATED },
 ];
 
 const item = (id: string, name: string, kind: ItemDto["kind"], defaultDose: string | null): ItemDto => ({ id, name, kind, defaultDose, notes: null, createdAt: CREATED });

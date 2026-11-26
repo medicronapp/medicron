@@ -12,6 +12,7 @@ import { ConfirmSheet } from "@/components/confirm-sheet";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorView } from "@/components/error-view";
 import { PageHeader } from "@/components/page-header";
+import { PatientNotifyRow } from "@/components/patient-notify-row";
 import { PatientForm } from "@/components/patient-form";
 import { PlanRow } from "@/components/plan-row";
 import { Screen } from "@/components/screen";
@@ -107,6 +108,7 @@ export default function Paciente() {
           <Button size="lg" loading={resuming} onPress={() => void resumeCare()} accessibilityLabel="Retomar acompanhamento">Retomar acompanhamento</Button>
         </View>
       ) : null}
+      <PatientNotifyRow patientId={p.id} notify={p.notify} />
       <Segmented
         accessibilityLabel="Seções do paciente"
         items={[{ key: "dados", label: "Dados" }, { key: "rotina", label: "Rotina" }]}

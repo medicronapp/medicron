@@ -26,6 +26,7 @@ const mockPatient: { value: Q<PatientDto> } = { value: { isPending: true, isErro
 const mockPlans: { value: Q<PlanDto[]> } = { value: { isPending: false, isError: false, data: [], isRefetching: false, refetch: jest.fn() } };
 const mockUpdatePatient = jest.fn();
 const mockArchive = jest.fn();
+const mockNotify = jest.fn();
 const mockPause = jest.fn();
 const mockResume = jest.fn();
 const mockUpdatePlan = jest.fn();
@@ -35,6 +36,7 @@ jest.mock("@/lib/patient-queries", () => ({
   usePlans: () => mockPlans.value,
   useUpdatePatient: () => ({ mutateAsync: (a: unknown) => mockUpdatePatient(a) }),
   useArchivePatient: () => ({ mutateAsync: (a: unknown) => mockArchive(a) }),
+  useSetPatientNotifications: () => ({ mutateAsync: (a: unknown) => mockNotify(a) }),
   usePausePatient: () => ({ mutateAsync: (a: unknown) => mockPause(a) }),
   useResumePatient: () => ({ mutateAsync: (a: unknown) => mockResume(a) }),
   useUpdatePlan: () => ({ mutateAsync: (a: unknown) => mockUpdatePlan(a) }),
@@ -45,7 +47,7 @@ import { toast as mockToast } from "@/components/ui/toast";
 import Detalhe from "@/app/(app)/pacientes/[id]/index";
 
 const patient = (o: Partial<PatientDto> = {}): PatientDto => ({
-  id: "a", name: "Izzy", species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
+  id: "a", name: "Izzy", species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, notify: true, createdAt: "2026-01-01T00:00:00.000Z", ...o,
 });
 const plan = (o: Partial<PlanDto> = {}): PlanDto => ({
   id: "p1", patientId: "a", itemId: "i1", item: { id: "i1", name: "Dipirona", kind: "medication", defaultDose: null, notes: null, createdAt: "2026-01-01T00:00:00.000Z" },
@@ -313,6 +315,47 @@ describe("pausar e retomar o acompanhamento", () => {
     ready(patient({ pausedAt: PAUSED }));
     await renderApp(<Detalhe />);
     expect(screen.getAllByRole("button", { name: "Adicionar" }).length).toBeGreaterThan(0);
+  });
+});
+
+describe("avisos deste paciente (só para mim)", () => {
+  test("ligado por padrão, nas duas abas, com a explicação de que só vale para a pessoa", async () => {
+    ready();
+    await renderApp(<Detalhe />);
+    expect(screen.getByText("Receber avisos deste paciente")).toBeOnTheScreen();
+    expect(screen.getByText(/Só vale para você/)).toBeOnTheScreen();
+    expect(screen.getByRole("switch", { name: "Receber avisos deste paciente" })).toBeChecked();
+    mockParams.value = { id: "a", aba: "dados" };
+    await renderApp(<Detalhe />);
+    expect(screen.getAllByRole("switch", { name: "Receber avisos deste paciente" }).length).toBeGreaterThan(0);
+  });
+
+  test("desligar chama a API para este paciente e o interruptor fica desligado", async () => {
+    mockNotify.mockResolvedValue(undefined);
+    ready();
+    await renderApp(<Detalhe />);
+    await fireEvent(screen.getByRole("switch", { name: "Receber avisos deste paciente" }), "valueChange", false);
+    await waitFor(() => expect(mockNotify).toHaveBeenCalledWith({ id: "a", enabled: false }));
+    expect(screen.getByRole("switch", { name: "Receber avisos deste paciente" })).not.toBeChecked();
+  });
+
+  test("paciente já silenciado vem desligado; ligar chama a API", async () => {
+    mockNotify.mockResolvedValue(undefined);
+    ready(patient({ notify: false }));
+    await renderApp(<Detalhe />);
+    expect(screen.getByRole("switch", { name: "Receber avisos deste paciente" })).not.toBeChecked();
+    await fireEvent(screen.getByRole("switch", { name: "Receber avisos deste paciente" }), "valueChange", true);
+    await waitFor(() => expect(mockNotify).toHaveBeenCalledWith({ id: "a", enabled: true }));
+    expect(screen.getByRole("switch", { name: "Receber avisos deste paciente" })).toBeChecked();
+  });
+
+  test("se a API falhar, volta ao valor anterior e mostra o erro", async () => {
+    mockNotify.mockRejectedValue(new ApiClientError(500, "x", "Falhou"));
+    ready();
+    await renderApp(<Detalhe />);
+    await fireEvent(screen.getByRole("switch", { name: "Receber avisos deste paciente" }), "valueChange", false);
+    await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("Falhou"));
+    expect(screen.getByRole("switch", { name: "Receber avisos deste paciente" })).toBeChecked();
   });
 });
 

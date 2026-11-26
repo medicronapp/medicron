@@ -8,3 +8,4 @@ export const updatePatient = async (c: ApiClient, id: string, body: PatientBody)
 export const archivePatient = (c: ApiClient, id: string) => c.request<void>("DELETE", `/patients/${id}`);
 export const pausePatient = async (c: ApiClient, id: string) => (await c.request<{ patient: PatientDto }>("POST", `/patients/${id}/pause`)).patient;
 export const resumePatient = async (c: ApiClient, id: string) => (await c.request<{ patient: PatientDto }>("POST", `/patients/${id}/resume`)).patient;
+export const setPatientNotifications = async (c: ApiClient, id: string, enabled: boolean) => (await c.request<{ patient: PatientDto }>("POST", `/patients/${id}/notifications`, { enabled })).patient;

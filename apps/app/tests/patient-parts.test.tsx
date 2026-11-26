@@ -16,7 +16,7 @@ import { ConfirmSheet } from "@/components/confirm-sheet";
 import { PatientForm } from "@/components/patient-form";
 
 const patient = (o: Partial<PatientDto> = {}): PatientDto => ({
-  id: "a", name: "Izzy", species: "cat", birthDate: "2026-05-01", weightKg: "4.20", notes: null, pausedAt: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
+  id: "a", name: "Izzy", species: "cat", birthDate: "2026-05-01", weightKg: "4.20", notes: null, pausedAt: null, notify: true, createdAt: "2026-01-01T00:00:00.000Z", ...o,
 });
 
 beforeEach(() => jest.clearAllMocks());

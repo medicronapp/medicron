@@ -20,7 +20,7 @@ import Lista from "@/app/(app)/pacientes/index";
 import Novo from "@/app/(app)/pacientes/novo";
 
 const p = (id: string, name: string, o: Partial<PatientDto> = {}): PatientDto => ({
-  id, name, species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, createdAt: "2026-01-01T00:00:00.000Z", ...o,
+  id, name, species: "cat", birthDate: null, weightKg: null, notes: null, pausedAt: null, notify: true, createdAt: "2026-01-01T00:00:00.000Z", ...o,
 });
 const ready = (data: PatientDto[]) => { mockList.value = { data, isPending: false, isError: false, isRefetching: false, refetch: jest.fn() }; };
 
