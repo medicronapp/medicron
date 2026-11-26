@@ -2,8 +2,6 @@ import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pill, UserX } from "lucide-react-native";
 import type { PlanCreateBody } from "@medicron/shared";
-import { nextQuarterHourInput } from "@medicron/shared";
-import { now } from "@/lib/clock";
 import { ApiClientError, errorMessage } from "@/lib/api/errors";
 import { useCreatePlan, useItems, usePatient } from "@/lib/patient-queries";
 import { EmptyState } from "@/components/empty-state";
@@ -79,7 +77,7 @@ export default function NovaRotina() {
           action={<Button size="lg" onPress={() => router.push("/itens/novo" as never)} accessibilityLabel="Cadastrar item">Cadastrar item</Button>}
         />
       ) : (
-        <PlanForm items={items.data} defaultAnchor={nextQuarterHourInput(now())} onSubmit={submit} />
+        <PlanForm items={items.data} onSubmit={submit} />
       )}
     </Screen>
   );
