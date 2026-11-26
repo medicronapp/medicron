@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react-native";
 import type { PatientDto, PlanDto } from "@medicron/shared";
 import { renderApp } from "./helpers";
 import { ApiClientError } from "@/lib/api/errors";
@@ -159,41 +159,74 @@ describe("editar rotina", () => {
     await fireEvent.press(screen.getByRole("button", { name: "Editar" }));
     await screen.findByText("Izzy · editar rotina");
   };
+  const tap = (name: string) => fireEvent.press(screen.getByRole("button", { name }));
+  const save = () => fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+  const bodyOf = () => (mockUpdatePlan.mock.calls[0][0] as { body: Record<string, unknown> }).body;
 
-  test("mostra os valores atuais (data final no relógio de Brasília)", async () => {
+  test("mostra os valores atuais: frequência, data final (relógio de Brasília), dose e ajuste", async () => {
     ready(patient(), [plan({ dose: "2 gotas", endAt: "2026-12-01T13:00:00.000Z", reschedule: true })]);
     await renderApp(<Detalhe />);
     await open();
     expect(screen.getByLabelText("Dose / instrução").props.value).toBe("2 gotas");
-    expect(screen.getByRole("switch", { name: "Reprogramar horários" })).toBeChecked();
-    expect(screen.getByText("Se uma dose atrasar, as próximas acompanham a hora real da aplicação.")).toBeOnTheScreen();
-    expect(screen.getByText("Opcional. Deixe vazio para um uso contínuo.")).toBeOnTheScreen();
+    expect(screen.getByRole("switch", { name: "Ajustar se eu atrasar" })).toBeChecked();
+    expect(screen.getByText("Se uma dose atrasar, as próximas acompanham a hora real em que você aplicou.")).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: "3x ao dia" })).toBeSelected();
+    expect(screen.getByRole("button", { name: "Até uma data…" })).toBeSelected();
+    expect(screen.getByText(/seguem o horário da primeira dose/)).toBeOnTheScreen();
   });
 
-  test("salvar envia dose, data final (Brasília → UTC) e reprogramar; avisa e fecha", async () => {
+  test("salvar envia dose, data final (Brasília → UTC) e ajuste; avisa e fecha", async () => {
     mockUpdatePlan.mockResolvedValue(plan());
     ready(patient(), [plan()]);
     await renderApp(<Detalhe />);
     await open();
     await fireEvent.changeText(screen.getByLabelText("Dose / instrução"), " 2 gotas ");
-    await fireEvent.press(screen.getByRole("button", { name: "Selecionar" })); // data final: agora 12:00
-    await fireEvent.press(screen.getByTestId("picker-date")); // 2026-12-01
-    await fireEvent.press(screen.getByTestId("picker-time")); // 10:00
-    await fireEvent(screen.getByRole("switch", { name: "Reprogramar horários" }), "valueChange", true);
-    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
-    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalledWith({ planId: "p1", body: { dose: "2 gotas", endAt: "2026-12-01T13:00:00.000Z", reschedule: true } }));
+    await tap("Até uma data…");
+    await fireEvent.press(screen.getByTestId("picker-date")); // 2026-12-01: vale até o fim desse dia
+    await fireEvent(screen.getByRole("switch", { name: "Ajustar se eu atrasar" }), "valueChange", true);
+    await save();
+    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalledWith({ planId: "p1", body: { dose: "2 gotas", endAt: "2026-12-02T02:59:00.000Z", reschedule: true } }));
     expect(mockToast.success).toHaveBeenCalledWith("Rotina atualizada");
     await waitFor(() => expect(screen.queryByText("Izzy · editar rotina")).toBeNull());
   });
 
-  test("dose em branco e data final vazia vão como null", async () => {
+  test("sem mexer na data final, ela volta igualzinha (hora incluída)", async () => {
     mockUpdatePlan.mockResolvedValue(plan());
-    ready(patient(), [plan({ dose: "x" })]);
+    ready(patient(), [plan({ endAt: "2026-12-01T13:00:00.000Z" })]);
+    await renderApp(<Detalhe />);
+    await open();
+    await save();
+    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+    expect(bodyOf()).toEqual({ dose: "1 comprimido", endAt: "2026-12-01T13:00:00.000Z", reschedule: false });
+  });
+
+  test("dose em branco e 'Contínuo' vão como null", async () => {
+    mockUpdatePlan.mockResolvedValue(plan());
+    ready(patient(), [plan({ dose: "x", endAt: "2026-12-01T13:00:00.000Z" })]);
     await renderApp(<Detalhe />);
     await open();
     await fireEvent.changeText(screen.getByLabelText("Dose / instrução"), "   ");
-    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    await tap("Contínuo");
+    await save();
     await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalledWith({ planId: "p1", body: { dose: null, endAt: null, reschedule: false } }));
+  });
+
+  test("'7 dias' vale a partir de hoje, até o fim do 7º dia", async () => {
+    mockUpdatePlan.mockResolvedValue(plan());
+    ready(patient(), [plan()]);
+    await renderApp(<Detalhe />);
+    await open();
+    await tap("7 dias");
+    await save();
+    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+    expect(bodyOf().endAt).toBe("2026-11-15T02:59:00.000Z"); // 14/11 23:59 em Brasília
+  });
+
+  test("data final que bate com um atalho abre já marcada nele", async () => {
+    ready(patient(), [plan({ endAt: "2026-11-15T02:59:00.000Z" })]);
+    await renderApp(<Detalhe />);
+    await open();
+    expect(screen.getByRole("button", { name: "7 dias" })).toBeSelected();
   });
 
   test("422 de data final mostra a mensagem do servidor e mantém o sheet e o que foi digitado", async () => {
@@ -202,20 +235,11 @@ describe("editar rotina", () => {
     await renderApp(<Detalhe />);
     await open();
     await fireEvent.changeText(screen.getByLabelText("Dose / instrução"), "3 gotas");
-    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    await save();
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("A data final é anterior à próxima dose"));
     expect(screen.getByText("Izzy · editar rotina")).toBeOnTheScreen();
     expect(screen.getByLabelText("Dose / instrução").props.value).toBe("3 gotas");
     expect(screen.getByRole("button", { name: "Salvar" })).toBeEnabled();
-  });
-
-  test("mostra a frequência atual e avisa de onde seguem os próximos horários", async () => {
-    ready(patient(), [plan({ intervalMinutes: 480 })]);
-    await renderApp(<Detalhe />);
-    await open();
-    expect(screen.getByRole("button", { name: "Frequência" })).toBeOnTheScreen();
-    expect(screen.getAllByText("A cada 8 horas")).toHaveLength(2); // o cartão da rotina e o seletor do sheet
-    expect(screen.getByText(/seguem o horário da primeira dose/)).toBeOnTheScreen();
   });
 
   test("trocar a frequência (ex.: de 1 vez ao dia para a cada 4 horas) envia o novo intervalo junto do resto", async () => {
@@ -223,9 +247,9 @@ describe("editar rotina", () => {
     ready(patient(), [plan({ intervalMinutes: 1440 })]);
     await renderApp(<Detalhe />);
     await open();
-    await fireEvent.press(screen.getByRole("button", { name: "Frequência" }));
-    await fireEvent.press(await screen.findByRole("button", { name: "A cada 4 horas" }));
-    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    expect(screen.getByRole("button", { name: "1x ao dia" })).toBeSelected();
+    await tap("A cada 4 h");
+    await save();
     await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalledWith({ planId: "p1", body: { intervalMinutes: 240, dose: "1 comprimido", endAt: null, reschedule: false } }));
     expect(mockToast.success).toHaveBeenCalledWith("Rotina atualizada");
   });
@@ -235,33 +259,39 @@ describe("editar rotina", () => {
     ready(patient(), [plan({ intervalMinutes: 480 })]);
     await renderApp(<Detalhe />);
     await open();
-    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+    await save();
     await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
-    expect((mockUpdatePlan.mock.calls[0][0] as { body: Record<string, unknown> }).body).not.toHaveProperty("intervalMinutes");
+    expect(bodyOf()).not.toHaveProperty("intervalMinutes");
   });
 
-  test("frequência personalizada: horas viram minutos (1,5 h = 90 min); inválida avisa e não envia", async () => {
-    mockUpdatePlan.mockResolvedValue(plan());
-    ready(patient(), [plan({ intervalMinutes: 480 })]);
+  test("a prévia mostra as próximas doses e acompanha a nova frequência (grade do primeiro horário, 08:00)", async () => {
+    ready(patient(), [plan({ intervalMinutes: 480 })]); // agora 12:00; grade 08:00, 16:00, 00:00…
     await renderApp(<Detalhe />);
     await open();
-    await fireEvent.press(screen.getByRole("button", { name: "Frequência" }));
-    await fireEvent.press(await screen.findByRole("button", { name: "Personalizada…" }));
-    await fireEvent.changeText(screen.getByLabelText("Se personalizada: a cada quantas horas?"), "0,01");
-    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
-    expect(await screen.findByText("Informe um intervalo entre 5 minutos e 1 ano")).toBeOnTheScreen();
-    expect(mockUpdatePlan).not.toHaveBeenCalled();
-    await fireEvent.changeText(screen.getByLabelText("Se personalizada: a cada quantas horas?"), "1,5");
-    await fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
-    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalledWith({ planId: "p1", body: expect.objectContaining({ intervalMinutes: 90 }) }));
+    expect(screen.getByText("Dipirona, a cada 8 horas, uso contínuo")).toBeOnTheScreen();
+    expect(within(screen.getByLabelText("Próximas doses")).getAllByText("16:00")).toHaveLength(2);
+    await tap("A cada 4 h");
+    expect(screen.getByText("Dipirona, a cada 4 horas, uso contínuo")).toBeOnTheScreen();
+    const doses = screen.getByLabelText("Próximas doses");
+    for (const t of ["16:00", "20:00", "00:00", "04:00", "08:00"]) expect(within(doses).getByText(t)).toBeOnTheScreen();
   });
 
-  test("rotina com frequência fora dos atalhos abre como 'Personalizada' com as horas preenchidas", async () => {
+  test("frequência fora dos atalhos abre em 'Outra…' com a quantidade; inválida avisa e não envia", async () => {
+    mockUpdatePlan.mockResolvedValue(plan());
     ready(patient(), [plan({ intervalMinutes: 90 })]);
     await renderApp(<Detalhe />);
     await open();
-    expect(screen.getByText("Personalizada…")).toBeOnTheScreen();
-    expect(screen.getByLabelText("Se personalizada: a cada quantas horas?").props.value).toBe("1,5");
+    expect(screen.getByRole("button", { name: "Outra…" })).toBeSelected();
+    expect(screen.getByLabelText("Quantidade").props.value).toBe("90");
+    expect(screen.getByRole("tab", { name: "Minutos" })).toBeSelected();
+    await fireEvent.changeText(screen.getByLabelText("Quantidade"), "2");
+    await save();
+    expect(await screen.findByText("Informe um intervalo entre 5 minutos e 1 ano")).toBeOnTheScreen();
+    expect(mockUpdatePlan).not.toHaveBeenCalled();
+    await fireEvent.changeText(screen.getByLabelText("Quantidade"), "45");
+    await save();
+    await waitFor(() => expect(mockUpdatePlan).toHaveBeenCalled());
+    expect(bodyOf().intervalMinutes).toBe(45);
   });
 
   test("Cancelar fecha sem salvar", async () => {
