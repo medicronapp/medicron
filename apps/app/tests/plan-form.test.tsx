@@ -8,6 +8,9 @@ jest.mock("expo-router", () => ({ useRouter: () => mockRouter, useLocalSearchPar
 jest.mock("@/lib/clock", () => ({ now: () => new Date("2026-11-08T15:07:00.000Z") })); // 12:07 em Brasília
 jest.mock("@/components/ui/toast", () => ({ toast: { success: jest.fn(), info: jest.fn(), error: jest.fn() }, Toaster: () => null }));
 
+const mockWide = { value: false };
+jest.mock("@/lib/use-breakpoint", () => ({ useIsWide: () => mockWide.value }));
+
 const mockPick = { y: 2026, mo: 12, d: 1, h: 10, mi: 0 };
 jest.mock("@react-native-community/datetimepicker", () => {
   const { Pressable } = require("react-native");
@@ -48,6 +51,7 @@ const save = () => fireEvent.press(screen.getByRole("button", { name: "Salvar ro
 beforeEach(() => {
   jest.clearAllMocks();
   Object.assign(mockPick, { y: 2026, mo: 12, d: 1, h: 10, mi: 0 });
+  mockWide.value = false;
   mockPatient.value = { isPending: true, isError: false, refetch: jest.fn() };
   mockItems.value = { isPending: true, isError: false, refetch: jest.fn() };
 });
@@ -223,6 +227,50 @@ describe("formulário", () => {
       await open();
       await tap("Hora 09");
       expect(screen.getByRole("tab", { name: "Amanhã" })).toBeSelected();
+    });
+  });
+
+  describe("no desktop, o horário abre num diálogo", () => {
+    beforeEach(() => { mockWide.value = true; });
+
+    test("o diálogo tem calendário, rodas, atalhos e 'Concluir'; nada de painel espalhado na página", async () => {
+      mockCreate.mockResolvedValue({});
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await chooseItem("Dipirona");
+      expect(screen.queryByText("Horário da primeira dose")).toBeNull();
+      await tap("Escolher o horário");
+      expect(await screen.findByText("Horário da primeira dose")).toBeOnTheScreen();
+      expect(screen.getByText("novembro de 2026")).toBeOnTheScreen();
+      await fireEvent.press(screen.getByRole("button", { name: "20 de novembro de 2026" }));
+      await tap("Hora 14");
+      await tap("Minuto 30");
+      await tap("Noite 20:00");
+      expect(screen.getByText("20/11 às 20:00")).toBeOnTheScreen(); // subtítulo do cartão
+      await tap("Concluir");
+      expect(screen.queryByText("Horário da primeira dose")).toBeNull();
+      await save();
+      await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ anchorAt: "2026-11-20T23:00:00.000Z" }) })));
+    });
+
+    test("escolher hoje ou amanhã no calendário vira 'Hoje'/'Amanhã'; dias passados ficam desligados", async () => {
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await tap("Escolher o horário");
+      expect(await screen.findByRole("button", { name: "7 de novembro de 2026" })).toBeDisabled();
+      await fireEvent.press(screen.getByRole("button", { name: "9 de novembro de 2026" }));
+      expect(screen.getByText("Amanhã às 13:00")).toBeOnTheScreen();
+      await fireEvent.press(screen.getByRole("button", { name: "8 de novembro de 2026, hoje" }));
+      expect(screen.getAllByText("Hoje às 13:00")).toHaveLength(2); // este cartão e o da próxima hora cheia
+    });
+
+    test("tocar de novo no cartão reabre o diálogo", async () => {
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await tap("Escolher o horário");
+      await tap("Concluir");
+      await tap("Escolher o horário");
+      expect(await screen.findByText("Horário da primeira dose")).toBeOnTheScreen();
     });
   });
 

@@ -18,6 +18,8 @@ Cada versão enviada à loja ganha uma tag no git (`v1.1.0`).
 ### Melhorado
 - **Nova rotina e editar rotina, bem mais fáceis:** tudo numa tela só, por toque. Escolha **quantas vezes** (1x, 2x, 3x ao dia, a cada 4 ou 6 h, dia sim/dia não, toda semana ou "Outra…" com contador), a **primeira dose** (agora, próxima hora cheia ou "Escolher o horário" com rodas de hora e minuto e atalhos de manhã/almoço/noite) e **por quanto tempo** (contínuo, 3 a 30 dias ou até uma data). Uma frase e os próximos horários mostram o resultado antes de salvar. "Reprogramar horários" virou "Ajustar se eu atrasar".
 
+- **Calendário próprio na web** (no lugar do campo de data do navegador) e, em telas largas, o horário da primeira dose abre num **diálogo** com calendário, rodas de hora e minuto e atalhos.
+
 ### Corrigido
 - **Editar a frequência de uma rotina:** agora dá para trocar (por exemplo, de "1 vez ao dia" para "a cada 4 horas") ao editar a rotina de um paciente. Os próximos horários seguem o horário da primeira dose da rotina.
 
