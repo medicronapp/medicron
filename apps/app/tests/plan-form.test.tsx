@@ -230,47 +230,82 @@ describe("formulário", () => {
     });
   });
 
-  describe("no desktop, o horário abre num diálogo", () => {
+  describe("no desktop, o horário abre num diálogo em 2 passos", () => {
     beforeEach(() => { mockWide.value = true; });
+    const openDialog = async () => {
+      await tap("Escolher o horário");
+      await screen.findByText("Em que dia?");
+    };
 
-    test("o diálogo tem calendário, rodas, atalhos e 'Concluir'; nada de painel espalhado na página", async () => {
+    test("passo 1 só tem o calendário; passo 2 só a hora; nada espalhado na página", async () => {
       mockCreate.mockResolvedValue({});
       ready(items);
       await renderApp(<NovaRotina />);
       await chooseItem("Dipirona");
-      expect(screen.queryByText("Horário da primeira dose")).toBeNull();
-      await tap("Escolher o horário");
-      expect(await screen.findByText("Horário da primeira dose")).toBeOnTheScreen();
+      expect(screen.queryByText("Em que dia?")).toBeNull();
+      await openDialog();
+      expect(screen.getByText("Passo 1 de 2")).toBeOnTheScreen();
       expect(screen.getByText("novembro de 2026")).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "Noite 20:00" })).toBeNull();
       await fireEvent.press(screen.getByRole("button", { name: "20 de novembro de 2026" }));
-      await tap("Hora 14");
-      await tap("Minuto 30");
-      await tap("Noite 20:00");
+      await tap("Continuar");
+      expect(await screen.findByText("A que horas?")).toBeOnTheScreen();
+      expect(screen.getByText("Passo 2 de 2 · 20/11")).toBeOnTheScreen();
+      expect(screen.queryByText("novembro de 2026")).toBeNull();
+      await tap("20:00");
       expect(screen.getByText("20/11 às 20:00")).toBeOnTheScreen(); // subtítulo do cartão
-      await tap("Concluir");
-      expect(screen.queryByText("Horário da primeira dose")).toBeNull();
+      await tap("Confirmar 20/11 às 20:00");
+      expect(screen.queryByText("A que horas?")).toBeNull();
       await save();
       await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ anchorAt: "2026-11-20T23:00:00.000Z" }) })));
+    });
+
+    test("atalhos de horário e horário exato digitado", async () => {
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await openDialog();
+      await fireEvent.press(screen.getByRole("button", { name: "9 de novembro de 2026" }));
+      await tap("Continuar");
+      await tap("Manhã 08:00");
+      expect(screen.getByText("Amanhã às 08:00")).toBeOnTheScreen();
+      await fireEvent.changeText(screen.getByLabelText("Horário exato"), "08:15");
+      expect(screen.getByText("Amanhã às 08:15")).toBeOnTheScreen();
+      await fireEvent.changeText(screen.getByLabelText("Horário exato"), "25:99"); // inválido: não muda
+      expect(screen.getByText("Amanhã às 08:15")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Confirmar amanhã às 08:15" })).toBeOnTheScreen();
+    });
+
+    test("hoje, horários que já passaram nem aparecem", async () => {
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await openDialog();
+      await tap("Continuar"); // hoje, 12:07
+      expect(screen.queryByRole("button", { name: "12:00" })).toBeNull();
+      expect(screen.getByRole("button", { name: "12:30" })).toBeEnabled();
+    });
+
+    test("'Voltar' leva ao calendário; reabrir o cartão começa no passo 1", async () => {
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await openDialog();
+      await tap("Continuar");
+      await tap("Voltar ao calendário");
+      expect(await screen.findByText("Em que dia?")).toBeOnTheScreen();
+      await tap("Continuar");
+      await tap("Confirmar hoje às 13:00");
+      await tap("Escolher o horário");
+      expect(await screen.findByText("Em que dia?")).toBeOnTheScreen();
     });
 
     test("escolher hoje ou amanhã no calendário vira 'Hoje'/'Amanhã'; dias passados ficam desligados", async () => {
       ready(items);
       await renderApp(<NovaRotina />);
-      await tap("Escolher o horário");
-      expect(await screen.findByRole("button", { name: "7 de novembro de 2026" })).toBeDisabled();
+      await openDialog();
+      expect(screen.getByRole("button", { name: "7 de novembro de 2026" })).toBeDisabled();
       await fireEvent.press(screen.getByRole("button", { name: "9 de novembro de 2026" }));
       expect(screen.getByText("Amanhã às 13:00")).toBeOnTheScreen();
       await fireEvent.press(screen.getByRole("button", { name: "8 de novembro de 2026, hoje" }));
       expect(screen.getAllByText("Hoje às 13:00")).toHaveLength(2); // este cartão e o da próxima hora cheia
-    });
-
-    test("tocar de novo no cartão reabre o diálogo", async () => {
-      ready(items);
-      await renderApp(<NovaRotina />);
-      await tap("Escolher o horário");
-      await tap("Concluir");
-      await tap("Escolher o horário");
-      expect(await screen.findByText("Horário da primeira dose")).toBeOnTheScreen();
     });
   });
 
