@@ -3,10 +3,11 @@ import type { CarePlan, Item, Patient } from "@/lib/db/schema";
 
 const iso = (d: Date) => d.toISOString();
 
-export function toPatientDto(p: Patient): PatientDto {
+/** `notify`: esta pessoa recebe os avisos de dose deste paciente (padrão: sim). */
+export function toPatientDto(p: Patient, notify = true): PatientDto {
   return {
     id: p.id, name: p.name, species: p.species, birthDate: p.birthDate, weightKg: p.weightKg,
-    notes: p.notes, pausedAt: p.pausedAt ? iso(p.pausedAt) : null, createdAt: iso(p.createdAt),
+    notes: p.notes, pausedAt: p.pausedAt ? iso(p.pausedAt) : null, notify, createdAt: iso(p.createdAt),
   };
 }
 

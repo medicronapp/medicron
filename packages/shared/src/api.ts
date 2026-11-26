@@ -17,6 +17,10 @@ export const patientBody = z.object({
 });
 export type PatientBody = z.infer<typeof patientBody>;
 
+/** Liga/desliga os avisos de dose de um paciente para a pessoa logada. */
+export const patientNotificationsBody = z.object({ enabled: z.boolean() });
+export type PatientNotificationsBody = z.infer<typeof patientNotificationsBody>;
+
 export const itemBody = z.object({
   name: z.string().trim().min(1, "Informe o nome").max(80),
   kind: z.enum(["medication", "procedure"]),
@@ -68,6 +72,8 @@ export type PatientDto = {
   birthDate: string | null; weightKg: string | null; notes: string | null; createdAt: string;
   /** Acompanhamento pausado desde quando (ISO); null = ativo. Pausado não gera lembretes e não conta no limite do plano. */
   pausedAt: string | null;
+  /** A pessoa logada recebe os avisos de dose deste paciente (padrão sim; ela pode desligar). Não muda a tela Hoje. */
+  notify: boolean;
 };
 export type ItemDto = {
   id: string; name: string; kind: "medication" | "procedure";

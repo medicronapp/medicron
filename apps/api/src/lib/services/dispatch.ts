@@ -2,6 +2,7 @@ import { and, eq, inArray, isNull, lt, lte, or } from "drizzle-orm";
 import type { Db } from "@/lib/db";
 import { carePlans, careSlots, patients, items, type PushDeviceRow, type PushSubscriptionRow } from "@/lib/db/schema";
 import { ensureSlots } from "@/lib/services/slots";
+import { mutedUsersByPatient } from "@/lib/services/notification-prefs";
 import { listDevicesForOrg, listSubscriptionsForOrg, removeDevice, removeSubscription } from "@/lib/services/push";
 
 export type PushPayload = { title: string; body: string; tag: string; url: string };
@@ -52,6 +53,8 @@ export async function dispatchDue(
   const byPlan = new Map<string, typeof candidates>();
   for (const c of candidates) byPlan.set(c.plan.id, [...(byPlan.get(c.plan.id) ?? []), c]);
 
+  // Avisos por paciente: quem silenciou aquele paciente não recebe o aviso dele (a tela Hoje não muda).
+  const muted = await mutedUsersByPatient(db, [...new Set(candidates.map((c) => c.plan.patientId))]);
   const subsByOrg = new Map<string, PushSubscriptionRow[]>();
   const devicesByOrg = new Map<string, PushDeviceRow[]>();
   let plans = 0;
@@ -71,7 +74,8 @@ export async function dispatchDue(
     if (!subsByOrg.has(plan.organizationId)) {
       subsByOrg.set(plan.organizationId, await listSubscriptionsForOrg(db, plan.organizationId));
     }
-    const subs = subsByOrg.get(plan.organizationId)!;
+    const mutedHere = muted.get(plan.patientId);
+    const subs = subsByOrg.get(plan.organizationId)!.filter((sub) => !mutedHere?.has(sub.userId));
     const payload: PushPayload = {
       title: "Hora do cuidado",
       body: `${patientName} — ${itemName}${plan.dose ? ` (${plan.dose})` : ""}`,
@@ -97,7 +101,7 @@ export async function dispatchDue(
       try {
         // A consulta também fica no try: um erro de banco neste canal (ex.: tabela ainda não migrada) não derruba o Web Push.
         if (!devicesByOrg.has(plan.organizationId)) devicesByOrg.set(plan.organizationId, await listDevicesForOrg(db, plan.organizationId));
-        const devices = devicesByOrg.get(plan.organizationId)!;
+        const devices = devicesByOrg.get(plan.organizationId)!.filter((dv) => !mutedHere?.has(dv.userId));
         if (devices.length > 0) {
           const r = await sendDevices(devices, payload);
           okCount += r.sent;

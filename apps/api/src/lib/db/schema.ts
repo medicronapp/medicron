@@ -1,5 +1,5 @@
 import {
-  bigint, index, pgTable, pgEnum, text, integer, boolean, numeric, date, timestamp, unique,
+  bigint, index, pgTable, pgEnum, primaryKey, text, integer, boolean, numeric, date, timestamp, unique,
 } from "drizzle-orm/pg-core";
 import { organization, user } from "./auth-schema";
 
@@ -110,6 +110,16 @@ export const pushDevices = pgTable("push_devices", {
   platform: text("platform", { enum: ["ios", "android"] }).notNull(),
   createdAt: createdAt(),
 });
+
+/**
+ * Avisos por paciente: uma linha = esta pessoa **não** quer receber o aviso de dose deste paciente. Sem linha = recebe (o padrão
+ * de sempre). Só decide quem recebe o push; a tela Hoje continua igual para todos.
+ */
+export const patientNotificationMutes = pgTable("patient_notification_mutes", {
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  patientId: text("patient_id").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  createdAt: createdAt(),
+}, (t) => [primaryKey({ columns: [t.userId, t.patientId] })]);
 
 /**
  * Assinatura do Medicron Plus, uma linha por conta (organização). Sem linha = grátis. O Plus vale enquanto `plus_until` for
