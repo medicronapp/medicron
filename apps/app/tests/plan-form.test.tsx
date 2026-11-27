@@ -247,12 +247,14 @@ describe("formulário", () => {
       expect(screen.getByText("Passo 1 de 2")).toBeOnTheScreen();
       expect(screen.getByText("novembro de 2026")).toBeOnTheScreen();
       expect(screen.queryByRole("button", { name: "Noite 20:00" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Hora 20" })).toBeNull();
       await fireEvent.press(screen.getByRole("button", { name: "20 de novembro de 2026" }));
       await tap("Continuar");
       expect(await screen.findByText("A que horas?")).toBeOnTheScreen();
       expect(screen.getByText("Passo 2 de 2 · 20/11")).toBeOnTheScreen();
       expect(screen.queryByText("novembro de 2026")).toBeNull();
-      await tap("20:00");
+      await tap("Hora 20");
+      await tap("Minuto 00");
       expect(screen.getByText("20/11 às 20:00")).toBeOnTheScreen(); // subtítulo do cartão
       await tap("Confirmar 20/11 às 20:00");
       expect(screen.queryByText("A que horas?")).toBeNull();
@@ -260,7 +262,7 @@ describe("formulário", () => {
       await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ anchorAt: "2026-11-20T23:00:00.000Z" }) })));
     });
 
-    test("atalhos de horário e horário exato digitado", async () => {
+    test("passo 2 tem a roleta de hora e minuto e os atalhos (sem grade de horários)", async () => {
       ready(items);
       await renderApp(<NovaRotina />);
       await openDialog();
@@ -268,20 +270,21 @@ describe("formulário", () => {
       await tap("Continuar");
       await tap("Manhã 08:00");
       expect(screen.getByText("Amanhã às 08:00")).toBeOnTheScreen();
-      await fireEvent.changeText(screen.getByLabelText("Horário exato"), "08:15");
-      expect(screen.getByText("Amanhã às 08:15")).toBeOnTheScreen();
-      await fireEvent.changeText(screen.getByLabelText("Horário exato"), "25:99"); // inválido: não muda
+      await tap("Minuto 15");
       expect(screen.getByText("Amanhã às 08:15")).toBeOnTheScreen();
       expect(screen.getByRole("button", { name: "Confirmar amanhã às 08:15" })).toBeOnTheScreen();
+      expect(screen.queryByRole("button", { name: "08:30" })).toBeNull();
+      expect(screen.queryByLabelText("Horário exato")).toBeNull();
     });
 
-    test("hoje, horários que já passaram nem aparecem", async () => {
+    test("hoje, escolher uma hora que já passou leva para amanhã", async () => {
       ready(items);
       await renderApp(<NovaRotina />);
       await openDialog();
       await tap("Continuar"); // hoje, 12:07
-      expect(screen.queryByRole("button", { name: "12:00" })).toBeNull();
-      expect(screen.getByRole("button", { name: "12:30" })).toBeEnabled();
+      await tap("Hora 09");
+      expect(screen.getByText("Passo 2 de 2 · 09/11")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Confirmar amanhã às 09:00" })).toBeOnTheScreen();
     });
 
     test("'Voltar' leva ao calendário; reabrir o cartão começa no passo 1", async () => {
