@@ -11,7 +11,7 @@ export function Dialog({ open, onOpenChange, title, children, footer, narrow }: 
     <Modal transparent visible={open} animationType="fade" onRequestClose={() => onOpenChange(false)}>
       <Pressable accessibilityLabel="Fechar" onPress={() => onOpenChange(false)} className="flex-1 items-center justify-center bg-black/40 p-4">
         {/* O toque dentro do cartão não chega ao fundo (senão fecharia o diálogo). */}
-        <View onStartShouldSetResponder={() => true} accessibilityViewIsModal className={cn("w-full gap-4 rounded-2xl border border-border bg-popover p-5 shadow-lg", narrow ? "max-w-sm" : "max-w-2xl")}>
+        <View onStartShouldSetResponder={() => true} accessibilityViewIsModal className={cn("w-full gap-4 rounded-2xl border border-border bg-popover p-5 shadow-lg", narrow ? "max-w-md" : "max-w-2xl")}>
           <Text accessibilityRole="header" className="text-lg font-semibold">{title}</Text>
           {children}
           {footer}

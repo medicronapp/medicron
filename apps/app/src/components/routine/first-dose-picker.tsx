@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { View } from "react-native";
-import { TIME_SHORTCUTS, addDays, dayKey, firstDoseAt } from "@medicron/shared";
+import { useRef, useState, type ComponentRef } from "react";
+import { Pressable, ScrollView, View } from "react-native";
+import { TIME_SHORTCUTS, addDays, dayKey, firstDoseAt, toLocalInput } from "@medicron/shared";
 import { useIsWide } from "@/lib/use-breakpoint";
-import { initialCustom, resolveFirstDose, whenLabel, withTime, type FirstDose } from "@/lib/routine-form";
+import { initialCustom, resolveFirstDose, shortDate, whenLabel, withTime, type FirstDose } from "@/lib/routine-form";
 import { TimeWheel } from "@/components/routine/time-wheel";
 import { Chip } from "@/components/ui/chip";
 import { ChoiceCard } from "@/components/ui/choice-card";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { DateField } from "@/components/ui/date-field";
 import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/cn";
 import { Segmented } from "@/components/ui/segmented";
 import { Text } from "@/components/ui/text";
 
@@ -18,7 +20,91 @@ type Props = { value: FirstDose; onChange: (v: FirstDose) => void; now: Date };
 const pad = (n: number) => String(n).padStart(2, "0");
 const HOURS = Array.from({ length: 24 }, (_, i) => pad(i));
 const MINUTES = Array.from({ length: 60 }, (_, i) => pad(i));
+const SLOTS = Array.from({ length: 48 }, (_, i) => `${pad(Math.floor(i / 2))}:${i % 2 ? "30" : "00"}`);
+const EXACT = /^([01]\d|2[0-3]):[0-5]\d$/;
 const DAYS = [{ key: "today", label: "Hoje" }, { key: "tomorrow", label: "Amanhã" }, { key: "other", label: "Outro dia…" }];
+
+const lower = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
+
+/** Diálogo de 2 passos (tela larga): 1) em que dia, só o calendário; 2) a que horas, só a hora. */
+function DoseDialog({ open, onOpenChange, custom, onChange, now }: { open: boolean; onOpenChange: (o: boolean) => void; custom: Custom; onChange: (v: FirstDose) => void; now: Date }) {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [exact, setExact] = useState("");
+  const grid = useRef<ComponentRef<typeof ScrollView>>(null);
+  const scrolled = useRef(false);
+  const today = dayKey(now);
+  const date = custom.day === "today" ? today : custom.day === "tomorrow" ? addDays(today, 1) : custom.otherDate;
+  const pickDate = (d: string) =>
+    onChange(d === today ? { ...custom, day: "today" } : d === addDays(today, 1) ? { ...custom, day: "tomorrow" } : { ...custom, day: "other", otherDate: d });
+  // Ao abrir o passo 2, a grade já aparece rolada até o horário escolhido (cada linha tem 4 horários de 42 px).
+  const toSelected = (_w: number, h: number) => {
+    if (scrolled.current || !h) return; // só quando a lista já tem altura
+    scrolled.current = true;
+    const visible = SLOTS.filter((sl) => !(date === today && `${today}T${sl}` <= toLocalInput(now)));
+    const y = Math.max(0, Math.floor(visible.indexOf(custom.time) / 4) - 1) * 42;
+    setTimeout(() => grid.current?.scrollTo({ y, animated: false }), 80); // a altura da janela da lista só existe depois do layout
+  };
+  const when = whenLabel(resolveFirstDose(custom, now), now);
+  const close = (o: boolean) => { if (!o) { setStep(1); setExact(""); scrolled.current = false; } onOpenChange(o); };
+  const passed = (slot: string) => date === today && `${today}T${slot}` <= toLocalInput(now);
+  const setExactTime = (t: string) => {
+    setExact(t);
+    if (EXACT.test(t) && !passed(t)) onChange({ ...custom, time: t });
+  };
+
+  return (
+    <Dialog
+      narrow open={open} onOpenChange={close} title={step === 1 ? "Em que dia?" : "A que horas?"}
+      footer={
+        step === 1 ? (
+          <Button size="lg" onPress={() => setStep(2)} accessibilityLabel="Continuar">Continuar</Button>
+        ) : (
+          <View className="flex-row gap-2">
+            <Button variant="outline" size="lg" onPress={() => { scrolled.current = false; setStep(1); }} accessibilityLabel="Voltar ao calendário">Voltar</Button>
+            <Button size="lg" className="flex-1" onPress={() => close(false)} accessibilityLabel={`Confirmar ${lower(when)}`}>{`Confirmar ${lower(when)}`}</Button>
+          </View>
+        )
+      }
+    >
+      <View className="-mt-2 flex-row gap-1.5">
+        <View className="h-1 flex-1 rounded-full bg-primary" />
+        <View className={cn("h-1 flex-1 rounded-full", step === 2 ? "bg-primary" : "bg-border")} />
+      </View>
+      <Text className="-mt-2 text-xs font-semibold text-muted-foreground">{step === 1 ? "Passo 1 de 2" : `Passo 2 de 2 · ${shortDate(date)}`}</Text>
+      {step === 1 ? (
+        <Calendar value={date} min={today} onChange={pickDate} />
+      ) : (
+        <View className="gap-3">
+          <View className="flex-row flex-wrap gap-2">
+            {TIME_SHORTCUTS.map((sc) => (
+              <Chip key={sc.time} label={sc.label} selected={custom.time === sc.time} onPress={() => { setExact(""); onChange(withTime(custom, sc.time, now)); }} />
+            ))}
+          </View>
+          <ScrollView ref={grid} style={{ maxHeight: 220 }} nestedScrollEnabled onContentSizeChange={toSelected}>
+            <View className="flex-row flex-wrap gap-1.5">
+              {SLOTS.filter((slot) => !passed(slot)).map((slot) => {
+                const on = custom.time === slot;
+                return (
+                  <Pressable
+                    key={slot} accessibilityRole="button" accessibilityLabel={slot} accessibilityState={{ selected: on }}
+                    onPress={() => { setExact(""); onChange({ ...custom, time: slot }); }} style={{ width: "23.5%" }}
+                    className={cn("h-9 items-center justify-center rounded-lg border", on ? "border-primary bg-primary" : "border-border bg-card active:bg-muted")}
+                  >
+                    <Text className={cn("text-sm font-semibold", on && "text-primary-foreground")}>{slot}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ScrollView>
+          <View className="flex-row items-center gap-3">
+            <Text className="text-sm font-medium text-muted-foreground">Horário exato</Text>
+            <Input accessibilityLabel="Horário exato" value={exact} onChangeText={setExactTime} placeholder="08:15" maxLength={5} className="h-10 w-24 text-center" />
+          </View>
+        </View>
+      )}
+    </Dialog>
+  );
+}
 
 /** Quando é a primeira dose: agora, na próxima hora cheia ou num horário escolhido (rodas de hora e minuto no próprio cartão). */
 type Custom = Extract<FirstDose, { kind: "custom" }>;
@@ -46,10 +132,6 @@ export function FirstDosePicker({ value, onChange, now }: Props) {
   const wide = useIsWide();
   const [dialog, setDialog] = useState(false);
   const custom = value.kind === "custom" ? value : null;
-  const today = dayKey(now);
-  const dateOf = (c: Custom) => (c.day === "today" ? today : c.day === "tomorrow" ? addDays(today, 1) : c.otherDate);
-  const pickDate = (c: Custom, date: string) =>
-    onChange(date === today ? { ...c, day: "today" } : date === addDays(today, 1) ? { ...c, day: "tomorrow" } : { ...c, day: "other", otherDate: date });
   return (
     <View className="gap-3">
       <ChoiceCard title="Agora" subtitle={whenLabel(firstDoseAt("now", now), now)} selected={value.kind === "now"} onPress={() => onChange({ kind: "now" })} />
@@ -59,17 +141,7 @@ export function FirstDosePicker({ value, onChange, now }: Props) {
         onPress={() => { if (!custom) onChange(initialCustom(now)); if (wide) setDialog(true); }}
         subtitle={custom ? whenLabel(resolveFirstDose(custom, now), now) : "Hora e dia, num seletor fácil"}
       />
-      {custom && wide ? (
-        <Dialog
-          open={dialog} onOpenChange={setDialog} title="Horário da primeira dose"
-          footer={<Button size="lg" onPress={() => setDialog(false)} accessibilityLabel="Concluir">Concluir</Button>}
-        >
-          <View className="flex-row gap-6">
-            <View className="flex-1"><Calendar value={dateOf(custom)} min={today} onChange={(d) => pickDate(custom, d)} /></View>
-            <View className="flex-1 justify-center gap-3"><TimeWheels custom={custom} onChange={onChange} now={now} /></View>
-          </View>
-        </Dialog>
-      ) : null}
+      {custom && wide ? <DoseDialog open={dialog} onOpenChange={setDialog} custom={custom} onChange={onChange} now={now} /> : null}
       {custom && !wide ? (
         <View className="gap-3 rounded-2xl border border-border bg-card p-3">
           <Segmented items={DAYS} value={custom.day} onChange={(day) => onChange({ ...custom, day: day as typeof custom.day })} accessibilityLabel="Dia" />
