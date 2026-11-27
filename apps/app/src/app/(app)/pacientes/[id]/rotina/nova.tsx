@@ -1,8 +1,9 @@
 import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pill, UserX } from "lucide-react-native";
+import { UserX } from "lucide-react-native";
 import type { PlanCreateBody } from "@medicron/shared";
 import { ApiClientError, errorMessage } from "@/lib/api/errors";
+import { useCreateItem } from "@/lib/item-queries";
 import { useCreatePlan, useItems, usePatient } from "@/lib/patient-queries";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorView } from "@/components/error-view";
@@ -20,6 +21,7 @@ export default function NovaRotina() {
   const patient = usePatient(id);
   const items = useItems();
   const create = useCreatePlan();
+  const createItem = useCreateItem();
   const toPatient = () => router.dismissTo(`/pacientes/${id}` as never);
 
   if (patient.isPending || items.isPending) {
@@ -69,16 +71,7 @@ export default function NovaRotina() {
   return (
     <Screen>
       <PageHeader title="Nova rotina" description={patient.data.name} onBack={toPatient} />
-      {items.data.length === 0 ? (
-        <EmptyState
-          icon={Pill}
-          title="Cadastre um item primeiro"
-          description="Você precisa de ao menos uma medicação ou procedimento para montar a rotina."
-          action={<Button size="lg" onPress={() => router.push("/itens/novo" as never)} accessibilityLabel="Cadastrar item">Cadastrar item</Button>}
-        />
-      ) : (
-        <PlanForm items={items.data} onSubmit={submit} />
-      )}
+      <PlanForm items={items.data} onSubmit={submit} onCreateItem={(body) => createItem.mutateAsync(body)} />
     </Screen>
   );
 }

@@ -20,6 +20,8 @@ Cada versão enviada à loja ganha uma tag no git (`v1.1.0`).
 
 - **Calendário próprio na web** (no lugar do campo de data do navegador) e, em telas largas, o horário da primeira dose abre num **diálogo** com calendário, rodas de hora e minuto e atalhos.
 
+- **Criar o item na hora:** na nova rotina, "+ Criar item novo" abre ali mesmo um mini formulário (tipo e nome); o item criado já fica selecionado. Quem ainda não tem nenhum item cria o primeiro direto nessa tela, sem precisar sair e voltar.
+
 ### Corrigido
 - **Editar a frequência de uma rotina:** agora dá para trocar (por exemplo, de "1 vez ao dia" para "a cada 4 horas") ao editar a rotina de um paciente. Os próximos horários seguem o horário da primeira dose da rotina.
 
