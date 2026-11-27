@@ -1,12 +1,13 @@
 import { useRef, useState, type ReactNode } from "react";
 import { View } from "react-native";
-import type { ItemDto, PlanCreateBody } from "@medicron/shared";
+import type { ItemBody, ItemDto, PlanCreateBody } from "@medicron/shared";
 import { addDays, dayKey, dayLabel, parseLocalInput } from "@medicron/shared";
 import { now as clockNow } from "@/lib/clock";
 import { resolveEnd, resolveFirstDose, shortDate, type Duration, type FirstDose } from "@/lib/routine-form";
 import { DurationPicker } from "@/components/routine/duration-picker";
 import { FirstDosePicker } from "@/components/routine/first-dose-picker";
 import { FrequencyPicker } from "@/components/routine/frequency-picker";
+import { NewItemInline } from "@/components/routine/new-item-inline";
 import { RoutinePreview } from "@/components/routine/routine-preview";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
@@ -15,7 +16,7 @@ import { SelectField } from "@/components/ui/select-field";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 
-type Props = { items: ItemDto[]; onSubmit: (body: PlanCreateBody) => Promise<void> };
+type Props = { items: ItemDto[]; onSubmit: (body: PlanCreateBody) => Promise<void>; onCreateItem: (body: ItemBody) => Promise<ItemDto> };
 type Errors = { item?: string; interval?: string; end?: string; start?: string };
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -34,8 +35,10 @@ export function startPhrase(startLocal: string, now: Date): string {
 }
 
 /** Nova rotina numa tela só: o quê, quantas vezes, primeira dose e por quanto tempo, com a prévia do resultado. */
-export function PlanForm({ items, onSubmit }: Props) {
+export function PlanForm({ items, onSubmit, onCreateItem }: Props) {
   const [itemId, setItemId] = useState("");
+  const [made, setMade] = useState<ItemDto[]>([]); // itens criados aqui: valem já, antes de a lista da conta atualizar
+  const [creating, setCreating] = useState(false);
   const [dose, setDose] = useState("");
   const [minutes, setMinutes] = useState(480);
   const [firstDose, setFirstDose] = useState<FirstDose>({ kind: "now" });
@@ -45,11 +48,12 @@ export function PlanForm({ items, onSubmit }: Props) {
   const [pending, setPending] = useState(false);
   const busy = useRef(false); // dois toques seguidos enviam uma vez só
 
+  const all = [...items, ...made.filter((m) => !items.some((i) => i.id === m.id))];
   const options = [
-    ...items.filter((i) => i.kind === "medication").map((i) => ({ value: i.id, label: i.name, group: "Medicações" })),
-    ...items.filter((i) => i.kind === "procedure").map((i) => ({ value: i.id, label: i.name, group: "Procedimentos" })),
+    ...all.filter((i) => i.kind === "medication").map((i) => ({ value: i.id, label: i.name, group: "Medicações" })),
+    ...all.filter((i) => i.kind === "procedure").map((i) => ({ value: i.id, label: i.name, group: "Procedimentos" })),
   ];
-  const itemName = items.find((i) => i.id === itemId)?.name ?? "";
+  const itemName = all.find((i) => i.id === itemId)?.name ?? "";
 
   const now = clockNow();
   const startLocal = resolveFirstDose(firstDose, now);
@@ -88,9 +92,20 @@ export function PlanForm({ items, onSubmit }: Props) {
   return (
     <View className="gap-6">
       <Section title="O quê">
-        <FormField label="Medicação ou procedimento" error={errors.item}>
-          <SelectField value={itemId} onChange={setItemId} options={options} placeholder="Selecione…" />
-        </FormField>
+        {all.length === 0 || creating ? (
+          <NewItemInline
+            title={all.length === 0 ? "Crie o primeiro item desta rotina" : "Novo item"} onCreate={onCreateItem}
+            onCreated={(item) => { setMade((m) => [...m, item]); setItemId(item.id); setCreating(false); setErrors((e) => ({ ...e, item: undefined })); }}
+            onCancel={all.length === 0 ? undefined : () => setCreating(false)}
+          />
+        ) : (
+          <>
+            <FormField label="Medicação ou procedimento" error={errors.item}>
+              <SelectField value={itemId} onChange={setItemId} options={options} placeholder="Selecione…" />
+            </FormField>
+            <Button variant="outline" onPress={() => setCreating(true)} accessibilityLabel="Criar item novo" className="self-start">+ Criar item novo</Button>
+          </>
+        )}
         <FormField label="Dose / instrução" hint="Opcional. Se vazio, usa a dose padrão do item.">
           <Input value={dose} onChangeText={setDose} maxLength={120} autoComplete="off" />
         </FormField>

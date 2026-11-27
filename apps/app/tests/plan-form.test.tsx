@@ -33,6 +33,9 @@ jest.mock("@/lib/patient-queries", () => ({
   useCreatePlan: () => ({ mutateAsync: (a: unknown) => mockCreate(a) }),
 }));
 
+const mockCreateItem = jest.fn();
+jest.mock("@/lib/item-queries", () => ({ useCreateItem: () => ({ mutateAsync: (b: unknown) => mockCreateItem(b) }) }));
+
 import { toast as mockToast } from "@/components/ui/toast";
 import NovaRotina from "@/app/(app)/pacientes/[id]/rotina/nova";
 
@@ -62,15 +65,16 @@ describe("tela", () => {
     expect(screen.getByLabelText("Carregando")).toBeOnTheScreen();
   });
 
-  test("sem itens: vazio com 'Cadastrar item' (leva a /itens/novo)", async () => {
+  test("sem itens: o formulário de criar item já aparece aqui mesmo (sem mandar sair da tela)", async () => {
     ready([]);
     await renderApp(<NovaRotina />);
     expect(screen.getByRole("header", { name: "Nova rotina" })).toBeOnTheScreen();
     expect(screen.getByText("Izzy")).toBeOnTheScreen();
-    expect(screen.getByText("Cadastre um item primeiro")).toBeOnTheScreen();
-    expect(screen.getByText("Você precisa de ao menos uma medicação ou procedimento para montar a rotina.")).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole("button", { name: "Cadastrar item" }));
-    expect(mockRouter.push).toHaveBeenCalledWith("/itens/novo");
+    expect(screen.getByText("Crie o primeiro item desta rotina")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Nome do item")).toBeOnTheScreen();
+    expect(screen.queryByRole("button", { name: "Medicação ou procedimento" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Cancelar" })).toBeNull();
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
   test("paciente 404 mostra 'Paciente não encontrado'", async () => {
@@ -361,6 +365,74 @@ describe("formulário", () => {
       await save();
       expect(await screen.findByText("Informe um intervalo entre 5 minutos e 1 ano")).toBeOnTheScreen();
       expect(mockCreate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("criar item na hora", () => {
+    const created = item("n1", "Soro fisiológico", "procedure");
+    const openCreator = () => fireEvent.press(screen.getByRole("button", { name: "Criar item novo" }));
+
+    test("cria, já deixa selecionado e a rotina usa o item novo", async () => {
+      mockCreateItem.mockResolvedValue(created);
+      mockCreate.mockResolvedValue({});
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await openCreator();
+      await fireEvent.press(screen.getByRole("tab", { name: "Procedimento" }));
+      await fireEvent.changeText(screen.getByLabelText("Nome do item"), "  Soro fisiológico ");
+      await fireEvent.press(screen.getByRole("button", { name: "Criar item" }));
+      await waitFor(() => expect(mockCreateItem).toHaveBeenCalledWith({ name: "Soro fisiológico", kind: "procedure" }));
+      expect(await screen.findByText("Soro fisiológico, a cada 8 horas, uso contínuo")).toBeOnTheScreen();
+      expect(screen.queryByLabelText("Nome do item")).toBeNull(); // o formulário se recolhe
+      await save();
+      await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ itemId: "n1" }) })));
+    });
+
+    test("nome vazio avisa e não cria; Cancelar recolhe", async () => {
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await openCreator();
+      await fireEvent.press(screen.getByRole("button", { name: "Criar item" }));
+      expect(await screen.findByText("Informe o nome")).toBeOnTheScreen();
+      expect(mockCreateItem).not.toHaveBeenCalled();
+      await fireEvent.press(screen.getByRole("button", { name: "Cancelar" }));
+      expect(screen.queryByLabelText("Nome do item")).toBeNull();
+    });
+
+    test("erro do servidor mostra a mensagem e mantém o que foi digitado", async () => {
+      mockCreateItem.mockRejectedValue(new ApiClientError(422, "invalid", "Nome inválido"));
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await openCreator();
+      await fireEvent.changeText(screen.getByLabelText("Nome do item"), "X");
+      await fireEvent.press(screen.getByRole("button", { name: "Criar item" }));
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith("Nome inválido"));
+      expect(screen.getByLabelText("Nome do item").props.value).toBe("X");
+    });
+
+    test("sem itens: criar o primeiro já leva ao seletor com ele escolhido", async () => {
+      mockCreateItem.mockResolvedValue(created);
+      ready([]);
+      await renderApp(<NovaRotina />);
+      await fireEvent.changeText(screen.getByLabelText("Nome do item"), "Soro fisiológico");
+      await fireEvent.press(screen.getByRole("button", { name: "Criar item" }));
+      expect(await screen.findByText("Soro fisiológico, a cada 8 horas, uso contínuo")).toBeOnTheScreen();
+      expect(screen.getByRole("button", { name: "Criar item novo" })).toBeOnTheScreen();
+    });
+
+    test("toque duplo em 'Criar item' cria uma vez só", async () => {
+      let finish: (v: unknown) => void = () => {};
+      mockCreateItem.mockReturnValue(new Promise((r) => { finish = r; }));
+      ready(items);
+      await renderApp(<NovaRotina />);
+      await openCreator();
+      await fireEvent.changeText(screen.getByLabelText("Nome do item"), "Soro");
+      const b = screen.getByRole("button", { name: "Criar item" });
+      await fireEvent.press(b);
+      await fireEvent.press(b);
+      expect(mockCreateItem).toHaveBeenCalledTimes(1);
+      finish(created);
+      await screen.findByText("Soro fisiológico, a cada 8 horas, uso contínuo");
     });
   });
 
