@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ComponentRef } from "react";
-import { Pressable, ScrollView, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import { PanResponder, Platform, Pressable, ScrollView, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { cn } from "@/lib/cn";
 import { Text } from "@/components/ui/text";
 
@@ -20,8 +20,20 @@ export function TimeWheel({ values, selected, onSelect, label }: Props) {
   useEffect(() => { ref.current?.scrollTo({ y: index * ITEM, animated: false }); }, [index]);
   useEffect(() => () => clearTimeout(timer.current), []);
 
+  // Na web o mouse não "arrasta" uma lista rolável: este arrasto faz a roleta deslizar para cima e para baixo como no celular.
+  const offset = useRef(0);
+  const dragFrom = useRef(0);
+  const pan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => Platform.OS === "web" && Math.abs(g.dy) > 4 && Math.abs(g.dy) > Math.abs(g.dx),
+      onPanResponderGrant: () => { dragFrom.current = offset.current; },
+      onPanResponderMove: (_, g) => ref.current?.scrollTo({ y: dragFrom.current - g.dy, animated: false }),
+    }),
+  ).current;
+
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
+    offset.current = y;
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       const i = Math.min(values.length - 1, Math.max(0, Math.round(y / ITEM)));
@@ -31,7 +43,7 @@ export function TimeWheel({ values, selected, onSelect, label }: Props) {
   };
 
   return (
-    <View style={{ height: ITEM * VISIBLE, width: 88 }}>
+    <View style={{ height: ITEM * VISIBLE, width: 88 }} {...pan.panHandlers}>
       <View pointerEvents="none" style={{ position: "absolute", left: 0, right: 0, top: ITEM * 2, height: ITEM }} className="rounded-xl bg-brand-soft" />
       <ScrollView
         ref={ref} showsVerticalScrollIndicator={false} nestedScrollEnabled scrollEventThrottle={16} onScroll={onScroll}
